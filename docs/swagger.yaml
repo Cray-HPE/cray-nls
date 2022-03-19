@@ -1,0 +1,33 @@
+definitions:
+  utils.ResponseError:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Create an User
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Create an User
+      tags:
+      - users
+swagger: "2.0"

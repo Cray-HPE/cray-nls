@@ -1,0 +1,6 @@
+.env
+server.log
+clean-gin
+__debug_bin
+tmp
+gin-bin

@@ -21,6 +21,16 @@ func NewUserController(userService services.UserService, logger utils.Logger) Us
 }
 
 // UpdateUser updates user
+// @Summary      Create an User
+// @Description  Create an User
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Header       200  {string}  Token  "qwerty"
+// @Failure      400  {object}  utils.ResponseError
+// @Failure      404  {object}  utils.ResponseError
+// @Failure      500  {object}  utils.ResponseError
+// @Router       /user [post]
 func (u UserController) UpdateUser(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "user updated"})
 }
