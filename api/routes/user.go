@@ -15,7 +15,7 @@ type UserRoutes struct {
 // Setup user routes
 func (s UserRoutes) Setup() {
 	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/api")
+	api := s.handler.Gin.Group("/api/v1")
 	{
 		api.POST("/user/:id", s.userController.UpdateUser)
 	}

@@ -23,7 +23,7 @@ func NewUserController(userService services.UserService, logger utils.Logger) Us
 // UpdateUser updates user
 // @Summary      Create an User
 // @Description  Create an User
-// @Tags         users
+// @Tags         Users
 // @Accept       json
 // @Produce      json
 // @Header       200  {string}  Token  "qwerty"
