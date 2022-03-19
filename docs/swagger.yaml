@@ -18,11 +18,17 @@ info:
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
-  /user:
-    post:
+  /ncn/{hostname}/bakcup:
+    get:
       consumes:
       - application/json
-      description: Create an User
+      description: Create a NCN backup before rebuild
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -38,9 +44,89 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
-      summary: Create an User
+      summary: Create a NCN backup
       tags:
-      - Users
+      - NCN
+    post:
+      consumes:
+      - application/json
+      description: Create a NCN backup before rebuild
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Create a NCN backup
+      tags:
+      - NCN
+  /ncn/first-master:
+    get:
+      consumes:
+      - application/json
+      description: Get hostname of first master
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Get hostname of first master
+      tags:
+      - NCN
+    put:
+      consumes:
+      - application/json
+      description: Move first master to a master ncn
+      parameters:
+      - description: Hostname of target first master
+        in: body
+        name: hostname
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Move first master to a master ncn
+      tags:
+      - NCN
 securityDefinitions:
   ApiKeyAuth:
     in: header
