@@ -7,101 +7,28 @@ definitions:
     type: object
 info:
   contact: {}
-  description: |-
-    <h1>This is a description</h1>
-    <h3>Multiple line description</h3>
-    ##### Markdown is here
-    `cmd`
+  description: |+
+    # (WIP)
+
+    This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I
+
+
+    > TIP: This is Descrption is rendered from `docs/api.md`
+
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
-  /ncn/{hostname}/bakcup:
-    get:
-      consumes:
-      - application/json
-      description: Create a NCN backup before rebuild
-      parameters:
-      - description: Hostname
-        in: path
-        name: hostname
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-      summary: Create a NCN backup
-      tags:
-      - NCN
-    post:
-      consumes:
-      - application/json
-      description: Create a NCN backup before rebuild
-      parameters:
-      - description: Hostname
-        in: path
-        name: hostname
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-      summary: Create a NCN backup
-      tags:
-      - NCN
-  /ncn/first-master:
-    get:
-      consumes:
-      - application/json
-      description: Get hostname of first master
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-      summary: Get hostname of first master
-      tags:
-      - NCN
+  /etcd/{hostname}/prepare:
     put:
       consumes:
       - application/json
-      description: Move first master to a master ncn
+      description: |
+        ## Prepare ETCD for rebuild
+
+        we need to remove and add a master to baremetal etcd cluster first so it can rejoin after rebuild
       parameters:
       - description: Hostname of target first master
         in: body
@@ -124,7 +51,266 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
-      summary: Move first master to a master ncn
+      summary: Prepare etcd on a master node
+      tags:
+      - Etcd
+  /kubernetes/{hostname}/drain:
+    post:
+      consumes:
+      - application/json
+      description: |
+        ## Drain Kubernetes Node
+
+        Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Drain a Kubernetes node
+      tags:
+      - Kubernetes
+  /kubernetes/{hostname}/post-rebuild:
+    post:
+      consumes:
+      - application/json
+      description: |
+        ## Post Rebuild
+
+        After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Kubernetes node post rebuild action
+      tags:
+      - Kubernetes
+  /kubernetes/first-master:
+    put:
+      consumes:
+      - application/json
+      description: |
+        ## Move First Master
+
+        We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+      parameters:
+      - description: Hostname of target first master
+        in: body
+        name: hostname
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Move first master to a master k8s
+      tags:
+      - Kubernetes
+  /ncn/{hostname}/backup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      tags:
+      - NCN
+  /ncn/{hostname}/post-rebuild:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      tags:
+      - NCN
+  /ncn/{hostname}/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      tags:
+      - NCN
+  /ncn/{hostname}/restore:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      tags:
+      - NCN
+  /ncn/{hostname}/validate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      tags:
+      - NCN
+  /ncn/{hostname}/wipe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
       tags:
       - NCN
 securityDefinitions:

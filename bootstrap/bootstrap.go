@@ -40,7 +40,11 @@ func bootstrap(
 			go func() {
 				middlewares.Setup()
 				routes.Setup()
-				handler.Gin.Run(":" + env.ServerPort)
+				host := "0.0.0.0"
+				if env.Environment == "development" {
+					host = "127.0.0.1"
+				}
+				handler.Gin.Run(host + ":" + env.ServerPort)
 			}()
 			return nil
 		},

@@ -8,12 +8,9 @@ import (
 	"go.uber.org/fx"
 )
 
-// @title           NCN Lifecycle Management API
-// @version         1.0
-// @description     <h1>This is a description</h1>
-// @description 	<h3>Multiple line description</h3>
-// @description 	##### Markdown is here
-// @description 	`cmd`
+// @title    NCN Lifecycle Management API
+// @version  1.0
+// @description.markdown
 
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
