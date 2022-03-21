@@ -4,8 +4,6 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 
 ---
 
-## Master
-
 #### Pre-condition
 
 1. **NCN** is a **master** node
@@ -14,11 +12,3 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 #### Actions
 
 1. drain node
-
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions

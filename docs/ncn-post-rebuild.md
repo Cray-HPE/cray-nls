@@ -4,7 +4,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Master
+## Master/Worker
 
 #### Pre-condition
 
@@ -13,14 +13,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 #### Actions
 
 1. install latest docs-csm rpm
-
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions
+1. set `metal.no-wipe=1`
 
 ---
 

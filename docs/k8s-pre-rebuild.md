@@ -30,3 +30,4 @@ Actions we need to perform before rebuild a k8s node
 1. ENSURE_ETCD_PODS_RUNNING
 1. ENSURE_POSTGRES_HEALTHY
 1. `cfs/wait_for_configuration.sh`
+1. snapshot cps deployment

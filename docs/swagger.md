@@ -85,8 +85,6 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 
 ---
 
-## Master
-
 #### Pre-condition
 
 1. **NCN** is a **master** node
@@ -95,14 +93,6 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 #### Actions
 
 1. drain node
-
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions
 
 ##### Parameters
 
@@ -149,7 +139,13 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 #### Pre-condition
 
+1. **NCN** is a **worker** node
+
 #### Actions
+
+1. redeploy cps
+1. `cfs/wait_for_configuration.sh`
+1. ENSURE_KEY_PODS_HAVE_STARTED
 
 ##### Parameters
 
@@ -206,6 +202,7 @@ Actions we need to perform before rebuild a k8s node
 1. ENSURE_ETCD_PODS_RUNNING
 1. ENSURE_POSTGRES_HEALTHY
 1. `cfs/wait_for_configuration.sh`
+1. snapshot cps deployment
 
 ##### Parameters
 
@@ -258,6 +255,9 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 
 #### Actions
 
+1. bakcup ssh keys/authroized_keys
+1. upload backup to s3
+
 ---
 
 ## Storage
@@ -297,7 +297,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Master
+## Master/Worker
 
 #### Pre-condition
 
@@ -306,14 +306,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 #### Actions
 
 1. install latest docs-csm rpm
-
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions
+1. set `metal.no-wipe=1`
 
 ---
 

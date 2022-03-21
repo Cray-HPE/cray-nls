@@ -20,4 +20,9 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 #### Pre-condition
 
+1. **NCN** is a **worker** node
+
 #### Actions
+1. redeploy cps
+1. `cfs/wait_for_configuration.sh`
+1. ENSURE_KEY_PODS_HAVE_STARTED

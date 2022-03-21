@@ -99,8 +99,6 @@ paths:
 
         ---
 
-        ## Master
-
         #### Pre-condition
 
         1. **NCN** is a **master** node
@@ -109,14 +107,6 @@ paths:
         #### Actions
 
         1. drain node
-
-        ---
-
-        ## Worker
-
-        #### Pre-condition
-
-        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -145,7 +135,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: |
+      description: |-
         # K8s Post Rebuild
 
         After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
@@ -168,7 +158,12 @@ paths:
 
         #### Pre-condition
 
+        1. **NCN** is a **worker** node
+
         #### Actions
+        1. redeploy cps
+        1. `cfs/wait_for_configuration.sh`
+        1. ENSURE_KEY_PODS_HAVE_STARTED
       parameters:
       - description: Hostname
         in: path
@@ -230,6 +225,7 @@ paths:
         1. ENSURE_ETCD_PODS_RUNNING
         1. ENSURE_POSTGRES_HEALTHY
         1. `cfs/wait_for_configuration.sh`
+        1. snapshot cps deployment
       parameters:
       - description: Hostname
         in: path
@@ -287,6 +283,9 @@ paths:
 
         #### Actions
 
+        1. bakcup ssh keys/authroized_keys
+        1. upload backup to s3
+
         ---
 
         ## Storage
@@ -331,7 +330,7 @@ paths:
 
         ---
 
-        ## Master
+        ## Master/Worker
 
         #### Pre-condition
 
@@ -340,14 +339,7 @@ paths:
         #### Actions
 
         1. install latest docs-csm rpm
-
-        ---
-
-        ## Worker
-
-        #### Pre-condition
-
-        #### Actions
+        1. set `metal.no-wipe=1`
 
         ---
 

@@ -72,7 +72,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
-                "description": "# Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "# Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -116,7 +116,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
-                "description": "# K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "# K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. ENSURE_KEY_PODS_HAVE_STARTED",
                 "consumes": [
                     "application/json"
                 ],
@@ -160,7 +160,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/pre-rebuild": {
             "post": {
-                "description": "# K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n## Master\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `\n\n---\n\n## worker\n\n### Pre-condition\n\n1. **NCN** is a **worker** node\n\n### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n1. ENSURE_ETCD_PODS_RUNNING\n1. ENSURE_POSTGRES_HEALTHY\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n",
+                "description": "# K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n## Master\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `\n\n---\n\n## worker\n\n### Pre-condition\n\n1. **NCN** is a **worker** node\n\n### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n1. ENSURE_ETCD_PODS_RUNNING\n1. ENSURE_POSTGRES_HEALTHY\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. snapshot cps deployment\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -204,7 +204,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/backup": {
             "post": {
-                "description": "# NCN\n\nCreate backup of a ncn based on a predefined list so critical files can be restored after rebuild.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. backup local **sat** file\n1. (m001 only) backup **ifcfg-lan0**\n1. upload backup to s3\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n---\n\n## Storage\n\n1. **NCN** is a **ceph storage** node\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "# NCN\n\nCreate backup of a ncn based on a predefined list so critical files can be restored after rebuild.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. backup local **sat** file\n1. (m001 only) backup **ifcfg-lan0**\n1. upload backup to s3\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. bakcup ssh keys/authroized_keys\n1. upload backup to s3\n\n---\n\n## Storage\n\n1. **NCN** is a **ceph storage** node\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,7 +248,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
-                "description": "# NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "# NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n## Master/Worker\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n1. set ` + "`" + `metal.no-wipe=1` + "`" + `\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],

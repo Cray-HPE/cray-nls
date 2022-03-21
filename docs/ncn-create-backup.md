@@ -26,6 +26,9 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 
 #### Actions
 
+1. bakcup ssh keys/authroized_keys
+1. upload backup to s3
+
 ---
 
 ## Storage
