@@ -1,27 +1,16 @@
 # NCN
 
-`TODO`
+Restore previously backup files to a ncn.
 
 ---
 
-## Master
+## Master/Worker/Storage
 
 #### Pre-condition
 
-#### Actions
-
----
-
-## Worker
-
-#### Pre-condition
+`N/A`
 
 #### Actions
 
----
-
-## Storage
-
-#### Pre-condition
-
-#### Actions
+1. download backup from s3
+1. untar/restore backup

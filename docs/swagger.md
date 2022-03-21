@@ -192,7 +192,7 @@ Create a NCN backup
 
 # NCN
 
-`TODO`
+Create backup of a ncn based on a predefined list so critical files can be restored after rebuild.
 
 ---
 
@@ -200,7 +200,13 @@ Create a NCN backup
 
 #### Pre-condition
 
+1. **NCN** is a **master** node
+
 #### Actions
+
+1. backup local **sat** file
+1. (m001 only) backup **ifcfg-lan0**
+1. upload backup to s3
 
 ---
 
@@ -208,11 +214,15 @@ Create a NCN backup
 
 #### Pre-condition
 
+1. **NCN** is a **worker** node
+
 #### Actions
 
 ---
 
 ## Storage
+
+1. **NCN** is a **ceph storage** node
 
 #### Pre-condition
 
@@ -243,7 +253,7 @@ Perform post rebuild action on a NCN
 
 # NCN
 
-`TODO`
+After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
@@ -251,7 +261,11 @@ Perform post rebuild action on a NCN
 
 #### Pre-condition
 
+1. **NCN** is a **master** node
+
 #### Actions
+
+1. install latest docs-csm rpm
 
 ---
 
@@ -294,31 +308,18 @@ Perform reboot on a NCN
 
 # NCN
 
-`TODO`
+Set to boot from pxe and power cycle the ncn
 
 ---
 
-## Master
+## Master/Worker/Storage
 
 #### Pre-condition
 
 #### Actions
 
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions
-
----
-
-## Storage
-
-#### Pre-condition
-
-#### Actions
+1. Set boot to pxe
+2. `ipmitool` power cycle the ncn
 
 ##### Parameters
 
@@ -345,31 +346,20 @@ Restore a NCN backup
 
 # NCN
 
-`TODO`
+Restore previously backup files to a ncn.
 
 ---
 
-## Master
+## Master/Worker/Storage
 
 #### Pre-condition
 
-#### Actions
-
----
-
-## Worker
-
-#### Pre-condition
+`N/A`
 
 #### Actions
 
----
-
-## Storage
-
-#### Pre-condition
-
-#### Actions
+1. download backup from s3
+1. untar/restore backup
 
 ##### Parameters
 
@@ -388,6 +378,26 @@ Restore a NCN backup
 ### /ncn/{hostname}/validate
 
 #### POST
+##### Summary
+
+Perform validation on a NCN
+
+##### Description
+
+# NCN
+
+Run validation step of a ncn
+
+---
+
+## Master/Worker/Storage
+
+#### Pre-condition
+
+#### Actions
+
+1. run goss test
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -413,7 +423,7 @@ Perform disk wipe on a NCN
 
 # NCN
 
-`TODO`
+Wipe a ncn's disk and set BSS `metal.no-wipe` to `0` so it actually gets wiped on boot
 
 ---
 
@@ -421,15 +431,78 @@ Perform disk wipe on a NCN
 
 #### Pre-condition
 
+1. **NCN** is a **master** node
+
 #### Actions
+
+1. Wipe disk
+
+```
+usb_device_path=$(lsblk -b -l -o TRAN,PATH \| awk /usb/'{print $2}')
+usb_rc=$?
+set -e
+if [[ "$usb_rc" -eq 0 ]]; then
+    if blkid -p $usb_device_path; then
+    have_mnt=0
+    for mnt_point in /mnt/rootfs /mnt/sqfs /mnt/livecd /mnt/pitdata; do
+        if mountpoint $mnt_point; then
+        have_mnt=1
+        umount $mnt_point
+        fi
+    done
+    if [ "$have_mnt" -eq 1 ]; then
+        eject $usb_device_path
+    fi
+    fi
+fi
+umount /var/lib/etcd /var/lib/sdu \|\| true
+for md in /dev/md/*; do mdadm -S $md \|\| echo nope ; done
+vgremove -f --select 'vg_name=~metal*' \|\| true
+pvremove /dev/md124 \|\| true
+# Select the devices we care about; RAID, SATA, and NVME devices/handles (but *NOT* USB)
+disk_list=$(lsblk -l -o SIZE,NAME,TYPE,TRAN \| grep -E '(raid\|sata\|nvme\|sas)' \| sort -u \| awk '{print "/dev/"$2}' \| tr '\\n' ' ')
+for disk in $disk_list; do
+    wipefs --all --force wipefs --all --force "$disk" \|\| true
+    sgdisk --zap-all "$disk"
+done
+```
+
+2. set `metal.no-wipe=0`
 
 ---
 
 ## Worker
 
-#### Pre-condition
+1. **NCN** is a **worker** node
 
 #### Actions
+
+1. Wipe disk
+
+```
+lsblk \| grep -q /var/lib/sdu
+sdu_rc=$?
+vgs \| grep -q metal
+vgs_rc=$?
+set -e
+systemctl disable kubelet.service \|\| true
+systemctl stop kubelet.service \|\| true
+systemctl disable containerd.service \|\| true
+systemctl stop containerd.service \|\| true
+umount /var/lib/containerd /var/lib/kubelet \|\| true
+if [[ "$sdu_rc" -eq 0 ]]; then
+    umount /var/lib/sdu \|\| true
+fi
+for md in /dev/md/*; do mdadm -S $md \|\| echo nope ; done
+if [[ "$vgs_rc" -eq 0 ]]; then
+    vgremove -f --select 'vg_name=~metal*' \|\| true
+    pvremove /dev/md124 \|\| true
+fi
+wipefs --all --force /dev/sd* /dev/disk/by-label/* \|\| true
+sgdisk --zap-all /dev/sd*
+```
+
+2. set `metal.no-wipe=0`
 
 ---
 
@@ -437,7 +510,17 @@ Perform disk wipe on a NCN
 
 #### Pre-condition
 
+1. **NCN** is a **storage** node
+
 #### Actions
+
+1. Wipe disk
+
+```
+for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -af "/dev/$d"; done
+```
+
+2. set `metal.no-wipe=0`
 
 ##### Parameters
 

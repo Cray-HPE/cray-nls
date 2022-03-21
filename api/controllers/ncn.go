@@ -96,17 +96,16 @@ func (u NcnController) NcnPostRebuild(c *gin.Context) {
 }
 
 // NcnValidate 		perform validation on a NCN
-// @Summary      Perform validation on a NCN
-// @Description.markdown
-
-// @Tags     NCN
-// @Param    hostname  path  string  true  "Hostname"
-// @Accept   json
-// @Produce  json
-// @Failure  400  {object}  utils.ResponseError
-// @Failure  404  {object}  utils.ResponseError
-// @Failure  500  {object}  utils.ResponseError
-// @Router   /ncn/{hostname}/validate [post]
+// @Summary               Perform validation on a NCN
+// @description.markdown  ncn-validate
+// @Tags                  NCN
+// @Param                 hostname  path  string  true  "Hostname"
+// @Accept                json
+// @Produce               json
+// @Failure               400  {object}  utils.ResponseError
+// @Failure               404  {object}  utils.ResponseError
+// @Failure               500  {object}  utils.ResponseError
+// @Router                /ncn/{hostname}/validate [post]
 func (u NcnController) NcnValidate(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }

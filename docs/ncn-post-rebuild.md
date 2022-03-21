@@ -1,6 +1,6 @@
 # NCN
 
-`TODO`
+After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
@@ -8,7 +8,11 @@
 
 #### Pre-condition
 
+1. **NCN** is a **master** node
+
 #### Actions
+
+1. install latest docs-csm rpm
 
 ---
 

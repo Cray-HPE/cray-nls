@@ -1,27 +1,13 @@
 # NCN
 
-`TODO`
+Set to boot from pxe and power cycle the ncn
 
 ---
 
-## Master
+## Master/Worker/Storage
 
 #### Pre-condition
 
 #### Actions
-
----
-
-## Worker
-
-#### Pre-condition
-
-#### Actions
-
----
-
-## Storage
-
-#### Pre-condition
-
-#### Actions
+1. Set boot to pxe
+2. `ipmitool` power cycle the ncn
