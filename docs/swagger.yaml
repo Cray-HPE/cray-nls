@@ -26,32 +26,42 @@ paths:
       consumes:
       - application/json
       description: |
-        ## Prepare ETCD for rebuild
+        ## Prepare baremetal ETCD for rejoining
 
-        we need to remove and add a master to baremetal etcd cluster first so it can rejoin after rebuild
+        Prepare a master ncn to rejoin baremetal etcd cluster
+
+        ### Pre-condition
+
+        1. **NCN** is a **master** node
+        1. Baremetal etcd cluster is in **healthy** state
+
+        ### Action
+
+        1. Remove a ncn from baremetal etcd cluster
+        1. Stop etcd services on the ncn
+        1. Add the ncn back to etcd cluster so it can rejoin on boot
       parameters:
-      - description: Hostname of target first master
-        in: body
+      - description: Hostname of target ncn
+        in: path
         name: hostname
         required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:
+        "200":
+          description: ok
+          schema:
+            type: string
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/utils.ResponseError'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
-      summary: Prepare etcd on a master node
+      summary: Prepare baremetal etcd for a master node to rejoin
       tags:
       - Etcd
   /kubernetes/{hostname}/drain:
@@ -313,44 +323,4 @@ paths:
             $ref: '#/definitions/utils.ResponseError'
       tags:
       - NCN
-securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
-  BasicAuth:
-    type: basic
-  OAuth2AccessCode:
-    authorizationUrl: https://example.com/oauth/authorize
-    flow: accessCode
-    scopes:
-      admin: '                            Grants read and write access to administrative
-        information'
-    tokenUrl: https://example.com/oauth/token
-    type: oauth2
-  OAuth2Application:
-    flow: application
-    scopes:
-      admin: '                             Grants read and write access to administrative
-        information'
-      write: '                             Grants write access'
-    tokenUrl: https://example.com/oauth/token
-    type: oauth2
-  OAuth2Implicit:
-    authorizationUrl: https://example.com/oauth/authorize
-    flow: implicit
-    scopes:
-      admin: '                          Grants read and write access to administrative
-        information'
-      write: '                          Grants write access'
-    type: oauth2
-  OAuth2Password:
-    flow: password
-    scopes:
-      admin: '                          Grants read and write access to administrative
-        information'
-      read: '                           Grants read access'
-      write: '                          Grants write access'
-    tokenUrl: https://example.com/oauth/token
-    type: oauth2
 swagger: "2.0"

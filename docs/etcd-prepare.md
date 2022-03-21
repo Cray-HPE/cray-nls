@@ -1,3 +1,14 @@
-## Prepare ETCD for rebuild
+## Prepare baremetal ETCD for rejoining
 
-we need to remove and add a master to baremetal etcd cluster first so it can rejoin after rebuild
+Prepare a master ncn to rejoin baremetal etcd cluster
+
+### Pre-condition
+
+1. **NCN** is a **master** node
+1. Baremetal etcd cluster is in **healthy** state
+
+### Action
+
+1. Remove a ncn from baremetal etcd cluster
+1. Stop etcd services on the ncn
+1. Add the ncn back to etcd cluster so it can rejoin on boot

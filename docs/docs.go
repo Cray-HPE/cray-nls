@@ -22,7 +22,7 @@ const docTemplate = `{
     "paths": {
         "/etcd/{hostname}/prepare": {
             "put": {
-                "description": "## Prepare ETCD for rebuild\n\nwe need to remove and add a master to baremetal etcd cluster first so it can rejoin after rebuild\n",
+                "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n\n### Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,27 +32,25 @@ const docTemplate = `{
                 "tags": [
                     "Etcd"
                 ],
-                "summary": "Prepare etcd on a master node",
+                "summary": "Prepare baremetal etcd for a master node to rejoin",
                 "parameters": [
                     {
-                        "description": "Hostname of target first master",
+                        "type": "string",
+                        "description": "Hostname of target ncn",
                         "name": "hostname",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request",
+                    "200": {
+                        "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "type": "string"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/utils.ResponseError"
                         }
@@ -460,53 +458,6 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 }
-            }
-        }
-    },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        },
-        "BasicAuth": {
-            "type": "basic"
-        },
-        "OAuth2AccessCode": {
-            "type": "oauth2",
-            "flow": "accessCode",
-            "authorizationUrl": "https://example.com/oauth/authorize",
-            "tokenUrl": "https://example.com/oauth/token",
-            "scopes": {
-                "admin": "                            Grants read and write access to administrative information"
-            }
-        },
-        "OAuth2Application": {
-            "type": "oauth2",
-            "flow": "application",
-            "tokenUrl": "https://example.com/oauth/token",
-            "scopes": {
-                "admin": "                             Grants read and write access to administrative information",
-                "write": "                             Grants write access"
-            }
-        },
-        "OAuth2Implicit": {
-            "type": "oauth2",
-            "flow": "implicit",
-            "authorizationUrl": "https://example.com/oauth/authorize",
-            "scopes": {
-                "admin": "                          Grants read and write access to administrative information",
-                "write": "                          Grants write access"
-            }
-        },
-        "OAuth2Password": {
-            "type": "oauth2",
-            "flow": "password",
-            "tokenUrl": "https://example.com/oauth/token",
-            "scopes": {
-                "admin": "                          Grants read and write access to administrative information",
-                "read": "                           Grants read access",
-                "write": "                          Grants write access"
             }
         }
     }

@@ -20,16 +20,15 @@ func NewEtcdController(EtcdService services.EtcdService, logger utils.Logger) Et
 	}
 }
 
-// EtcdPrepare 	prepare etcd for a master node
-// @Summary               Prepare etcd on a master node
+// EtcdPrepare 	prepare baremetal etcd for a master node to rejoin
+// @Summary               Prepare baremetal etcd for a master node to rejoin
 // @description.markdown  etcd-prepare
-// @Param                 hostname  body  string  true  "Hostname of target first master"
+// @Param                 hostname  path  string  true  "Hostname of target ncn"
 // @Tags                  Etcd
 // @Accept                json
 // @Produce               json
-// @Header                200  {string}  Token  "qwerty"
+// @Success               200  {string}  string  "ok"
 // @Failure               400  {object}  utils.ResponseError
-// @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /etcd/{hostname}/prepare [put]
 func (u EtcdController) EtcdPrepare(c *gin.Context) {
