@@ -486,7 +486,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "NCN Lifecycle Management API",
-	Description:      "# (WIP)\n\nThis doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n\n> TIP: This is Descrption is rendered from `docs/api.md`\n\n",
+	Description:      "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Master node\n#### e2e upgrade flow\n1. `/etcd/{hostname}/prepare`\n1. `/kubernetes/{hostname}/move-first-master`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. `/ncn/{hostname}/reboot`\n\n    >NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n\n---\n\n## Kubernetes Worker node\n\n---\n\n## Ceph Storage Node\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

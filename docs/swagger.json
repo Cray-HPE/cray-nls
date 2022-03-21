@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "# (WIP)\n\nThis doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n\n\u003e TIP: This is Descrption is rendered from `docs/api.md`\n\n",
+        "description": "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Master node\n#### e2e upgrade flow\n1. `/etcd/{hostname}/prepare`\n1. `/kubernetes/{hostname}/move-first-master`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. `/ncn/{hostname}/reboot`\n\n    \u003eNOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n\n---\n\n## Kubernetes Worker node\n\n---\n\n## Ceph Storage Node\n",
         "title": "NCN Lifecycle Management API",
         "contact": {},
         "license": {
