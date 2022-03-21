@@ -28,7 +28,6 @@ func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnCo
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
@@ -45,7 +44,6 @@ func (u NcnController) NcnCreateBakcup(c *gin.Context) {
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
@@ -62,7 +60,6 @@ func (u NcnController) NcnRestoreBakcup(c *gin.Context) {
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
@@ -79,7 +76,6 @@ func (u NcnController) NcnWipe(c *gin.Context) {
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
@@ -96,7 +92,6 @@ func (u NcnController) NcnReboot(c *gin.Context) {
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
@@ -113,7 +108,6 @@ func (u NcnController) NcnPostRebuild(c *gin.Context) {
 // @Param    hostname  path  string  true  "Hostname"
 // @Accept   json
 // @Produce  json
-// @Header   200  {string}  Token  "qwerty"
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError

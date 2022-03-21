@@ -26,16 +26,17 @@ paths:
       consumes:
       - application/json
       description: |
-        ## Prepare baremetal ETCD for rejoining
+        # Prepare baremetal ETCD for rejoining
 
         Prepare a master ncn to rejoin baremetal etcd cluster
 
-        ### Pre-condition
+        ## Pre-condition
 
         1. **NCN** is a **master** node
         1. Baremetal etcd cluster is in **healthy** state
+        1. quorum after removal
 
-        ### Action
+        ## Action
 
         1. Remove a ncn from baremetal etcd cluster
         1. Stop etcd services on the ncn
@@ -57,6 +58,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "500":
           description: Internal Server Error
           schema:
@@ -69,9 +74,30 @@ paths:
       consumes:
       - application/json
       description: |
-        ## Drain Kubernetes Node
+        # Drain Kubernetes Node
 
-        Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely
+        ## Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        1. **NCN** is a **master** node
+        1. quorum after removal
+
+        #### Actions
+
+        1. drain node
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -96,12 +122,54 @@ paths:
       summary: Drain a Kubernetes node
       tags:
       - Kubernetes
+  /kubernetes/{hostname}/move-first-master:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        # Move First Master
+
+        We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+
+        ### Pre-condition
+
+        1. **NCN** is a **master** node
+        1. **NCN** is already the **first master**
+
+        ### Action
+
+        1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
+        2. Update `meta-data.first-master-hostname`
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Move first master from a master k8s node
+      tags:
+      - Kubernetes
   /kubernetes/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
       description: |
-        ## Post Rebuild
+        # Post Rebuild
 
         After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
       parameters:
@@ -126,39 +194,6 @@ paths:
           schema:
             $ref: '#/definitions/utils.ResponseError'
       summary: Kubernetes node post rebuild action
-      tags:
-      - Kubernetes
-  /kubernetes/first-master:
-    put:
-      consumes:
-      - application/json
-      description: |
-        ## Move First Master
-
-        We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
-      parameters:
-      - description: Hostname of target first master
-        in: body
-        name: hostname
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-      summary: Move first master to a master k8s
       tags:
       - Kubernetes
   /ncn/{hostname}/backup:

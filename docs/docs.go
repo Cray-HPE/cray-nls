@@ -22,7 +22,7 @@ const docTemplate = `{
     "paths": {
         "/etcd/{hostname}/prepare": {
             "put": {
-                "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n\n### Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
+                "description": "# Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n## Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n1. quorum after removal\n\n## Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -55,46 +55,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/kubernetes/first-master": {
-            "put": {
-                "description": "## Move First Master\n\nWe need to make sure first master is not the node being rebuit. We need to move ` + "`" + `first_master` + "`" + ` to a different master node\n",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Kubernetes"
-                ],
-                "summary": "Move first master to a master k8s",
-                "parameters": [
-                    {
-                        "description": "Hostname of target first master",
-                        "name": "hostname",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -112,7 +72,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
-                "description": "## Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n",
+                "description": "# Drain Kubernetes Node\n\n## Before we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -154,9 +114,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/kubernetes/{hostname}/move-first-master": {
+            "post": {
+                "description": "# Move First Master\n\nWe need to make sure first master is not the node being rebuit. We need to move ` + "`" + `first_master` + "`" + ` to a different master node\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Kubernetes"
+                ],
+                "summary": "Move first master from a master k8s node",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hostname",
+                        "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
-                "description": "## Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n",
+                "description": "# Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n",
                 "consumes": [
                     "application/json"
                 ],

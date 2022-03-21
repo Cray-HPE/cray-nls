@@ -20,18 +20,17 @@ func NewK8sController(K8sService services.K8sService, logger utils.Logger) K8sCo
 	}
 }
 
-// K8sMoveFirstMaster 	move first master to a master k8s
-// @Summary               Move first master to a master k8s
+// K8sMoveFirstMaster 	move first master from a master k8s node
+// @Summary               Move first master from a master k8s node
 // @description.markdown  k8s-move-first-master
-// @Param                 hostname  body  string  true  "Hostname of target first master"
+// @Param                 hostname  path  string  true  "Hostname"
 // @Tags                  Kubernetes
 // @Accept                json
 // @Produce               json
-// @Header                200  {string}  Token  "qwerty"
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
-// @Router                /kubernetes/first-master [put]
+// @Router                /kubernetes/{hostname}/move-first-master [post]
 func (u K8sController) K8sMoveFirstMaster(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "K8s updated"})
 }
@@ -42,7 +41,6 @@ func (u K8sController) K8sMoveFirstMaster(c *gin.Context) {
 // @Tags                  Kubernetes
 // @Accept                json
 // @Produce               json
-// @Header                200       {string}  Token   "qwerty"
 // @Param                 hostname  path      string  true  "Hostname"
 // @Failure               400       {object}  utils.ResponseError
 // @Failure               404       {object}  utils.ResponseError
@@ -58,7 +56,6 @@ func (u K8sController) K8sDrain(c *gin.Context) {
 // @Tags                  Kubernetes
 // @Accept                json
 // @Produce               json
-// @Header                200       {string}  Token   "qwerty"
 // @Param                 hostname  path      string  true  "Hostname"
 // @Failure               400       {object}  utils.ResponseError
 // @Failure               404       {object}  utils.ResponseError

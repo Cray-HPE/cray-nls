@@ -29,6 +29,7 @@ func NewEtcdController(EtcdService services.EtcdService, logger utils.Logger) Et
 // @Produce               json
 // @Success               200  {string}  string  "ok"
 // @Failure               400  {object}  utils.ResponseError
+// @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /etcd/{hostname}/prepare [put]
 func (u EtcdController) EtcdPrepare(c *gin.Context) {
