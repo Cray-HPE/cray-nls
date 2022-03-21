@@ -1,10 +1,10 @@
-# NCN
+## NCN Validation
 
 Run validation step of a ncn
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
 #### Pre-condition
 

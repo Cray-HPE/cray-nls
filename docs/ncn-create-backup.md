@@ -1,10 +1,10 @@
-# NCN
+## NCN create backup
 
 Create backup of a ncn based on a predefined list so critical files can be restored after rebuild.
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -31,7 +31,7 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 
 ---
 
-## Storage
+### Storage
 
 1. **NCN** is a **ceph storage** node
 

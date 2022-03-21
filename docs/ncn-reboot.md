@@ -1,12 +1,12 @@
-# NCN
+## NCN Reboot
 
 Set to boot from pxe and power cycle the ncn
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
-#### Pre-condition
+##### Pre-condition
 
 #### Actions
 1. Set boot to pxe

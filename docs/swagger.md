@@ -43,17 +43,17 @@ Prepare baremetal etcd for a master node to rejoin
 
 ##### Description
 
-# Prepare baremetal ETCD for rejoining
+## Prepare baremetal ETCD for rejoining
 
 Prepare a master ncn to rejoin baremetal etcd cluster
 
-## Pre-condition
+#### Pre-condition
 
 1. **NCN** is a **master** node
 1. Baremetal etcd cluster is in **healthy** state
 1. quorum after removal
 
-## Action
+#### Action
 
 1. Remove a ncn from baremetal etcd cluster
 1. Stop etcd services on the ncn
@@ -83,7 +83,7 @@ Drain a Kubernetes node
 
 ##### Description
 
-# Drain Kubernetes Node
+## Drain Kubernetes Node
 
 Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely
 
@@ -121,13 +121,13 @@ Kubernetes node post rebuild action
 
 ##### Description
 
-# K8s Post Rebuild
+## K8s Post Rebuild
 
 After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -139,7 +139,7 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 ---
 
-## Worker
+### Worker
 
 #### Pre-condition
 
@@ -174,33 +174,33 @@ Kubernetes node pre rebuild action
 
 ##### Description
 
-# K8s Pre Rebuild
+## K8s Pre Rebuild
 
 Actions we need to perform before rebuild a k8s node
 
 ---
 
-## Master
+### Master
 
-### Pre-condition
+#### Pre-condition
 
 1. **NCN** is a **master** node
 1. **NCN** is already the **first master**
 
-### Action
+#### Action
 
 1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
 2. Update `meta-data.first-master-hostname`
 
 ---
 
-## worker
+### worker
 
-### Pre-condition
+#### Pre-condition
 
 1. **NCN** is a **worker** node
 
-### Action
+#### Action
 
 1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE
 1. ENSURE_ETCD_PODS_RUNNING
@@ -231,13 +231,13 @@ Create a NCN backup
 
 ##### Description
 
-# NCN
+## NCN create backup
 
 Create backup of a ncn based on a predefined list so critical files can be restored after rebuild.
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -264,7 +264,7 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 
 ---
 
-## Storage
+### Storage
 
 1. **NCN** is a **ceph storage** node
 
@@ -295,15 +295,15 @@ Perform post rebuild action on a NCN
 
 ##### Description
 
-# NCN Post Rebuild
+## NCN Post Rebuild
 
 After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Master/Worker
+### Master/Worker
 
-#### Pre-condition
+##### Pre-condition
 
 1. **NCN** is a **master** node
 
@@ -314,9 +314,9 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Storage
+### Storage
 
-#### Pre-condition
+##### Pre-condition
 
 #### Actions
 
@@ -343,15 +343,15 @@ Perform reboot on a NCN
 
 ##### Description
 
-# NCN
+## NCN Reboot
 
 Set to boot from pxe and power cycle the ncn
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
-#### Pre-condition
+##### Pre-condition
 
 #### Actions
 
@@ -381,15 +381,15 @@ Restore a NCN backup
 
 ##### Description
 
-# NCN
+## NCN restore backup
 
 Restore previously backup files to a ncn.
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
-#### Pre-condition
+##### Pre-condition
 
 `N/A`
 
@@ -421,13 +421,13 @@ Perform validation on a NCN
 
 ##### Description
 
-# NCN
+## NCN Validation
 
 Run validation step of a ncn
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
 #### Pre-condition
 
@@ -458,13 +458,13 @@ Perform disk wipe on a NCN
 
 ##### Description
 
-# NCN
+## NCN wipe disk
 
 Wipe a ncn's disk and set BSS `metal.no-wipe` to `0` so it actually gets wiped on boot
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -508,7 +508,7 @@ done
 
 ---
 
-## Worker
+### Worker
 
 1. **NCN** is a **worker** node
 
@@ -543,7 +543,7 @@ sgdisk --zap-all /dev/sd*
 
 ---
 
-## Storage
+### Storage
 
 #### Pre-condition
 

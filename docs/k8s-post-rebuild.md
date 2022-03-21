@@ -1,10 +1,10 @@
-# K8s Post Rebuild
+## K8s Post Rebuild
 
 After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -16,7 +16,7 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 ---
 
-## Worker
+### Worker
 
 #### Pre-condition
 

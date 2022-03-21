@@ -22,7 +22,7 @@ const docTemplate = `{
     "paths": {
         "/etcd/{hostname}/prepare": {
             "put": {
-                "description": "# Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n## Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n1. quorum after removal\n\n## Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
+                "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n1. quorum after removal\n\n#### Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -72,7 +72,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
-                "description": "# Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
+                "description": "## Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -116,7 +116,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
-                "description": "# K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. ENSURE_KEY_PODS_HAVE_STARTED",
+                "description": "## K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n### Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. ENSURE_KEY_PODS_HAVE_STARTED",
                 "consumes": [
                     "application/json"
                 ],
@@ -160,7 +160,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/pre-rebuild": {
             "post": {
-                "description": "# K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n## Master\n\n### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `\n\n---\n\n## worker\n\n### Pre-condition\n\n1. **NCN** is a **worker** node\n\n### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n1. ENSURE_ETCD_PODS_RUNNING\n1. ENSURE_POSTGRES_HEALTHY\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. snapshot cps deployment\n",
+                "description": "## K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n#### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `\n\n---\n\n### worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n1. ENSURE_ETCD_PODS_RUNNING\n1. ENSURE_POSTGRES_HEALTHY\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n1. snapshot cps deployment\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -204,7 +204,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/backup": {
             "post": {
-                "description": "# NCN\n\nCreate backup of a ncn based on a predefined list so critical files can be restored after rebuild.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. backup local **sat** file\n1. (m001 only) backup **ifcfg-lan0**\n1. upload backup to s3\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. bakcup ssh keys/authroized_keys\n1. upload backup to s3\n\n---\n\n## Storage\n\n1. **NCN** is a **ceph storage** node\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "## NCN create backup\n\nCreate backup of a ncn based on a predefined list so critical files can be restored after rebuild.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. backup local **sat** file\n1. (m001 only) backup **ifcfg-lan0**\n1. upload backup to s3\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. bakcup ssh keys/authroized_keys\n1. upload backup to s3\n\n---\n\n### Storage\n\n1. **NCN** is a **ceph storage** node\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,7 +248,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
-                "description": "# NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n## Master/Worker\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n1. set ` + "`" + `metal.no-wipe=1` + "`" + `\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "## NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master/Worker\n\n##### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n1. set ` + "`" + `metal.no-wipe=1` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -292,7 +292,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/reboot": {
             "post": {
-                "description": "# NCN\n\nSet to boot from pxe and power cycle the ncn\n\n---\n\n## Master/Worker/Storage\n\n#### Pre-condition\n\n#### Actions\n1. Set boot to pxe\n2. ` + "`" + `ipmitool` + "`" + ` power cycle the ncn\n",
+                "description": "## NCN Reboot\n\nSet to boot from pxe and power cycle the ncn\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n#### Actions\n1. Set boot to pxe\n2. ` + "`" + `ipmitool` + "`" + ` power cycle the ncn\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -336,7 +336,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/restore": {
             "post": {
-                "description": "# NCN\n\nRestore previously backup files to a ncn.\n\n---\n\n## Master/Worker/Storage\n\n#### Pre-condition\n\n` + "`" + `N/A` + "`" + `\n\n#### Actions\n\n1. download backup from s3\n1. untar/restore backup\n",
+                "description": "## NCN restore backup\n\nRestore previously backup files to a ncn.\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n` + "`" + `N/A` + "`" + `\n\n#### Actions\n\n1. download backup from s3\n1. untar/restore backup\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -380,7 +380,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/validate": {
             "post": {
-                "description": "# NCN\n\nRun validation step of a ncn\n\n---\n\n## Master/Worker/Storage\n\n#### Pre-condition\n\n#### Actions\n\n1. run goss test\n",
+                "description": "## NCN Validation\n\nRun validation step of a ncn\n\n---\n\n### Master/Worker/Storage\n\n#### Pre-condition\n\n#### Actions\n\n1. run goss test\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -424,7 +424,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/wipe": {
             "post": {
-                "description": "# NCN\n\nWipe a ncn's disk and set BSS ` + "`" + `metal.no-wipe` + "`" + ` to ` + "`" + `0` + "`" + ` so it actually gets wiped on boot\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nusb_device_path=$(lsblk -b -l -o TRAN,PATH | awk /usb/'{print $2}')\nusb_rc=$?\nset -e\nif [[ \"$usb_rc\" -eq 0 ]]; then\n    if blkid -p $usb_device_path; then\n    have_mnt=0\n    for mnt_point in /mnt/rootfs /mnt/sqfs /mnt/livecd /mnt/pitdata; do\n        if mountpoint $mnt_point; then\n        have_mnt=1\n        umount $mnt_point\n        fi\n    done\n    if [ \"$have_mnt\" -eq 1 ]; then\n        eject $usb_device_path\n    fi\n    fi\nfi\numount /var/lib/etcd /var/lib/sdu || true\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nvgremove -f --select 'vg_name=~metal*' || true\npvremove /dev/md124 || true\n# Select the devices we care about; RAID, SATA, and NVME devices/handles (but *NOT* USB)\ndisk_list=$(lsblk -l -o SIZE,NAME,TYPE,TRAN | grep -E '(raid|sata|nvme|sas)' | sort -u | awk '{print \"/dev/\"$2}' | tr '\\n' ' ')\nfor disk in $disk_list; do\n    wipefs --all --force wipefs --all --force \"$disk\" || true\n    sgdisk --zap-all \"$disk\"\ndone\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n## Worker\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nlsblk | grep -q /var/lib/sdu\nsdu_rc=$?\nvgs | grep -q metal\nvgs_rc=$?\nset -e\nsystemctl disable kubelet.service || true\nsystemctl stop kubelet.service || true\nsystemctl disable containerd.service || true\nsystemctl stop containerd.service || true\numount /var/lib/containerd /var/lib/kubelet || true\nif [[ \"$sdu_rc\" -eq 0 ]]; then\n    umount /var/lib/sdu || true\nfi\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nif [[ \"$vgs_rc\" -eq 0 ]]; then\n    vgremove -f --select 'vg_name=~metal*' || true\n    pvremove /dev/md124 || true\nfi\nwipefs --all --force /dev/sd* /dev/disk/by-label/* || true\nsgdisk --zap-all /dev/sd*\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n## Storage\n\n#### Pre-condition\n\n1. **NCN** is a **storage** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nfor d in $(lsblk | grep -B2 -F md1 | grep ^s | awk '{print $1}'); do wipefs -af \"/dev/$d\"; done\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n",
+                "description": "## NCN wipe disk\n\nWipe a ncn's disk and set BSS ` + "`" + `metal.no-wipe` + "`" + ` to ` + "`" + `0` + "`" + ` so it actually gets wiped on boot\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nusb_device_path=$(lsblk -b -l -o TRAN,PATH | awk /usb/'{print $2}')\nusb_rc=$?\nset -e\nif [[ \"$usb_rc\" -eq 0 ]]; then\n    if blkid -p $usb_device_path; then\n    have_mnt=0\n    for mnt_point in /mnt/rootfs /mnt/sqfs /mnt/livecd /mnt/pitdata; do\n        if mountpoint $mnt_point; then\n        have_mnt=1\n        umount $mnt_point\n        fi\n    done\n    if [ \"$have_mnt\" -eq 1 ]; then\n        eject $usb_device_path\n    fi\n    fi\nfi\numount /var/lib/etcd /var/lib/sdu || true\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nvgremove -f --select 'vg_name=~metal*' || true\npvremove /dev/md124 || true\n# Select the devices we care about; RAID, SATA, and NVME devices/handles (but *NOT* USB)\ndisk_list=$(lsblk -l -o SIZE,NAME,TYPE,TRAN | grep -E '(raid|sata|nvme|sas)' | sort -u | awk '{print \"/dev/\"$2}' | tr '\\n' ' ')\nfor disk in $disk_list; do\n    wipefs --all --force wipefs --all --force \"$disk\" || true\n    sgdisk --zap-all \"$disk\"\ndone\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n### Worker\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nlsblk | grep -q /var/lib/sdu\nsdu_rc=$?\nvgs | grep -q metal\nvgs_rc=$?\nset -e\nsystemctl disable kubelet.service || true\nsystemctl stop kubelet.service || true\nsystemctl disable containerd.service || true\nsystemctl stop containerd.service || true\numount /var/lib/containerd /var/lib/kubelet || true\nif [[ \"$sdu_rc\" -eq 0 ]]; then\n    umount /var/lib/sdu || true\nfi\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nif [[ \"$vgs_rc\" -eq 0 ]]; then\n    vgremove -f --select 'vg_name=~metal*' || true\n    pvremove /dev/md124 || true\nfi\nwipefs --all --force /dev/sd* /dev/disk/by-label/* || true\nsgdisk --zap-all /dev/sd*\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n### Storage\n\n#### Pre-condition\n\n1. **NCN** is a **storage** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nfor d in $(lsblk | grep -B2 -F md1 | grep ^s | awk '{print $1}'); do wipefs -af \"/dev/$d\"; done\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n",
                 "consumes": [
                     "application/json"
                 ],

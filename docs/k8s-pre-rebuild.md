@@ -1,30 +1,30 @@
-# K8s Pre Rebuild
+## K8s Pre Rebuild
 
 Actions we need to perform before rebuild a k8s node
 
 ---
 
-## Master
+### Master
 
-### Pre-condition
+#### Pre-condition
 
 1. **NCN** is a **master** node
 1. **NCN** is already the **first master**
 
-### Action
+#### Action
 
 1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
 2. Update `meta-data.first-master-hostname`
 
 ---
 
-## worker
+### worker
 
-### Pre-condition
+#### Pre-condition
 
 1. **NCN** is a **worker** node
 
-### Action
+#### Action
 
 1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE
 1. ENSURE_ETCD_PODS_RUNNING

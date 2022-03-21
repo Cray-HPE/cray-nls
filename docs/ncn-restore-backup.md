@@ -1,12 +1,12 @@
-# NCN
+## NCN restore backup
 
 Restore previously backup files to a ncn.
 
 ---
 
-## Master/Worker/Storage
+### Master/Worker/Storage
 
-#### Pre-condition
+##### Pre-condition
 
 `N/A`
 

@@ -1,12 +1,12 @@
-# NCN Post Rebuild
+## NCN Post Rebuild
 
 After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Master/Worker
+### Master/Worker
 
-#### Pre-condition
+##### Pre-condition
 
 1. **NCN** is a **master** node
 
@@ -17,8 +17,8 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 ---
 
-## Storage
+### Storage
 
-#### Pre-condition
+##### Pre-condition
 
 #### Actions

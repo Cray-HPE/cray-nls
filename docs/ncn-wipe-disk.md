@@ -1,10 +1,10 @@
-# NCN
+## NCN wipe disk
 
 Wipe a ncn's disk and set BSS `metal.no-wipe` to `0` so it actually gets wiped on boot
 
 ---
 
-## Master
+### Master
 
 #### Pre-condition
 
@@ -48,7 +48,7 @@ done
 
 ---
 
-## Worker
+### Worker
 
 1. **NCN** is a **worker** node
 
@@ -83,7 +83,7 @@ sgdisk --zap-all /dev/sd*
 
 ---
 
-## Storage
+### Storage
 
 #### Pre-condition
 
