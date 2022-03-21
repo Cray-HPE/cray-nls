@@ -3,17 +3,18 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 
 ---
 
-## Kubernetes Master node
+## Kubernetes Nodes
+
 #### e2e upgrade flow
 
 1. `/etcd/{hostname}/prepare`
-1. `/kubernetes/{hostname}/move-first-master`
+1. `/kubernetes/{hostname}/pre-rebuild`
 1. `/kubernetes/{hostname}/drain`
 1. `/ncn/{hostname}/backup`
 1. `/ncn/{hostname}/wipe`
 1. `/ncn/{hostname}/reboot`
 
-    >NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
+   > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
 
 1. `/ncn/{hostname}/restore`
 1. `/ncn/{hostname}/post-rebuild`
@@ -120,43 +121,6 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
 
-### /kubernetes/{hostname}/move-first-master
-
-#### POST
-##### Summary
-
-Move first master from a master k8s node
-
-##### Description
-
-# Move First Master
-
-We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
-
-### Pre-condition
-
-1. **NCN** is a **master** node
-1. **NCN** is already the **first master**
-
-### Action
-
-1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
-2. Update `meta-data.first-master-hostname`
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
-
 ### /kubernetes/{hostname}/post-rebuild
 
 #### POST
@@ -166,7 +130,7 @@ Kubernetes node post rebuild action
 
 ##### Description
 
-# Post Rebuild
+# K8s Post Rebuild
 
 After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
 
@@ -189,6 +153,57 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 #### Pre-condition
 
 #### Actions
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | Hostname | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
+| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+### /kubernetes/{hostname}/pre-rebuild
+
+#### POST
+##### Summary
+
+Kubernetes node pre rebuild action
+
+##### Description
+
+# K8s Pre Rebuild
+
+We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+
+---
+
+## Master
+
+### Pre-condition
+
+1. **NCN** is a **master** node
+1. **NCN** is already the **first master**
+
+### Action
+
+1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
+2. Update `meta-data.first-master-hostname`
+
+---
+
+## worker
+
+### Pre-condition
+
+1. **NCN** is a **worker** node
+
+### Action
 
 ##### Parameters
 
@@ -274,7 +289,7 @@ Perform post rebuild action on a NCN
 
 ##### Description
 
-# NCN
+# NCN Post Rebuild
 
 After a ncn has been rebuilt, some `CSM specific` steps are required.
 

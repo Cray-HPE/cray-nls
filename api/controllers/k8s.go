@@ -20,9 +20,9 @@ func NewK8sController(K8sService services.K8sService, logger utils.Logger) K8sCo
 	}
 }
 
-// K8sMoveFirstMaster 	move first master from a master k8s node
-// @Summary               Move first master from a master k8s node
-// @description.markdown  k8s-move-first-master
+// K8sPreRebuild 	pre rebuild action
+// @Summary               Kubernetes node pre rebuild action
+// @description.markdown  k8s-pre-rebuild
 // @Param                 hostname  path  string  true  "Hostname"
 // @Tags                  Kubernetes
 // @Accept                json
@@ -30,8 +30,8 @@ func NewK8sController(K8sService services.K8sService, logger utils.Logger) K8sCo
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
-// @Router                /kubernetes/{hostname}/move-first-master [post]
-func (u K8sController) K8sMoveFirstMaster(c *gin.Context) {
+// @Router                /kubernetes/{hostname}/pre-rebuild [post]
+func (u K8sController) K8sPreRebuild(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "K8s updated"})
 }
 

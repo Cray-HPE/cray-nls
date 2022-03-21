@@ -1,6 +1,10 @@
-# Move First Master
+# K8s Pre Rebuild
 
 We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+
+---
+
+## Master
 
 ### Pre-condition
 
@@ -11,3 +15,13 @@ We need to make sure first master is not the node being rebuit. We need to move 
 
 1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
 2. Update `meta-data.first-master-hostname`
+
+---
+
+## worker
+
+### Pre-condition
+
+1. **NCN** is a **worker** node
+
+### Action

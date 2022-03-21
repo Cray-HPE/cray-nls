@@ -12,22 +12,23 @@ info:
 
     ---
 
-    ## Kubernetes Master node
+    ## Kubernetes Nodes
+
     #### e2e upgrade flow
+
     1. `/etcd/{hostname}/prepare`
-    1. `/kubernetes/{hostname}/move-first-master`
+    1. `/kubernetes/{hostname}/pre-rebuild`
     1. `/kubernetes/{hostname}/drain`
     1. `/ncn/{hostname}/backup`
     1. `/ncn/{hostname}/wipe`
     1. `/ncn/{hostname}/reboot`
 
-        >NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
+       > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
 
     1. `/ncn/{hostname}/restore`
     1. `/ncn/{hostname}/post-rebuild`
     1. `/kubernetes/{hostname}/post-rebuild`
     1. `/ncn/{hostname}/validate`
-
 
     ---
 
@@ -143,54 +144,12 @@ paths:
       summary: Drain a Kubernetes node
       tags:
       - Kubernetes
-  /kubernetes/{hostname}/move-first-master:
-    post:
-      consumes:
-      - application/json
-      description: |-
-        # Move First Master
-
-        We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
-
-        ### Pre-condition
-
-        1. **NCN** is a **master** node
-        1. **NCN** is already the **first master**
-
-        ### Action
-
-        1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
-        2. Update `meta-data.first-master-hostname`
-      parameters:
-      - description: Hostname
-        in: path
-        name: hostname
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.ResponseError'
-      summary: Move first master from a master k8s node
-      tags:
-      - Kubernetes
   /kubernetes/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
       description: |
-        # Post Rebuild
+        # K8s Post Rebuild
 
         After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
 
@@ -235,6 +194,62 @@ paths:
           schema:
             $ref: '#/definitions/utils.ResponseError'
       summary: Kubernetes node post rebuild action
+      tags:
+      - Kubernetes
+  /kubernetes/{hostname}/pre-rebuild:
+    post:
+      consumes:
+      - application/json
+      description: |
+        # K8s Pre Rebuild
+
+        We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+
+        ---
+
+        ## Master
+
+        ### Pre-condition
+
+        1. **NCN** is a **master** node
+        1. **NCN** is already the **first master**
+
+        ### Action
+
+        1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
+        2. Update `meta-data.first-master-hostname`
+
+        ---
+
+        ## worker
+
+        ### Pre-condition
+
+        1. **NCN** is a **worker** node
+
+        ### Action
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Kubernetes node pre rebuild action
       tags:
       - Kubernetes
   /ncn/{hostname}/backup:
@@ -308,7 +323,7 @@ paths:
       consumes:
       - application/json
       description: |
-        # NCN
+        # NCN Post Rebuild
 
         After a ncn has been rebuilt, some `CSM specific` steps are required.
 
