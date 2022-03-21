@@ -172,6 +172,26 @@ paths:
         # Post Rebuild
 
         After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        1. **NCN** is a **master** node
+
+        #### Actions
+
+        1. `scripts/k8s/update_kubeapi_istio_ca.sh`
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -200,6 +220,34 @@ paths:
     post:
       consumes:
       - application/json
+      description: |
+        # NCN
+
+        `TODO`
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Storage
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -221,12 +269,41 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      summary: Create a NCN backup
       tags:
       - NCN
   /ncn/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
+      description: |
+        # NCN
+
+        `TODO`
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Storage
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -248,12 +325,41 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      summary: Perform post rebuild action on a NCN
       tags:
       - NCN
   /ncn/{hostname}/reboot:
     post:
       consumes:
       - application/json
+      description: |
+        # NCN
+
+        `TODO`
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Storage
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -275,12 +381,41 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      summary: Perform reboot on a NCN
       tags:
       - NCN
   /ncn/{hostname}/restore:
     post:
       consumes:
       - application/json
+      description: |
+        # NCN
+
+        `TODO`
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Storage
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -302,6 +437,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      summary: Restore a NCN backup
       tags:
       - NCN
   /ncn/{hostname}/validate:
@@ -335,6 +471,34 @@ paths:
     post:
       consumes:
       - application/json
+      description: |
+        # NCN
+
+        `TODO`
+
+        ---
+
+        ## Master
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Worker
+
+        #### Pre-condition
+
+        #### Actions
+
+        ---
+
+        ## Storage
+
+        #### Pre-condition
+
+        #### Actions
       parameters:
       - description: Hostname
         in: path
@@ -356,6 +520,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      summary: Perform disk wipe on a NCN
       tags:
       - NCN
 swagger: "2.0"

@@ -147,6 +147,26 @@ Kubernetes node post rebuild action
 
 After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
 
+---
+
+## Master
+
+#### Pre-condition
+
+1. **NCN** is a **master** node
+
+#### Actions
+
+1. `scripts/k8s/update_kubeapi_istio_ca.sh`
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -164,6 +184,40 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ### /ncn/{hostname}/backup
 
 #### POST
+##### Summary
+
+Create a NCN backup
+
+##### Description
+
+# NCN
+
+`TODO`
+
+---
+
+## Master
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Storage
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -181,6 +235,40 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ### /ncn/{hostname}/post-rebuild
 
 #### POST
+##### Summary
+
+Perform post rebuild action on a NCN
+
+##### Description
+
+# NCN
+
+`TODO`
+
+---
+
+## Master
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Storage
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -198,6 +286,40 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ### /ncn/{hostname}/reboot
 
 #### POST
+##### Summary
+
+Perform reboot on a NCN
+
+##### Description
+
+# NCN
+
+`TODO`
+
+---
+
+## Master
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Storage
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -215,6 +337,40 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ### /ncn/{hostname}/restore
 
 #### POST
+##### Summary
+
+Restore a NCN backup
+
+##### Description
+
+# NCN
+
+`TODO`
+
+---
+
+## Master
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Storage
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -249,6 +405,40 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ### /ncn/{hostname}/wipe
 
 #### POST
+##### Summary
+
+Perform disk wipe on a NCN
+
+##### Description
+
+# NCN
+
+`TODO`
+
+---
+
+## Master
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Worker
+
+#### Pre-condition
+
+#### Actions
+
+---
+
+## Storage
+
+#### Pre-condition
+
+#### Actions
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |

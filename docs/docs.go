@@ -160,7 +160,7 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
-                "description": "# Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n",
+                "description": "# Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -204,6 +204,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/backup": {
             "post": {
+                "description": "# NCN\n\n` + "`" + `TODO` + "`" + `\n\n---\n\n## Master\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -213,6 +214,7 @@ const docTemplate = `{
                 "tags": [
                     "NCN"
                 ],
+                "summary": "Create a NCN backup",
                 "parameters": [
                     {
                         "type": "string",
@@ -246,6 +248,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
+                "description": "# NCN\n\n` + "`" + `TODO` + "`" + `\n\n---\n\n## Master\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -255,6 +258,7 @@ const docTemplate = `{
                 "tags": [
                     "NCN"
                 ],
+                "summary": "Perform post rebuild action on a NCN",
                 "parameters": [
                     {
                         "type": "string",
@@ -288,6 +292,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/reboot": {
             "post": {
+                "description": "# NCN\n\n` + "`" + `TODO` + "`" + `\n\n---\n\n## Master\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -297,6 +302,7 @@ const docTemplate = `{
                 "tags": [
                     "NCN"
                 ],
+                "summary": "Perform reboot on a NCN",
                 "parameters": [
                     {
                         "type": "string",
@@ -330,6 +336,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/restore": {
             "post": {
+                "description": "# NCN\n\n` + "`" + `TODO` + "`" + `\n\n---\n\n## Master\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -339,6 +346,7 @@ const docTemplate = `{
                 "tags": [
                     "NCN"
                 ],
+                "summary": "Restore a NCN backup",
                 "parameters": [
                     {
                         "type": "string",
@@ -414,6 +422,7 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/wipe": {
             "post": {
+                "description": "# NCN\n\n` + "`" + `TODO` + "`" + `\n\n---\n\n## Master\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n\n---\n\n## Storage\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -423,6 +432,7 @@ const docTemplate = `{
                 "tags": [
                     "NCN"
                 ],
+                "summary": "Perform disk wipe on a NCN",
                 "parameters": [
                     {
                         "type": "string",
