@@ -24,3 +24,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 ---
 
 ## Ceph Storage Node
+
+---
+
+(API Doc)[swagger.md]

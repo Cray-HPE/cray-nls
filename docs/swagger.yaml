@@ -34,6 +34,10 @@ info:
     ---
 
     ## Ceph Storage Node
+
+    ---
+
+    (API Doc)[swagger.md]
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

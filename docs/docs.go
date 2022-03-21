@@ -486,7 +486,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "NCN Lifecycle Management API",
-	Description:      "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Nodes\n\n#### e2e upgrade flow\n\n1. `/etcd/{hostname}/prepare`\n   > NOTE: no-op for **worker** nodes\n1. `/kubernetes/{hostname}/pre-rebuild`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. `/ncn/{hostname}/reboot`\n\n   > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n---\n\n## Ceph Storage Node\n",
+	Description:      "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Nodes\n\n#### e2e upgrade flow\n\n1. `/etcd/{hostname}/prepare`\n   > NOTE: no-op for **worker** nodes\n1. `/kubernetes/{hostname}/pre-rebuild`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. `/ncn/{hostname}/reboot`\n\n   > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n---\n\n## Ceph Storage Node\n\n---\n\n(API Doc)[swagger.md]\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

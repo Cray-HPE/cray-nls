@@ -2,7 +2,7 @@
 
 ### Prereq
 
-1. golang
+1. golang 1.17
 2. npm: required for swagger doc gen
 
 ### Development

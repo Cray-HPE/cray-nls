@@ -26,6 +26,10 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 
 ## Ceph Storage Node
 
+---
+
+[API Doc](swagger.md)
+
 ## Version: 1.0
 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
