@@ -64,7 +64,7 @@
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
-                "description": "# Drain Kubernetes Node\n\n## Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
+                "description": "# Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely\n\n---\n\n## Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n\n---\n\n## Worker\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
