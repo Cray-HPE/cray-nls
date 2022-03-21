@@ -7,6 +7,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 #### e2e upgrade flow
 
 1. `/etcd/{hostname}/prepare`
+   > NOTE: no-op for **worker** nodes
 1. `/kubernetes/{hostname}/pre-rebuild`
 1. `/kubernetes/{hostname}/drain`
 1. `/ncn/{hostname}/backup`
@@ -19,10 +20,6 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 1. `/ncn/{hostname}/post-rebuild`
 1. `/kubernetes/{hostname}/post-rebuild`
 1. `/ncn/{hostname}/validate`
-
----
-
-## Kubernetes Worker node
 
 ---
 

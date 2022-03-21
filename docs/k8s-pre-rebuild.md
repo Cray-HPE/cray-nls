@@ -1,6 +1,6 @@
 # K8s Pre Rebuild
 
-We need to make sure first master is not the node being rebuit. We need to move `first_master` to a different master node
+Actions we need to perform before rebuild a k8s node
 
 ---
 
@@ -25,3 +25,8 @@ We need to make sure first master is not the node being rebuit. We need to move 
 1. **NCN** is a **worker** node
 
 ### Action
+
+1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE
+1. ENSURE_ETCD_PODS_RUNNING
+1. ENSURE_POSTGRES_HEALTHY
+1. `cfs/wait_for_configuration.sh`
