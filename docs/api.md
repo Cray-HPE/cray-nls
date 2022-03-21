@@ -27,4 +27,4 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 
 ---
 
-(API Doc)[swagger.md]
+[API Doc](swagger.md)
