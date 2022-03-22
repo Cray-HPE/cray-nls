@@ -47,7 +47,7 @@ func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnCo
 // @Summary               Create a NCN backup
 // @description.markdown  ncn-create-backup
 // @Tags                  NCN
-// @Param                 hostname  path  string  true  "Hostname"
+// @Param                 hostname        path  string                 true  "Hostname"
 // @Accept                json
 // @Produce               json
 // @Failure               400  {object}  utils.ResponseError
@@ -85,6 +85,22 @@ func (u NcnController) NcnRestoreBakcup(c *gin.Context) {
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /ncn/{hostname}/wipe [post]
 func (u NcnController) NcnWipe(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnSetBootParam 		set boot parameters before reboot a NCN
+// @Summary               Set boot parameters before reboot a NCN
+// @description.markdown  ncn-set-boot-parameters
+// @Tags                  NCN
+// @Param                 hostname  path  string  true  "Hostname"
+// @Param                 bootParameters  body  models.BootParameters  true  "boot parameters"
+// @Accept                json
+// @Produce               json
+// @Failure               400  {object}  utils.ResponseError
+// @Failure               404  {object}  utils.ResponseError
+// @Failure               500  {object}  utils.ResponseError
+// @Router                /ncn/{hostname}/set-boot-parameters [post]
+func (u NcnController) NcnSetBootParam(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 

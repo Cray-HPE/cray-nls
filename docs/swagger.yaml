@@ -1,5 +1,17 @@
 basePath: /api/v1
 definitions:
+  models.BootParameters:
+    properties:
+      image:
+        $ref: '#/definitions/models.ImageObject'
+    type: object
+  models.ImageObject:
+    properties:
+      path:
+        type: string
+      version:
+        type: string
+    type: object
   utils.ResponseError:
     properties:
       message:
@@ -22,6 +34,7 @@ info:
     1. `/kubernetes/{hostname}/drain`
     1. `/ncn/{hostname}/backup`
     1. `/ncn/{hostname}/wipe`
+    1. `/ncn/{hostname}/set-boot-parameters`
     1. `/ncn/{hostname}/reboot`
 
        > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
@@ -30,6 +43,10 @@ info:
     1. `/ncn/{hostname}/post-rebuild`
     1. `/kubernetes/{hostname}/post-rebuild`
     1. `/ncn/{hostname}/validate`
+
+    ##### After all Kubernetes nodes are upgraded
+
+    1. `/ncn/kubernetes/post-upgrade`
 
     ---
 
@@ -493,6 +510,50 @@ paths:
           schema:
             $ref: '#/definitions/utils.ResponseError'
       summary: Restore a NCN backup
+      tags:
+      - NCN
+  /ncn/{hostname}/set-boot-parameters:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        ## NCN set boot parameters
+
+        After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
+
+        ---
+
+        #### Actions
+        1. update cloud-init global data
+        1. set which image to boot
+      parameters:
+      - description: Hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      - description: boot parameters
+        in: body
+        name: bootParameters
+        required: true
+        schema:
+          $ref: '#/definitions/models.BootParameters'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+      summary: Set boot parameters before reboot a NCN
       tags:
       - NCN
   /ncn/{hostname}/validate:

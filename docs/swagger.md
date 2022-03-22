@@ -13,6 +13,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 1. `/kubernetes/{hostname}/drain`
 1. `/ncn/{hostname}/backup`
 1. `/ncn/{hostname}/wipe`
+1. `/ncn/{hostname}/set-boot-parameters`
 1. `/ncn/{hostname}/reboot`
 
    > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
@@ -21,6 +22,10 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 1. `/ncn/{hostname}/post-rebuild`
 1. `/kubernetes/{hostname}/post-rebuild`
 1. `/ncn/{hostname}/validate`
+
+##### After all Kubernetes nodes are upgraded
+
+1. `/ncn/kubernetes/post-upgrade`
 
 ---
 
@@ -428,6 +433,41 @@ Restore previously backup files to a ncn.
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
 
+### /ncn/{hostname}/set-boot-parameters
+
+#### POST
+##### Summary
+
+Set boot parameters before reboot a NCN
+
+##### Description
+
+## NCN set boot parameters
+
+After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
+
+---
+
+#### Actions
+
+1. update cloud-init global data
+1. set which image to boot
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | Hostname | Yes | string |
+| bootParameters | body | boot parameters | Yes | [models.BootParameters](#modelsbootparameters) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
+| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
 ### /ncn/{hostname}/validate
 
 #### POST
@@ -648,6 +688,19 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
 
 ### Models
+
+#### models.BootParameters
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| image | [models.ImageObject](#modelsimageobject) |  | No |
+
+#### models.ImageObject
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| path | string |  | No |
+| version | string |  | No |
 
 #### utils.ResponseError
 
