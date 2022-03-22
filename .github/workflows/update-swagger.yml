@@ -1,5 +1,8 @@
 name: Update Swagger UI
-on: push
+on:
+  push:
+    - main
+    - master
 jobs:
   updateSwagger:
     runs-on: ubuntu-latest
