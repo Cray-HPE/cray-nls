@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Nodes\n\n#### e2e upgrade flow\n\n1. `/etcd/{hostname}/prepare`\n   \u003e NOTE: no-op for **worker** nodes\n1. `/kubernetes/{hostname}/pre-rebuild`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. `/ncn/{hostname}/set-boot-parameters`\n1. `/ncn/{hostname}/reboot`\n\n   \u003e NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n##### After all Kubernetes nodes are upgraded\n\n1. `/ncn/kubernetes/post-upgrade`\n\n---\n\n## Ceph Storage Node\n\n---\n\n[API Doc](swagger.md)\n",
+        "description": "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Nodes\n\n#### e2e upgrade flow\n\n1. `/etcd/{hostname}/prepare`\n   \u003e NOTE: no-op for **worker** nodes\n1. `/kubernetes/{hostname}/pre-rebuild`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. PUT `/ncn/{hostname}/boot-parameters`\n1. `/ncn/{hostname}/reboot`\n\n   \u003e NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n##### After all Kubernetes nodes are upgraded\n\n1. `/ncn/kubernetes/post-upgrade`\n\n---\n\n## Ceph Storage Node\n\n---\n\n[API Doc](swagger.md)\n",
         "title": "NCN Lifecycle Management API",
         "contact": {},
         "license": {
@@ -238,6 +238,59 @@
                 }
             }
         },
+        "/ncn/{hostname}/boot-parameters": {
+            "put": {
+                "description": "## NCN set boot parameters\n\nAfter a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n#### Actions\n1. update cloud-init global data\n1. set which image to boot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN"
+                ],
+                "summary": "Set boot parameters before reboot a NCN",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Hostname",
+                        "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "TODO: use data model from `csi/bss`",
+                        "name": "bootParameters",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.BootParameters"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
                 "description": "## NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master/Worker\n\n##### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n\n\n1. set `metal.no-wipe=1`\n\n---\n\n### Storage\n\n##### Pre-condition\n\n#### Actions\n",
@@ -346,59 +399,6 @@
                         "name": "hostname",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/ncn/{hostname}/set-boot-parameters": {
-            "post": {
-                "description": "## NCN set boot parameters\n\nAfter a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n#### Actions\n1. update cloud-init global data\n1. set which image to boot",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN"
-                ],
-                "summary": "Set boot parameters before reboot a NCN",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Hostname",
-                        "name": "hostname",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "boot parameters",
-                        "name": "bootParameters",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.BootParameters"
-                        }
                     }
                 ],
                 "responses": {

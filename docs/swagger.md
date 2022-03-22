@@ -13,7 +13,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 1. `/kubernetes/{hostname}/drain`
 1. `/ncn/{hostname}/backup`
 1. `/ncn/{hostname}/wipe`
-1. `/ncn/{hostname}/set-boot-parameters`
+1. PUT `/ncn/{hostname}/boot-parameters`
 1. `/ncn/{hostname}/reboot`
 
    > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
@@ -304,6 +304,41 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
 
+### /ncn/{hostname}/boot-parameters
+
+#### PUT
+##### Summary
+
+Set boot parameters before reboot a NCN
+
+##### Description
+
+## NCN set boot parameters
+
+After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
+
+---
+
+#### Actions
+
+1. update cloud-init global data
+1. set which image to boot
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | Hostname | Yes | string |
+| bootParameters | body | TODO: use data model from `csi/bss` | Yes | [models.BootParameters](#modelsbootparameters) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
+| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
 ### /ncn/{hostname}/post-rebuild
 
 #### POST
@@ -424,41 +459,6 @@ Restore previously backup files to a ncn.
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
 | hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
-
-### /ncn/{hostname}/set-boot-parameters
-
-#### POST
-##### Summary
-
-Set boot parameters before reboot a NCN
-
-##### Description
-
-## NCN set boot parameters
-
-After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
-
----
-
-#### Actions
-
-1. update cloud-init global data
-1. set which image to boot
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-| bootParameters | body | boot parameters | Yes | [models.BootParameters](#modelsbootparameters) |
 
 ##### Responses
 

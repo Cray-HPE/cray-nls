@@ -12,7 +12,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 1. `/kubernetes/{hostname}/drain`
 1. `/ncn/{hostname}/backup`
 1. `/ncn/{hostname}/wipe`
-1. `/ncn/{hostname}/set-boot-parameters`
+1. PUT `/ncn/{hostname}/boot-parameters`
 1. `/ncn/{hostname}/reboot`
 
    > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?

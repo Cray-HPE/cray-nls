@@ -93,13 +93,13 @@ func (u NcnController) NcnWipe(c *gin.Context) {
 // @description.markdown  ncn-set-boot-parameters
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
-// @Param                 bootParameters  body  models.BootParameters  true  "boot parameters"
+// @Param                 bootParameters  body  models.BootParameters  true  "TODO: use data model from `csi/bss`"
 // @Accept                json
 // @Produce               json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
-// @Router                /ncn/{hostname}/set-boot-parameters [post]
+// @Router                /ncn/{hostname}/boot-parameters [put]
 func (u NcnController) NcnSetBootParam(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
