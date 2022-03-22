@@ -51,9 +51,12 @@ func NewK8sController(K8sService services.K8sService, logger utils.Logger) K8sCo
 // @Accept                json
 // @Produce               json
 // @Failure               400  {object}  utils.ResponseError
+// @Failure               401  {object}  utils.ResponseError
+// @Failure               403  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /kubernetes/{hostname}/pre-rebuild [post]
+// @Security              OAuth2Application[admin]
 func (u K8sController) K8sPreRebuild(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "K8s updated"})
 }
@@ -69,6 +72,7 @@ func (u K8sController) K8sPreRebuild(c *gin.Context) {
 // @Failure               404       {object}  utils.ResponseError
 // @Failure               500       {object}  utils.ResponseError
 // @Router                /kubernetes/{hostname}/drain [post]
+// @Security              OAuth2Application[admin]
 func (u K8sController) K8sDrain(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "K8s updated"})
 }
@@ -84,6 +88,7 @@ func (u K8sController) K8sDrain(c *gin.Context) {
 // @Failure               404       {object}  utils.ResponseError
 // @Failure               500       {object}  utils.ResponseError
 // @Router                /kubernetes/{hostname}/post-rebuild [post]
+// @Security              OAuth2Application[admin]
 func (u K8sController) K8sPostRebuild(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "K8s updated"})
 }

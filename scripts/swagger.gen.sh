@@ -23,5 +23,5 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 swag fmt
-swag init --md docs/
+swag init --md docs/ --outputTypes go,yaml
 swagger-markdown -i  docs/swagger.yaml

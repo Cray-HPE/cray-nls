@@ -22,6 +22,13 @@ const docTemplate = `{
     "paths": {
         "/etcd/{hostname}/prepare": {
             "put": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. Baremetal etcd cluster is in **healthy** state\n\n\n1. quorum after removal\n\n#### Action\n\n1. Remove a ncn from baremetal etcd cluster\n\n\n1. Stop etcd services on the ncn\n\n\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
                 "consumes": [
                     "application/json"
@@ -55,6 +62,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -72,6 +91,13 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some ` + "`" + `CSM specific logic` + "`" + ` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
                 "consumes": [
                     "application/json"
@@ -116,6 +142,13 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. ` + "`" + `scripts/k8s/update_kubeapi_istio_ca.sh` + "`" + `\n\n---\n\n### Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n\n\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n\n\n1. ENSURE_KEY_PODS_HAVE_STARTED",
                 "consumes": [
                     "application/json"
@@ -160,6 +193,13 @@ const docTemplate = `{
         },
         "/kubernetes/{hostname}/pre-rebuild": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. **NCN** is already the **first master**\n\n#### Action\n\n1. Loop through other master nodes until ` + "`" + `scripts/k8s/promote-initial-master.sh` + "`" + ` returns 0\n\n\n2. Update ` + "`" + `meta-data.first-master-hostname` + "`" + `\n\n---\n\n### worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n\n\n1. ENSURE_ETCD_PODS_RUNNING\n\n\n1. ENSURE_POSTGRES_HEALTHY\n\n\n1. ` + "`" + `cfs/wait_for_configuration.sh` + "`" + `\n\n\n1. snapshot cps deployment\n",
                 "consumes": [
                     "application/json"
@@ -187,6 +227,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -202,8 +254,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/ncn/rebuild": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/ncn/rebuild/{rebuild_job_id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/ncn/{hostname}/backup": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN create backup\n\nCreate backup of a ncn based on a predefined list so critical files can be restored after rebuild.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. backup local **sat** file\n1. (m001 only) backup **ifcfg-lan0**\n1. upload backup to s3\n\n---\n\n## Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. bakcup ssh keys/authroized_keys\n1. upload backup to s3\n\n---\n\n### Storage\n\n1. **NCN** is a **ceph storage** node\n\n#### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
@@ -231,6 +371,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -248,6 +400,13 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/boot-parameters": {
             "put": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN set boot parameters\n\nAfter a node rejoined k8s cluster after rebuild, certain ` + "`" + `CSM specific steps` + "`" + ` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n#### Actions\n1. update cloud-init global data\n1. set which image to boot",
                 "consumes": [
                     "application/json"
@@ -284,6 +443,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -301,6 +472,13 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master/Worker\n\n##### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n\n\n1. set ` + "`" + `metal.no-wipe=1` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
@@ -328,6 +506,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -345,6 +535,13 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/reboot": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN Reboot\n\nSet to boot from pxe and power cycle the ncn\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n#### Actions\n1. Set boot to pxe\n\n\n2. ` + "`" + `ipmitool` + "`" + ` power cycle the ncn\n",
                 "consumes": [
                     "application/json"
@@ -372,6 +569,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -389,6 +598,13 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/restore": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN restore backup\n\nRestore previously backup files to a ncn.\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n` + "`" + `N/A` + "`" + `\n\n#### Actions\n\n1. download backup from s3\n\n\n1. untar/restore backup\n",
                 "consumes": [
                     "application/json"
@@ -416,6 +632,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -433,6 +661,14 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/validate": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
                 "description": "## NCN Validation\n\nRun validation step of a ncn\n\n---\n\n### Master/Worker/Storage\n\n#### Pre-condition\n\n#### Actions\n\n1. run goss test\n",
                 "consumes": [
                     "application/json"
@@ -460,6 +696,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -477,6 +725,13 @@ const docTemplate = `{
         },
         "/ncn/{hostname}/wipe": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN wipe disk\n\nWipe a ncn's disk and set BSS ` + "`" + `metal.no-wipe` + "`" + ` to ` + "`" + `0` + "`" + ` so it actually gets wiped on boot\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nusb_device_path=$(lsblk -b -l -o TRAN,PATH | awk /usb/'{print $2}')\nusb_rc=$?\nset -e\nif [[ \"$usb_rc\" -eq 0 ]]; then\n    if blkid -p $usb_device_path; then\n    have_mnt=0\n    for mnt_point in /mnt/rootfs /mnt/sqfs /mnt/livecd /mnt/pitdata; do\n        if mountpoint $mnt_point; then\n        have_mnt=1\n        umount $mnt_point\n        fi\n    done\n    if [ \"$have_mnt\" -eq 1 ]; then\n        eject $usb_device_path\n    fi\n    fi\nfi\numount /var/lib/etcd /var/lib/sdu || true\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nvgremove -f --select 'vg_name=~metal*' || true\npvremove /dev/md124 || true\n# Select the devices we care about; RAID, SATA, and NVME devices/handles (but *NOT* USB)\ndisk_list=$(lsblk -l -o SIZE,NAME,TYPE,TRAN | grep -E '(raid|sata|nvme|sas)' | sort -u | awk '{print \"/dev/\"$2}' | tr '\\n' ' ')\nfor disk in $disk_list; do\n    wipefs --all --force wipefs --all --force \"$disk\" || true\n    sgdisk --zap-all \"$disk\"\ndone\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n### Worker\n\n1. **NCN** is a **worker** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nlsblk | grep -q /var/lib/sdu\nsdu_rc=$?\nvgs | grep -q metal\nvgs_rc=$?\nset -e\nsystemctl disable kubelet.service || true\nsystemctl stop kubelet.service || true\nsystemctl disable containerd.service || true\nsystemctl stop containerd.service || true\numount /var/lib/containerd /var/lib/kubelet || true\nif [[ \"$sdu_rc\" -eq 0 ]]; then\n    umount /var/lib/sdu || true\nfi\nfor md in /dev/md/*; do mdadm -S $md || echo nope ; done\nif [[ \"$vgs_rc\" -eq 0 ]]; then\n    vgremove -f --select 'vg_name=~metal*' || true\n    pvremove /dev/md124 || true\nfi\nwipefs --all --force /dev/sd* /dev/disk/by-label/* || true\nsgdisk --zap-all /dev/sd*\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n\n---\n\n### Storage\n\n#### Pre-condition\n\n1. **NCN** is a **storage** node\n\n#### Actions\n\n1. Wipe disk\n\n` + "`" + `` + "`" + `` + "`" + `\nfor d in $(lsblk | grep -B2 -F md1 | grep ^s | awk '{print $1}'); do wipefs -af \"/dev/$d\"; done\n` + "`" + `` + "`" + `` + "`" + `\n\n2. set ` + "`" + `metal.no-wipe=0` + "`" + `\n",
                 "consumes": [
                     "application/json"
@@ -504,6 +759,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/utils.ResponseError"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
@@ -521,6 +788,13 @@ const docTemplate = `{
         },
         "/ncn/{type}/post-upgrade": {
             "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
                 "consumes": [
                     "application/json"
@@ -544,6 +818,18 @@ const docTemplate = `{
                 "responses": {
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/utils.ResponseError"
                         }
@@ -590,6 +876,17 @@ const docTemplate = `{
                 "message": {
                     "type": "string"
                 }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "OAuth2Application": {
+            "type": "oauth2",
+            "flow": "application",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": "                             Grants read and write access to administrative information",
+                "read": "                              Grants read access"
             }
         }
     }

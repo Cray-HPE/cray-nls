@@ -106,6 +106,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -114,6 +122,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Prepare baremetal etcd for a master node to rejoin
       tags:
       - Etcd
@@ -159,6 +170,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Drain a Kubernetes node
       tags:
       - Kubernetes
@@ -220,6 +234,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Kubernetes node post rebuild action
       tags:
       - Kubernetes
@@ -286,6 +303,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -294,6 +319,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Kubernetes node pre rebuild action
       tags:
       - Kubernetes
@@ -355,6 +383,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -363,6 +399,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Create a NCN backup
       tags:
       - NCN
@@ -399,6 +438,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -407,6 +454,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Set boot parameters before reboot a NCN
       tags:
       - NCN
@@ -454,6 +504,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -462,6 +520,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Perform post rebuild action on a NCN
       tags:
       - NCN
@@ -498,6 +559,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -506,6 +575,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Perform reboot on a NCN
       tags:
       - NCN
@@ -545,6 +617,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -553,6 +633,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Restore a NCN backup
       tags:
       - NCN
@@ -587,6 +670,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -595,6 +686,10 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
+        - read
       summary: Perform validation on a NCN
       tags:
       - NCN
@@ -716,6 +811,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -724,6 +827,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Perform disk wipe on a NCN
       tags:
       - NCN
@@ -753,6 +859,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/utils.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.ResponseError'
         "404":
           description: Not Found
           schema:
@@ -761,7 +875,92 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.ResponseError'
+      security:
+      - OAuth2Application:
+        - admin
       summary: Perform post upgrade actions
       tags:
       - NCN
+  /ncn/rebuild:
+    post:
+      consumes:
+      - application/json
+      description: "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been
+        rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master\n\n#####
+        Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1.
+        `/srv/cray/scripts/common/apply-networking-manifests.sh`\n    NOTE: this is
+        taking quite long. we may want to use async here\n\n\n1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`\n\n\n1.
+        `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`\n\n---\n\n###
+        Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1.
+        Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph
+        images are loaded if a node is rebuilt\n"
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: ""
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Perform post upgrade actions
+      tags:
+      - V2 APIs (draft)
+  /ncn/rebuild/{rebuild_job_id}:
+    delete:
+      consumes:
+      - application/json
+      description: "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been
+        rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master\n\n#####
+        Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1.
+        `/srv/cray/scripts/common/apply-networking-manifests.sh`\n    NOTE: this is
+        taking quite long. we may want to use async here\n\n\n1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`\n\n\n1.
+        `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`\n\n---\n\n###
+        Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1.
+        Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph
+        images are loaded if a node is rebuilt\n"
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: ""
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Perform post upgrade actions
+      tags:
+      - V2 APIs (draft)
+    get:
+      consumes:
+      - application/json
+      description: "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been
+        rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master\n\n#####
+        Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1.
+        `/srv/cray/scripts/common/apply-networking-manifests.sh`\n    NOTE: this is
+        taking quite long. we may want to use async here\n\n\n1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`\n\n\n1.
+        `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`\n\n---\n\n###
+        Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1.
+        Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph
+        images are loaded if a node is rebuilt\n"
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: ""
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Perform post upgrade actions
+      tags:
+      - V2 APIs (draft)
+securityDefinitions:
+  OAuth2Application:
+    flow: application
+    scopes:
+      admin: '                             Grants read and write access to administrative
+        information'
+      read: '                              Grants read access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
 swagger: "2.0"

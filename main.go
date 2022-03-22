@@ -40,6 +40,11 @@ import (
 
 // @BasePath  /api/v1
 
+// @securitydefinitions.oauth2.application  OAuth2Application
+// @tokenUrl                                https://example.com/oauth/token
+// @scope.read                              Grants read access
+// @scope.admin                             Grants read and write access to administrative information
+
 func main() {
 	godotenv.Load()
 	logger := utils.GetLogger().GetFxLogger()

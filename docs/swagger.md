@@ -39,6 +39,17 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 
 **License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
 
+### Security
+**OAuth2Application**  
+
+|oauth2|*OAuth 2.0*|
+|---|---|
+|Flow|application|
+|**Scopes**||
+|admin|                             Grants read and write access to administrative information|
+|read|                              Grants read access|
+|Token URL|<https://example.com/oauth/token>|
+
 ### /etcd/{hostname}/prepare
 
 #### PUT
@@ -80,8 +91,16 @@ Prepare a master ncn to rejoin baremetal etcd cluster
 | ---- | ----------- | ------ |
 | 200 | ok | string |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /kubernetes/{hostname}/drain
 
@@ -121,6 +140,12 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /kubernetes/{hostname}/post-rebuild
 
@@ -176,6 +201,12 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /kubernetes/{hostname}/pre-rebuild
 
@@ -237,8 +268,16 @@ Actions we need to perform before rebuild a k8s node
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/backup
 
@@ -301,8 +340,16 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/boot-parameters
 
@@ -336,8 +383,16 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/post-rebuild
 
@@ -385,8 +440,16 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/reboot
 
@@ -424,8 +487,16 @@ Set to boot from pxe and power cycle the ncn
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/restore
 
@@ -465,8 +536,16 @@ Restore previously backup files to a ncn.
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{hostname}/validate
 
@@ -502,8 +581,16 @@ Run validation step of a ncn
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
 
 ### /ncn/{hostname}/wipe
 
@@ -626,8 +713,16 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /ncn/{type}/post-upgrade
 
@@ -684,8 +779,182 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
+| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
 | 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
 | 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /ncn/rebuild
+
+#### POST
+##### Summary
+
+Perform post upgrade actions
+
+##### Description
+
+## NCN Post Upgrade
+
+After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
+
+---
+
+### Master
+
+##### Pre-condition
+
+1. **NCN** is a **master/worker**
+
+#### Actions
+
+1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
+    NOTE: this is taking quite long. we may want to use async here
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
+
+---
+
+### Storage
+
+##### Pre-condition
+
+1. **NCN** is a **storage**
+
+#### Actions
+
+1. Deploy node-exporter and alertmanager
+
+1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 |  |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /ncn/rebuild/{rebuild_job_id}
+
+#### DELETE
+##### Summary
+
+Perform post upgrade actions
+
+##### Description
+
+## NCN Post Upgrade
+
+After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
+
+---
+
+### Master
+
+##### Pre-condition
+
+1. **NCN** is a **master/worker**
+
+#### Actions
+
+1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
+    NOTE: this is taking quite long. we may want to use async here
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
+
+---
+
+### Storage
+
+##### Pre-condition
+
+1. **NCN** is a **storage**
+
+#### Actions
+
+1. Deploy node-exporter and alertmanager
+
+1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 |  |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
+
+#### GET
+##### Summary
+
+Perform post upgrade actions
+
+##### Description
+
+## NCN Post Upgrade
+
+After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
+
+---
+
+### Master
+
+##### Pre-condition
+
+1. **NCN** is a **master/worker**
+
+#### Actions
+
+1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
+    NOTE: this is taking quite long. we may want to use async here
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
+
+---
+
+### Storage
+
+##### Pre-condition
+
+1. **NCN** is a **storage**
+
+#### Actions
+
+1. Deploy node-exporter and alertmanager
+
+1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 |  |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
 
 ### Models
 
