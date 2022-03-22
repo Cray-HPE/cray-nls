@@ -48,15 +48,15 @@ func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnCo
 // @description.markdown  ncn-create-backup
 // @Tags                  NCN
 // @Param                 hostname        path  string                 true  "Hostname"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /ncn/{hostname}/backup [post]
-// @Security              OAuth2Application[admin]
+// @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateBakcup(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
@@ -66,8 +66,8 @@ func (u NcnController) NcnCreateBakcup(c *gin.Context) {
 // @description.markdown  ncn-restore-backup
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
@@ -84,8 +84,8 @@ func (u NcnController) NcnRestoreBakcup(c *gin.Context) {
 // @description.markdown  ncn-wipe-disk
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
@@ -165,7 +165,7 @@ func (u NcnController) NcnPostRebuild(c *gin.Context) {
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /ncn/{hostname}/validate [post]
-// @Security              OAuth2Application[admin,read]
+// @Security  OAuth2Application[admin,read]
 func (u NcnController) NcnValidate(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
@@ -188,40 +188,39 @@ func (u NcnController) NcnPostUpgrade(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnCreateRebuildRequest		create a rebuild request
-// @Summary               Perform post upgrade actions
-// @description.markdown  ncn-post-upgrade
-// @Tags                  V2 APIs (draft)
+// NcnCreateRebuildJob		create a rebuild request
+// @Summary   Perform post upgrade actions
+// @Tags      V2 APIs (draft)
 // @Accept                json
 // @Produce               json
-// @Failure               501
-// @Router                /ncn/rebuild [post]
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/rebuild [post]
 // @Security              OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnGetRebuild		get a rebuild request
-// @Summary               Perform post upgrade actions
-// @description.markdown  ncn-post-upgrade
-// @Tags                  V2 APIs (draft)
+// NcnGetRebuildJob
+// @Summary   Get status of a rebuild job
+// @Param     rebuild_job_id  path  string  true  "job id"
+// @Tags      V2 APIs (draft)
 // @Accept                json
 // @Produce               json
-// @Failure               501
-// @Router                /ncn/rebuild/{rebuild_job_id} [get]
-// @Security              OAuth2Application[admin,read]
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/rebuild/{rebuild_job_id} [get]
+// @Security  OAuth2Application[admin,read]
 func (u NcnController) NcnGetRebuildRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnDeleteRebuild		delete a rebuild request
-// @Summary               Perform post upgrade actions
-// @description.markdown  ncn-post-upgrade
-// @Tags                  V2 APIs (draft)
+// NcnDeleteRebuildJob
+// @Summary   Delete a rebuild job
+// @Param     rebuild_job_id  path  string  true  "job id"
+// @Tags      V2 APIs (draft)
 // @Accept                json
 // @Produce               json
-// @Failure               501
-// @Router                /ncn/rebuild/{rebuild_job_id} [delete]
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/rebuild/{rebuild_job_id} [delete]
 // @Security              OAuth2Application[admin,read]
 func (u NcnController) NcnDeleteRebuildRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})

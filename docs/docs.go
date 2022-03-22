@@ -263,7 +263,6 @@ const docTemplate = `{
                         ]
                     }
                 ],
-                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -276,7 +275,7 @@ const docTemplate = `{
                 "summary": "Perform post upgrade actions",
                 "responses": {
                     "501": {
-                        "description": ""
+                        "description": "Not Implemented"
                     }
                 }
             }
@@ -291,7 +290,6 @@ const docTemplate = `{
                         ]
                     }
                 ],
-                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -301,10 +299,19 @@ const docTemplate = `{
                 "tags": [
                     "V2 APIs (draft)"
                 ],
-                "summary": "Perform post upgrade actions",
+                "summary": "Get status of a rebuild job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "rebuild_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "501": {
-                        "description": ""
+                        "description": "Not Implemented"
                     }
                 }
             },
@@ -317,7 +324,6 @@ const docTemplate = `{
                         ]
                     }
                 ],
-                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some ` + "`" + `CSM specific` + "`" + ` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. ` + "`" + `/srv/cray/scripts/common/apply-networking-manifests.sh` + "`" + `\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh` + "`" + `\n\n\n1. ` + "`" + `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh` + "`" + `\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -327,10 +333,19 @@ const docTemplate = `{
                 "tags": [
                     "V2 APIs (draft)"
                 ],
-                "summary": "Perform post upgrade actions",
+                "summary": "Delete a rebuild job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "rebuild_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "501": {
-                        "description": ""
+                        "description": "Not Implemented"
                     }
                 }
             }

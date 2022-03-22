@@ -797,48 +797,11 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 
 Perform post upgrade actions
 
-##### Description
-
-## NCN Post Upgrade
-
-After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
-
----
-
-### Master
-
-##### Pre-condition
-
-1. **NCN** is a **master/worker**
-
-#### Actions
-
-1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
-    NOTE: this is taking quite long. we may want to use async here
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
-
----
-
-### Storage
-
-##### Pre-condition
-
-1. **NCN** is a **storage**
-
-#### Actions
-
-1. Deploy node-exporter and alertmanager
-
-1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
-
 ##### Responses
 
 | Code | Description |
 | ---- | ----------- |
-| 501 |  |
+| 501 | Not Implemented |
 
 ##### Security
 
@@ -851,50 +814,19 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 #### DELETE
 ##### Summary
 
-Perform post upgrade actions
+Delete a rebuild job
 
-##### Description
+##### Parameters
 
-## NCN Post Upgrade
-
-After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
-
----
-
-### Master
-
-##### Pre-condition
-
-1. **NCN** is a **master/worker**
-
-#### Actions
-
-1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
-    NOTE: this is taking quite long. we may want to use async here
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
-
----
-
-### Storage
-
-##### Pre-condition
-
-1. **NCN** is a **storage**
-
-#### Actions
-
-1. Deploy node-exporter and alertmanager
-
-1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| rebuild_job_id | path | job id | Yes | string |
 
 ##### Responses
 
 | Code | Description |
 | ---- | ----------- |
-| 501 |  |
+| 501 | Not Implemented |
 
 ##### Security
 
@@ -905,50 +837,19 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 #### GET
 ##### Summary
 
-Perform post upgrade actions
+Get status of a rebuild job
 
-##### Description
+##### Parameters
 
-## NCN Post Upgrade
-
-After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
-
----
-
-### Master
-
-##### Pre-condition
-
-1. **NCN** is a **master/worker**
-
-#### Actions
-
-1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
-    NOTE: this is taking quite long. we may want to use async here
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
-
----
-
-### Storage
-
-##### Pre-condition
-
-1. **NCN** is a **storage**
-
-#### Actions
-
-1. Deploy node-exporter and alertmanager
-
-1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| rebuild_job_id | path | job id | Yes | string |
 
 ##### Responses
 
 | Code | Description |
 | ---- | ----------- |
-| 501 |  |
+| 501 | Not Implemented |
 
 ##### Security
 
