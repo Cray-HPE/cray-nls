@@ -132,3 +132,18 @@ func (u NcnController) NcnPostRebuild(c *gin.Context) {
 func (u NcnController) NcnValidate(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
+
+// NcnPostUpgrade 		perform post upgrade actions
+// @Summary               Perform post upgrade actions
+// @description.markdown  ncn-post-upgrade
+// @Tags                  NCN
+// @Param                 type  path  string  true  "Type of ncn"
+// @Accept                json
+// @Produce               json
+// @Failure               400  {object}  utils.ResponseError
+// @Failure               404  {object}  utils.ResponseError
+// @Failure               500  {object}  utils.ResponseError
+// @Router                /ncn/{type}/post-upgrade [post]
+func (u NcnController) NcnPostUpgrade(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}

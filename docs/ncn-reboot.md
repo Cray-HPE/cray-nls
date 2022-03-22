@@ -10,4 +10,6 @@ Set to boot from pxe and power cycle the ncn
 
 #### Actions
 1. Set boot to pxe
+
+
 2. `ipmitool` power cycle the ncn

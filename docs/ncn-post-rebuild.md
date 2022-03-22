@@ -13,6 +13,8 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 #### Actions
 
 1. install latest docs-csm rpm
+
+
 1. set `metal.no-wipe=1`
 
 ---

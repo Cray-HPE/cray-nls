@@ -14,7 +14,7 @@
     "paths": {
         "/etcd/{hostname}/prepare": {
             "put": {
-                "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. Baremetal etcd cluster is in **healthy** state\n1. quorum after removal\n\n#### Action\n\n1. Remove a ncn from baremetal etcd cluster\n1. Stop etcd services on the ncn\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
+                "description": "## Prepare baremetal ETCD for rejoining\n\nPrepare a master ncn to rejoin baremetal etcd cluster\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. Baremetal etcd cluster is in **healthy** state\n\n\n1. quorum after removal\n\n#### Action\n\n1. Remove a ncn from baremetal etcd cluster\n\n\n1. Stop etcd services on the ncn\n\n\n1. Add the ncn back to etcd cluster so it can rejoin on boot\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -64,7 +64,7 @@
         },
         "/kubernetes/{hostname}/drain": {
             "post": {
-                "description": "## Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
+                "description": "## Drain Kubernetes Node\n\nBefore we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely\n\n---\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. quorum after removal\n\n#### Actions\n\n1. drain node\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -108,7 +108,7 @@
         },
         "/kubernetes/{hostname}/post-rebuild": {
             "post": {
-                "description": "## K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. `scripts/k8s/update_kubeapi_istio_ca.sh`\n\n---\n\n### Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n1. `cfs/wait_for_configuration.sh`\n1. ENSURE_KEY_PODS_HAVE_STARTED",
+                "description": "## K8s Post Rebuild\n\nAfter a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. `scripts/k8s/update_kubeapi_istio_ca.sh`\n\n---\n\n### Worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Actions\n1. redeploy cps\n\n\n1. `cfs/wait_for_configuration.sh`\n\n\n1. ENSURE_KEY_PODS_HAVE_STARTED",
                 "consumes": [
                     "application/json"
                 ],
@@ -152,7 +152,7 @@
         },
         "/kubernetes/{hostname}/pre-rebuild": {
             "post": {
-                "description": "## K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n1. **NCN** is already the **first master**\n\n#### Action\n\n1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0\n2. Update `meta-data.first-master-hostname`\n\n---\n\n### worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n1. ENSURE_ETCD_PODS_RUNNING\n1. ENSURE_POSTGRES_HEALTHY\n1. `cfs/wait_for_configuration.sh`\n1. snapshot cps deployment\n",
+                "description": "## K8s Pre Rebuild\n\nActions we need to perform before rebuild a k8s node\n\n---\n\n### Master\n\n#### Pre-condition\n\n1. **NCN** is a **master** node\n\n\n1. **NCN** is already the **first master**\n\n#### Action\n\n1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0\n\n\n2. Update `meta-data.first-master-hostname`\n\n---\n\n### worker\n\n#### Pre-condition\n\n1. **NCN** is a **worker** node\n\n#### Action\n\n1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE\n\n\n1. ENSURE_ETCD_PODS_RUNNING\n\n\n1. ENSURE_POSTGRES_HEALTHY\n\n\n1. `cfs/wait_for_configuration.sh`\n\n\n1. snapshot cps deployment\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -240,7 +240,7 @@
         },
         "/ncn/{hostname}/post-rebuild": {
             "post": {
-                "description": "## NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master/Worker\n\n##### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n1. set `metal.no-wipe=1`\n\n---\n\n### Storage\n\n##### Pre-condition\n\n#### Actions\n",
+                "description": "## NCN Post Rebuild\n\nAfter a ncn has been rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master/Worker\n\n##### Pre-condition\n\n1. **NCN** is a **master** node\n\n#### Actions\n\n1. install latest docs-csm rpm\n\n\n1. set `metal.no-wipe=1`\n\n---\n\n### Storage\n\n##### Pre-condition\n\n#### Actions\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -284,7 +284,7 @@
         },
         "/ncn/{hostname}/reboot": {
             "post": {
-                "description": "## NCN Reboot\n\nSet to boot from pxe and power cycle the ncn\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n#### Actions\n1. Set boot to pxe\n2. `ipmitool` power cycle the ncn\n",
+                "description": "## NCN Reboot\n\nSet to boot from pxe and power cycle the ncn\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n#### Actions\n1. Set boot to pxe\n\n\n2. `ipmitool` power cycle the ncn\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -328,7 +328,7 @@
         },
         "/ncn/{hostname}/restore": {
             "post": {
-                "description": "## NCN restore backup\n\nRestore previously backup files to a ncn.\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n`N/A`\n\n#### Actions\n\n1. download backup from s3\n1. untar/restore backup\n",
+                "description": "## NCN restore backup\n\nRestore previously backup files to a ncn.\n\n---\n\n### Master/Worker/Storage\n\n##### Pre-condition\n\n`N/A`\n\n#### Actions\n\n1. download backup from s3\n\n\n1. untar/restore backup\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -432,6 +432,50 @@
                         "type": "string",
                         "description": "Hostname",
                         "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/ncn/{type}/post-upgrade": {
+            "post": {
+                "description": "## NCN Post Upgrade\n\nAfter all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.\n\n---\n\n### Master\n\n##### Pre-condition\n\n1. **NCN** is a **master/worker** \n\n#### Actions\n\n1. `/srv/cray/scripts/common/apply-networking-manifests.sh`\n    NOTE: this is taking quite long. we may want to use async here\n\n\n1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`\n\n\n1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`\n\n---\n\n### Storage\n\n##### Pre-condition\n1. **NCN** is a **storage** \n\n#### Actions\n1. Deploy node-exporter and alertmanager\n\n\n1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt\n",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN"
+                ],
+                "summary": "Perform post upgrade actions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Type of ncn",
+                        "name": "type",
                         "in": "path",
                         "required": true
                     }

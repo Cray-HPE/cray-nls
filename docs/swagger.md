@@ -50,13 +50,17 @@ Prepare a master ncn to rejoin baremetal etcd cluster
 #### Pre-condition
 
 1. **NCN** is a **master** node
+
 1. Baremetal etcd cluster is in **healthy** state
+
 1. quorum after removal
 
 #### Action
 
 1. Remove a ncn from baremetal etcd cluster
+
 1. Stop etcd services on the ncn
+
 1. Add the ncn back to etcd cluster so it can rejoin on boot
 
 ##### Parameters
@@ -92,6 +96,7 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 #### Pre-condition
 
 1. **NCN** is a **master** node
+
 1. quorum after removal
 
 #### Actions
@@ -148,7 +153,9 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 #### Actions
 
 1. redeploy cps
+
 1. `cfs/wait_for_configuration.sh`
+
 1. ENSURE_KEY_PODS_HAVE_STARTED
 
 ##### Parameters
@@ -185,11 +192,13 @@ Actions we need to perform before rebuild a k8s node
 #### Pre-condition
 
 1. **NCN** is a **master** node
+
 1. **NCN** is already the **first master**
 
 #### Action
 
 1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
+
 2. Update `meta-data.first-master-hostname`
 
 ---
@@ -203,9 +212,13 @@ Actions we need to perform before rebuild a k8s node
 #### Action
 
 1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE
+
 1. ENSURE_ETCD_PODS_RUNNING
+
 1. ENSURE_POSTGRES_HEALTHY
+
 1. `cfs/wait_for_configuration.sh`
+
 1. snapshot cps deployment
 
 ##### Parameters
@@ -310,6 +323,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 #### Actions
 
 1. install latest docs-csm rpm
+
 1. set `metal.no-wipe=1`
 
 ---
@@ -356,6 +370,7 @@ Set to boot from pxe and power cycle the ncn
 #### Actions
 
 1. Set boot to pxe
+
 2. `ipmitool` power cycle the ncn
 
 ##### Parameters
@@ -396,6 +411,7 @@ Restore previously backup files to a ncn.
 #### Actions
 
 1. download backup from s3
+
 1. untar/restore backup
 
 ##### Parameters
@@ -564,6 +580,64 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
 | hostname | path | Hostname | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
+| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
+| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+
+### /ncn/{type}/post-upgrade
+
+#### POST
+##### Summary
+
+Perform post upgrade actions
+
+##### Description
+
+## NCN Post Upgrade
+
+After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
+
+---
+
+### Master
+
+##### Pre-condition
+
+1. **NCN** is a **master/worker**
+
+#### Actions
+
+1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
+    NOTE: this is taking quite long. we may want to use async here
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
+
+1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
+
+---
+
+### Storage
+
+##### Pre-condition
+
+1. **NCN** is a **storage**
+
+#### Actions
+
+1. Deploy node-exporter and alertmanager
+
+1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| type | path | Type of ncn | Yes | string |
 
 ##### Responses
 
