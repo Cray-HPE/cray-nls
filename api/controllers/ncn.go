@@ -74,7 +74,7 @@ func (u NcnController) NcnCreateBakcup(c *gin.Context) {
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
 // @Router                /ncn/{hostname}/restore [post]
-// @Security              OAuth2Application[admin]
+// @Security  OAuth2Application[admin]
 func (u NcnController) NcnRestoreBakcup(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
@@ -103,8 +103,8 @@ func (u NcnController) NcnWipe(c *gin.Context) {
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
 // @Param                 bootParameters  body  models.BootParameters  true  "TODO: use data model from `csi/bss`"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
@@ -121,8 +121,8 @@ func (u NcnController) NcnSetBootParam(c *gin.Context) {
 // @description.markdown  ncn-reboot
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
@@ -139,8 +139,8 @@ func (u NcnController) NcnReboot(c *gin.Context) {
 // @description.markdown  ncn-post-rebuild
 // @Tags                  NCN
 // @Param                 hostname  path  string  true  "Hostname"
-// @Accept                json
-// @Produce               json
+// @Accept    json
+// @Produce   json
 // @Failure               400  {object}  utils.ResponseError
 // @Failure               401  {object}  utils.ResponseError
 // @Failure               403  {object}  utils.ResponseError
@@ -221,7 +221,45 @@ func (u NcnController) NcnGetRebuildRequest(c *gin.Context) {
 // @Produce               json
 // @Failure   501  "Not Implemented"
 // @Router    /ncn/rebuild/{rebuild_job_id} [delete]
-// @Security              OAuth2Application[admin,read]
+// @Security  OAuth2Application[admin,read]
 func (u NcnController) NcnDeleteRebuildRequest(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnCreateRebootJob		create a reboot request
+// @Summary   Perform post upgrade actions
+// @Tags      V2 APIs (draft)
+// @Accept                json
+// @Produce               json
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/reboot [post]
+// @Security              OAuth2Application[admin]
+func (u NcnController) NcnCreateRebootRequest(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnGetRebootJob
+// @Summary   Get status of a reboot job
+// @Param     reboot_job_id  path  string  true  "job id"
+// @Tags      V2 APIs (draft)
+// @Accept                json
+// @Produce               json
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/reboot/{reboot_job_id} [get]
+// @Security  OAuth2Application[admin,read]
+func (u NcnController) NcnGetRebootRequest(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnDeleteRebootJob
+// @Summary   Delete a reboot job
+// @Param     reboot_job_id  path  string  true  "job id"
+// @Tags      V2 APIs (draft)
+// @Accept                json
+// @Produce               json
+// @Failure   501  "Not Implemented"
+// @Router    /ncn/reboot/{reboot_job_id} [delete]
+// @Security              OAuth2Application[admin,read]
+func (u NcnController) NcnDeleteRebootRequest(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }

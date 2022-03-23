@@ -254,6 +254,102 @@ const docTemplate = `{
                 }
             }
         },
+        "/ncn/reboot": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/ncn/reboot/{reboot_job_id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Get status of a reboot job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "reboot_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 APIs (draft)"
+                ],
+                "summary": "Delete a reboot job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "reboot_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
         "/ncn/rebuild": {
             "post": {
                 "security": [

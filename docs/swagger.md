@@ -790,6 +790,73 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 | --- | --- |
 | OAuth2Application | admin |
 
+### /ncn/reboot
+
+#### POST
+##### Summary
+
+Perform post upgrade actions
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /ncn/reboot/{reboot_job_id}
+
+#### DELETE
+##### Summary
+
+Delete a reboot job
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| reboot_job_id | path | job id | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
+
+#### GET
+##### Summary
+
+Get status of a reboot job
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| reboot_job_id | path | job id | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
+
 ### /ncn/rebuild
 
 #### POST

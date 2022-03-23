@@ -881,6 +881,64 @@ paths:
       summary: Perform post upgrade actions
       tags:
       - NCN
+  /ncn/reboot:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Perform post upgrade actions
+      tags:
+      - V2 APIs (draft)
+  /ncn/reboot/{reboot_job_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: job id
+        in: path
+        name: reboot_job_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Delete a reboot job
+      tags:
+      - V2 APIs (draft)
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: job id
+        in: path
+        name: reboot_job_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Get status of a reboot job
+      tags:
+      - V2 APIs (draft)
   /ncn/rebuild:
     post:
       consumes:
