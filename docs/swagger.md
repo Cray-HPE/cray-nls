@@ -79,6 +79,12 @@ Prepare a master ncn to rejoin baremetal etcd cluster
 
 1. Add the ncn back to etcd cluster so it can rejoin on boot
 
+#### Microservices
+
+\| name           \| protocol/client \| credentials   \| Note \|
+\| -------------- \| --------------- \| ------------- \| ---- \|
+\| baremetal etcd \| ectd go client  \| k8s secret(?) \|      \|
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -127,6 +133,12 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 
 1. drain node
 
+#### Microservices
+
+\| name       \| protocol/client   \| credentials \| Note \|
+\| ---------- \| ----------------- \| ----------- \| ---- \|
+\| drain node \| csi/k8s go client \| k8s secret  \|      \|
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -172,6 +184,12 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 1. `scripts/k8s/update_kubeapi_istio_ca.sh`
 
+#### Microservices
+
+\| name                    \| protocol/client \| credentials \| Note \|
+\| ----------------------- \| --------------- \| ----------- \| ---- \|
+\| update_kubeapi_istio_ca \| ssh as root     \| k8s secret  \|      \|
+
 ---
 
 ### Worker
@@ -187,6 +205,14 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 1. `cfs/wait_for_configuration.sh`
 
 1. ENSURE_KEY_PODS_HAVE_STARTED
+
+#### Microservices
+
+\| name                        \| protocol/client \| credentials \| Note                                                                  \|
+\| --------------------------- \| --------------- \| ----------- \| --------------------------------------------------------------------- \|
+\| cps redeploy                \| ssh as root     \| k8s secret  \| is `cray cps` an api call? if so we can make api calls instead of ssh \|
+\| wait for cfs                \| ssh as root     \| k8s secret  \| All can be done by using k8s client (?)                               \|
+\| ensure key pods are running \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
 
 ##### Parameters
 
@@ -237,6 +263,13 @@ Actions we need to perform before rebuild a k8s node
 
 2. Update `meta-data.first-master-hostname`
 
+#### Microservices
+
+\| name              \| protocol/client \| credentials \| Note                                                                                \|
+\| ----------------- \| --------------- \| ----------- \| ----------------------------------------------------------------------------------- \|
+\| move first master \| ssh as root     \| k8s secret  \| we need to look into the script and figure out exactly which microservices it calls \|
+\| bss               \| bss go client   \| jwt token   \|                                                                                     \|
+
 ---
 
 ### worker
@@ -256,6 +289,15 @@ Actions we need to perform before rebuild a k8s node
 1. `cfs/wait_for_configuration.sh`
 
 1. snapshot cps deployment
+
+#### Microservices
+
+\| name                         \| protocol/client \| credentials \| Note                                                                  \|
+\| ---------------------------- \| --------------- \| ----------- \| --------------------------------------------------------------------- \|
+\| ensure some pods are running \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
+\| ensure pg healthy            \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
+\| wait for cfs                 \| ssh as root     \| k8s secret  \| All can be done by using k8s client (?)                               \|
+\| snapshot cps deployment      \| ssh as root     \| k8s secret  \| is `cray cps` an api call? if so we can make api calls instead of ssh \|
 
 ##### Parameters
 
@@ -319,6 +361,13 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 1. bakcup ssh keys/authroized_keys
 1. upload backup to s3
 
+#### Microservices
+
+\| name          \| protocol/client \| credentials \| Note \|
+\| ------------- \| --------------- \| ----------- \| ---- \|
+\| create backup \| ssh as root     \| k8s secret  \|      \|
+\| upload to s3  \| s3 client       \| jwt token   \|      \|
+
 ---
 
 ### Storage
@@ -371,6 +420,12 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 1. update cloud-init global data
 1. set which image to boot
 
+#### Microservices
+
+\| name                \| protocol/client \| credentials \| Note \|
+\| ------------------- \| --------------- \| ----------- \| ---- \|
+\| set boot parameters \| bss go client   \| jwt token   \|      \|
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -420,6 +475,13 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 1. install latest docs-csm rpm
 
 1. set `metal.no-wipe=1`
+
+#### Microservices
+
+\| name            \| protocol/client \| credentials \| Note                                                                                \|
+\| --------------- \| --------------- \| ----------- \| ----------------------------------------------------------------------------------- \|
+\| install doc rpm \| ssh as root     \| k8s secret  \| we should look into bss/cloud-init so it always install what we specify during boot \|
+\| set no wipe     \| bss client      \| jwt token   \|                                                                                     \|
 
 ---
 
@@ -476,6 +538,13 @@ Set to boot from pxe and power cycle the ncn
 
 2. `ipmitool` power cycle the ncn
 
+#### Microservices
+
+\| name         \| protocol/client \| credentials \| Note \|
+\| ------------ \| --------------- \| ----------- \| ---- \|
+\| set pxe boot \| ipmi            \| k8s secret  \|      \|
+\| power cycle  \| ipmi            \| k8s secret  \|      \|
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -525,6 +594,13 @@ Restore previously backup files to a ncn.
 
 1. untar/restore backup
 
+#### Microservices
+
+\| name             \| protocol/client \| credentials \| Note \|
+\| ---------------- \| --------------- \| ----------- \| ---- \|
+\| download from s3 \| s3 client       \| jwt token   \|      \|
+\| restore backup   \| ssh as root     \| k8s secret  \|      \|
+
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
@@ -569,6 +645,12 @@ Run validation step of a ncn
 #### Actions
 
 1. run goss test
+
+#### Microservices
+
+\| name          \| protocol/client \| credentials \| Note                                                  \|
+\| ------------- \| --------------- \| ----------- \| ----------------------------------------------------- \|
+\| run goss test \| ssh as root     \| k8s secret  \| goss has a server that accepts REST call to run tests \|
 
 ##### Parameters
 
@@ -649,6 +731,13 @@ done
 
 2. set `metal.no-wipe=0`
 
+#### Microservices
+
+\| name \| protocol/client \| credentials \| Note \|
+\| ---- \| --------------- \| ----------- \| ---- \|
+\| wipe \| ssh as root     \| k8s secret  \|      \|
+\| bss  \| bss go client   \| jwt token   \|      \|
+
 ---
 
 ### Worker
@@ -684,6 +773,13 @@ sgdisk --zap-all /dev/sd*
 
 2. set `metal.no-wipe=0`
 
+#### Microservices
+
+\| name \| protocol/client \| credentials \| Note \|
+\| ---- \| --------------- \| ----------- \| ---- \|
+\| wipe \| ssh as root     \| k8s secret  \|      \|
+\| bss  \| bss go client   \| jwt token   \|      \|
+
 ---
 
 ### Storage
@@ -701,6 +797,13 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 ```
 
 2. set `metal.no-wipe=0`
+
+#### Microservices
+
+\| name \| protocol/client \| credentials \| Note \|
+\| ---- \| --------------- \| ----------- \| ---- \|
+\| wipe \| ssh as root     \| k8s secret  \|      \|
+\| bss  \| bss go client   \| jwt token   \|      \|
 
 ##### Parameters
 
@@ -748,11 +851,19 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 #### Actions
 
 1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
-    NOTE: this is taking quite long. we may want to use async here
+   NOTE: this is taking quite long. we may want to use async here
 
 1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
 
 1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
+
+#### Microservices
+
+\| name                          \| protocol/client \| credentials \| Note                                              \|
+\| ----------------------------- \| --------------- \| ----------- \| ------------------------------------------------- \|
+\| apply-networking-manifests.sh \| ssh as root     \| k8s secret  \| this sounds like something can be done by k8s API \|
+\| apply-coredns-pod-affinity    \| ssh as root     \| k8s secret  \| this sounds like something can be done by k8s API \|
+\| upgrade_control_plane         \| ssh as root     \| k8s secret  \|                                                   \|
 
 ---
 

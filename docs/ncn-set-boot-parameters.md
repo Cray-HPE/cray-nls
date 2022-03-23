@@ -5,5 +5,12 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 ---
 
 #### Actions
+
 1. update cloud-init global data
 1. set which image to boot
+
+#### Microservices
+
+| name                | protocol/client | credentials | Note |
+| ------------------- | --------------- | ----------- | ---- |
+| set boot parameters | bss go client   | jwt token   |      |

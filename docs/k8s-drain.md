@@ -8,9 +8,14 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 
 1. **NCN** is a **master** node
 
-
 1. quorum after removal
 
 #### Actions
 
 1. drain node
+
+#### Microservices
+
+| name       | protocol/client   | credentials | Note |
+| ---------- | ----------------- | ----------- | ---- |
+| drain node | csi/k8s go client | k8s secret  |      |

@@ -46,6 +46,13 @@ done
 
 2. set `metal.no-wipe=0`
 
+#### Microservices
+
+| name | protocol/client | credentials | Note |
+| ---- | --------------- | ----------- | ---- |
+| wipe | ssh as root     | k8s secret  |      |
+| bss  | bss go client   | jwt token   |      |
+
 ---
 
 ### Worker
@@ -81,6 +88,13 @@ sgdisk --zap-all /dev/sd*
 
 2. set `metal.no-wipe=0`
 
+#### Microservices
+
+| name | protocol/client | credentials | Note |
+| ---- | --------------- | ----------- | ---- |
+| wipe | ssh as root     | k8s secret  |      |
+| bss  | bss go client   | jwt token   |      |
+
 ---
 
 ### Storage
@@ -98,3 +112,10 @@ for d in $(lsblk | grep -B2 -F md1 | grep ^s | awk '{print $1}'); do wipefs -af 
 ```
 
 2. set `metal.no-wipe=0`
+
+#### Microservices
+
+| name | protocol/client | credentials | Note |
+| ---- | --------------- | ----------- | ---- |
+| wipe | ssh as root     | k8s secret  |      |
+| bss  | bss go client   | jwt token   |      |

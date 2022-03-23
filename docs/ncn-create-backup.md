@@ -29,6 +29,13 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 1. bakcup ssh keys/authroized_keys
 1. upload backup to s3
 
+#### Microservices
+
+| name          | protocol/client | credentials | Note |
+| ------------- | --------------- | ----------- | ---- |
+| create backup | ssh as root     | k8s secret  |      |
+| upload to s3  | s3 client       | jwt token   |      |
+
 ---
 
 ### Storage
