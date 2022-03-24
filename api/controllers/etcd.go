@@ -56,7 +56,7 @@ func NewEtcdController(EtcdService services.EtcdService, logger utils.Logger) Et
 // @Failure               403  {object}  utils.ResponseError
 // @Failure               404  {object}  utils.ResponseError
 // @Failure               500  {object}  utils.ResponseError
-// @Router                /etcd/{hostname}/prepare [put]
+// @Router                /v1/etcd/{hostname}/prepare [put]
 // @Security              OAuth2Application[admin]
 func (u EtcdController) EtcdPrepare(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Etcd updated"})

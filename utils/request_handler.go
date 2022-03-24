@@ -36,7 +36,11 @@ type RequestHandler struct {
 
 type ResponseError struct {
 	Message string `json:"message"`
-}
+} //@name ResponseError
+
+type ResponseOk struct {
+	Message string `json:"message"`
+} //@name ResponseOk
 
 // NewRequestHandler creates a new request handler
 func NewRequestHandler(logger Logger) RequestHandler {

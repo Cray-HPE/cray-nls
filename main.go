@@ -38,7 +38,7 @@ import (
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @BasePath  /api/v1
+// @BasePath  /apis/nls
 
 // @securitydefinitions.oauth2.application  OAuth2Application
 // @tokenUrl                                https://example.com/oauth/token

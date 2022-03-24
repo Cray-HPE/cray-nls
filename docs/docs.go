@@ -20,7 +20,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/etcd/{hostname}/prepare": {
+        "/v1/etcd/{hostname}/prepare": {
             "put": {
                 "security": [
                     {
@@ -59,37 +59,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/kubernetes/{hostname}/drain": {
+        "/v1/kubernetes/{hostname}/drain": {
             "post": {
                 "security": [
                     {
@@ -122,25 +122,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/kubernetes/{hostname}/post-rebuild": {
+        "/v1/kubernetes/{hostname}/post-rebuild": {
             "post": {
                 "security": [
                     {
@@ -173,25 +173,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/kubernetes/{hostname}/pre-rebuild": {
+        "/v1/kubernetes/{hostname}/pre-rebuild": {
             "post": {
                 "security": [
                     {
@@ -224,229 +224,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/reboot": {
-            "post": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Perform post upgrade actions",
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/ncn/reboot/{reboot_job_id}": {
-            "get": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin",
-                            "read"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Get status of a reboot job",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "reboot_job_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin",
-                            "read"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Delete a reboot job",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "reboot_job_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/ncn/rebuild": {
-            "post": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Perform post upgrade actions",
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/ncn/rebuild/{rebuild_job_id}": {
-            "get": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin",
-                            "read"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Get status of a rebuild job",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "rebuild_job_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin",
-                            "read"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 APIs (draft)"
-                ],
-                "summary": "Delete a rebuild job",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "rebuild_job_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/ncn/{hostname}/backup": {
+        "/v1/ncn/{hostname}/backup": {
             "post": {
                 "security": [
                     {
@@ -479,37 +287,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/boot-parameters": {
+        "/v1/ncn/{hostname}/boot-parameters": {
             "put": {
                 "security": [
                     {
@@ -543,7 +351,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.BootParameters"
+                            "$ref": "#/definitions/BootParameters"
                         }
                     }
                 ],
@@ -551,37 +359,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/post-rebuild": {
+        "/v1/ncn/{hostname}/post-rebuild": {
             "post": {
                 "security": [
                     {
@@ -614,37 +422,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/reboot": {
+        "/v1/ncn/{hostname}/reboot": {
             "post": {
                 "security": [
                     {
@@ -677,37 +485,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/restore": {
+        "/v1/ncn/{hostname}/restore": {
             "post": {
                 "security": [
                     {
@@ -740,37 +548,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/validate": {
+        "/v1/ncn/{hostname}/validate": {
             "post": {
                 "security": [
                     {
@@ -804,37 +612,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{hostname}/wipe": {
+        "/v1/ncn/{hostname}/wipe": {
             "post": {
                 "security": [
                     {
@@ -867,37 +675,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     }
                 }
             }
         },
-        "/ncn/{type}/post-upgrade": {
+        "/v1/ncn/{type}/post-upgrade": {
             "post": {
                 "security": [
                     {
@@ -930,47 +738,239 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ResponseError"
+                            "$ref": "#/definitions/ResponseError"
                         }
+                    }
+                }
+            }
+        },
+        "/v2/ncn/reboot": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncn/reboot/{reboot_job_id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Get status of a reboot job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "reboot_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Delete a reboot job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "reboot_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncn/rebuild": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Perform post upgrade actions",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncn/rebuild/{rebuild_job_id}": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Get status of a rebuild job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "rebuild_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin",
+                            "read"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v2"
+                ],
+                "summary": "Delete a rebuild job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "job id",
+                        "name": "rebuild_job_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
                     }
                 }
             }
         }
     },
     "definitions": {
-        "models.BootParameters": {
+        "BootParameters": {
             "type": "object",
             "properties": {
                 "image": {
-                    "$ref": "#/definitions/models.ImageObject"
+                    "$ref": "#/definitions/BootParameters.ImageObject"
                 }
             }
         },
-        "models.ImageObject": {
+        "BootParameters.ImageObject": {
             "type": "object",
             "properties": {
                 "path": {
@@ -981,7 +981,7 @@ const docTemplate = `{
                 }
             }
         },
-        "utils.ResponseError": {
+        "ResponseError": {
             "type": "object",
             "properties": {
                 "message": {
@@ -1007,7 +1007,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
-	BasePath:         "/api/v1",
+	BasePath:         "/apis/nls",
 	Schemes:          []string{},
 	Title:            "NCN Lifecycle Management API",
 	Description:      "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Kubernetes Nodes\n\n#### e2e upgrade flow\n\n1. `/etcd/{hostname}/prepare`\n   > NOTE: no-op for **worker** nodes\n1. `/kubernetes/{hostname}/pre-rebuild`\n1. `/kubernetes/{hostname}/drain`\n1. `/ncn/{hostname}/backup`\n1. `/ncn/{hostname}/wipe`\n1. PUT `/ncn/{hostname}/boot-parameters`\n1. `/ncn/{hostname}/reboot`\n\n   > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?\n\n1. `/ncn/{hostname}/restore`\n1. `/ncn/{hostname}/post-rebuild`\n1. `/kubernetes/{hostname}/post-rebuild`\n1. `/ncn/{hostname}/validate`\n\n##### After all Kubernetes nodes are upgraded\n\n1. `/ncn/kubernetes/post-upgrade`\n\n---\n\n## Ceph Storage Node\n\n---\n\n[API Doc](swagger.md)\n",

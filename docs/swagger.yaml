@@ -1,18 +1,18 @@
-basePath: /api/v1
+basePath: /apis/nls
 definitions:
-  models.BootParameters:
+  BootParameters:
     properties:
       image:
-        $ref: '#/definitions/models.ImageObject'
+        $ref: '#/definitions/BootParameters.ImageObject'
     type: object
-  models.ImageObject:
+  BootParameters.ImageObject:
     properties:
       path:
         type: string
       version:
         type: string
     type: object
-  utils.ResponseError:
+  ResponseError:
     properties:
       message:
         type: string
@@ -61,7 +61,7 @@ info:
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
-  /etcd/{hostname}/prepare:
+  /v1/etcd/{hostname}/prepare:
     put:
       consumes:
       - application/json
@@ -107,30 +107,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Prepare baremetal etcd for a master node to rejoin
       tags:
       - Etcd
-  /kubernetes/{hostname}/drain:
+  /v1/kubernetes/{hostname}/drain:
     post:
       consumes:
       - application/json
@@ -168,22 +168,22 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Drain a Kubernetes node
       tags:
       - Kubernetes
-  /kubernetes/{hostname}/post-rebuild:
+  /v1/kubernetes/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
@@ -245,22 +245,22 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Kubernetes node post rebuild action
       tags:
       - Kubernetes
-  /kubernetes/{hostname}/pre-rebuild:
+  /v1/kubernetes/{hostname}/pre-rebuild:
     post:
       consumes:
       - application/json
@@ -332,30 +332,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Kubernetes node pre rebuild action
       tags:
       - Kubernetes
-  /ncn/{hostname}/backup:
+  /v1/ncn/{hostname}/backup:
     post:
       consumes:
       - application/json
@@ -419,30 +419,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Create a NCN backup
       tags:
       - NCN
-  /ncn/{hostname}/boot-parameters:
+  /v1/ncn/{hostname}/boot-parameters:
     put:
       consumes:
       - application/json
@@ -474,37 +474,37 @@ paths:
         name: bootParameters
         required: true
         schema:
-          $ref: '#/definitions/models.BootParameters'
+          $ref: '#/definitions/BootParameters'
       produces:
       - application/json
       responses:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Set boot parameters before reboot a NCN
       tags:
       - NCN
-  /ncn/{hostname}/post-rebuild:
+  /v1/ncn/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
@@ -553,30 +553,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Perform post rebuild action on a NCN
       tags:
       - NCN
-  /ncn/{hostname}/reboot:
+  /v1/ncn/{hostname}/reboot:
     post:
       consumes:
       - application/json
@@ -615,30 +615,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Perform reboot on a NCN
       tags:
       - NCN
-  /ncn/{hostname}/restore:
+  /v1/ncn/{hostname}/restore:
     post:
       consumes:
       - application/json
@@ -679,30 +679,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Restore a NCN backup
       tags:
       - NCN
-  /ncn/{hostname}/validate:
+  /v1/ncn/{hostname}/validate:
     post:
       consumes:
       - application/json
@@ -738,23 +738,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
@@ -762,7 +762,7 @@ paths:
       summary: Perform validation on a NCN
       tags:
       - NCN
-  /ncn/{hostname}/wipe:
+  /v1/ncn/{hostname}/wipe:
     post:
       consumes:
       - application/json
@@ -900,30 +900,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Perform disk wipe on a NCN
       tags:
       - NCN
-  /ncn/{type}/post-upgrade:
+  /v1/ncn/{type}/post-upgrade:
     post:
       consumes:
       - application/json
@@ -982,30 +982,30 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/utils.ResponseError'
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin
       summary: Perform post upgrade actions
       tags:
       - NCN
-  /ncn/reboot:
+  /v2/ncn/reboot:
     post:
       consumes:
       - application/json
@@ -1019,8 +1019,8 @@ paths:
         - admin
       summary: Perform post upgrade actions
       tags:
-      - V2 APIs (draft)
-  /ncn/reboot/{reboot_job_id}:
+      - NCN v2
+  /v2/ncn/reboot/{reboot_job_id}:
     delete:
       consumes:
       - application/json
@@ -1041,7 +1041,7 @@ paths:
         - read
       summary: Delete a reboot job
       tags:
-      - V2 APIs (draft)
+      - NCN v2
     get:
       consumes:
       - application/json
@@ -1062,8 +1062,8 @@ paths:
         - read
       summary: Get status of a reboot job
       tags:
-      - V2 APIs (draft)
-  /ncn/rebuild:
+      - NCN v2
+  /v2/ncn/rebuild:
     post:
       consumes:
       - application/json
@@ -1077,8 +1077,8 @@ paths:
         - admin
       summary: Perform post upgrade actions
       tags:
-      - V2 APIs (draft)
-  /ncn/rebuild/{rebuild_job_id}:
+      - NCN v2
+  /v2/ncn/rebuild/{rebuild_job_id}:
     delete:
       consumes:
       - application/json
@@ -1099,7 +1099,7 @@ paths:
         - read
       summary: Delete a rebuild job
       tags:
-      - V2 APIs (draft)
+      - NCN v2
     get:
       consumes:
       - application/json
@@ -1120,7 +1120,7 @@ paths:
         - read
       summary: Get status of a rebuild job
       tags:
-      - V2 APIs (draft)
+      - NCN v2
 securityDefinitions:
   OAuth2Application:
     flow: application

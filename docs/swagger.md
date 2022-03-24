@@ -50,7 +50,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 |read|                              Grants read access|
 |Token URL|<https://example.com/oauth/token>|
 
-### /etcd/{hostname}/prepare
+### /v1/etcd/{hostname}/prepare
 
 #### PUT
 ##### Summary
@@ -96,11 +96,11 @@ Prepare a master ncn to rejoin baremetal etcd cluster
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | ok | string |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -108,7 +108,7 @@ Prepare a master ncn to rejoin baremetal etcd cluster
 | --- | --- |
 | OAuth2Application | admin |
 
-### /kubernetes/{hostname}/drain
+### /v1/kubernetes/{hostname}/drain
 
 #### POST
 ##### Summary
@@ -149,9 +149,9 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -159,7 +159,7 @@ Before we can safely drain/remove a node from k8s cluster, we need to run some `
 | --- | --- |
 | OAuth2Application | admin |
 
-### /kubernetes/{hostname}/post-rebuild
+### /v1/kubernetes/{hostname}/post-rebuild
 
 #### POST
 ##### Summary
@@ -224,9 +224,9 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -234,7 +234,7 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | --- | --- |
 | OAuth2Application | admin |
 
-### /kubernetes/{hostname}/pre-rebuild
+### /v1/kubernetes/{hostname}/pre-rebuild
 
 #### POST
 ##### Summary
@@ -309,11 +309,11 @@ Actions we need to perform before rebuild a k8s node
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -321,7 +321,7 @@ Actions we need to perform before rebuild a k8s node
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/backup
+### /v1/ncn/{hostname}/backup
 
 #### POST
 ##### Summary
@@ -388,11 +388,11 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -400,7 +400,7 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/boot-parameters
+### /v1/ncn/{hostname}/boot-parameters
 
 #### PUT
 ##### Summary
@@ -431,17 +431,17 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
 | hostname | path | Hostname | Yes | string |
-| bootParameters | body | TODO: use data model from `csi/bss` | Yes | [models.BootParameters](#modelsbootparameters) |
+| bootParameters | body | TODO: use data model from `csi/bss` | Yes | [BootParameters](#bootparameters) |
 
 ##### Responses
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -449,7 +449,7 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/post-rebuild
+### /v1/ncn/{hostname}/post-rebuild
 
 #### POST
 ##### Summary
@@ -501,11 +501,11 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -513,7 +513,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/reboot
+### /v1/ncn/{hostname}/reboot
 
 #### POST
 ##### Summary
@@ -555,11 +555,11 @@ Set to boot from pxe and power cycle the ncn
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -567,7 +567,7 @@ Set to boot from pxe and power cycle the ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/restore
+### /v1/ncn/{hostname}/restore
 
 #### POST
 ##### Summary
@@ -611,11 +611,11 @@ Restore previously backup files to a ncn.
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -623,7 +623,7 @@ Restore previously backup files to a ncn.
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{hostname}/validate
+### /v1/ncn/{hostname}/validate
 
 #### POST
 ##### Summary
@@ -662,11 +662,11 @@ Run validation step of a ncn
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -674,7 +674,7 @@ Run validation step of a ncn
 | --- | --- | --- |
 | OAuth2Application | admin | read |
 
-### /ncn/{hostname}/wipe
+### /v1/ncn/{hostname}/wipe
 
 #### POST
 ##### Summary
@@ -815,11 +815,11 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -827,7 +827,7 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/{type}/post-upgrade
+### /v1/ncn/{type}/post-upgrade
 
 #### POST
 ##### Summary
@@ -889,11 +889,11 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 400 | Bad Request | [utils.ResponseError](#utilsresponseerror) |
-| 401 | Unauthorized | [utils.ResponseError](#utilsresponseerror) |
-| 403 | Forbidden | [utils.ResponseError](#utilsresponseerror) |
-| 404 | Not Found | [utils.ResponseError](#utilsresponseerror) |
-| 500 | Internal Server Error | [utils.ResponseError](#utilsresponseerror) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 401 | Unauthorized | [ResponseError](#responseerror) |
+| 403 | Forbidden | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -901,7 +901,7 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/reboot
+### /v2/ncn/reboot
 
 #### POST
 ##### Summary
@@ -920,7 +920,7 @@ Perform post upgrade actions
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/reboot/{reboot_job_id}
+### /v2/ncn/reboot/{reboot_job_id}
 
 #### DELETE
 ##### Summary
@@ -968,7 +968,7 @@ Get status of a reboot job
 | --- | --- | --- |
 | OAuth2Application | admin | read |
 
-### /ncn/rebuild
+### /v2/ncn/rebuild
 
 #### POST
 ##### Summary
@@ -987,7 +987,7 @@ Perform post upgrade actions
 | --- | --- |
 | OAuth2Application | admin |
 
-### /ncn/rebuild/{rebuild_job_id}
+### /v2/ncn/rebuild/{rebuild_job_id}
 
 #### DELETE
 ##### Summary
@@ -1037,20 +1037,20 @@ Get status of a rebuild job
 
 ### Models
 
-#### models.BootParameters
+#### BootParameters
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| image | [models.ImageObject](#modelsimageobject) |  | No |
+| image | [BootParameters.ImageObject](#bootparametersimageobject) |  | No |
 
-#### models.ImageObject
+#### BootParameters.ImageObject
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | path | string |  | No |
 | version | string |  | No |
 
-#### utils.ResponseError
+#### ResponseError
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
