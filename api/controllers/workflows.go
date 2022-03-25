@@ -30,90 +30,67 @@ import (
 )
 
 // NcnController data type
-type NcnController struct {
+type WorkflowsController struct {
 	service services.NcnService
 	logger  utils.Logger
 }
 
 // NewNcnController creates new Ncn controller
-func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnController {
+func NewWorkflowsController(NcnService services.NcnService, logger utils.Logger) NcnController {
 	return NcnController{
 		service: NcnService,
 		logger:  logger,
 	}
 }
 
-// NcnCreateRebuildWorkflow
-// @Summary   End to end rebuild of a single ncn
-// @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN
+// NcnGetWorkflows
+// @Summary   Get status of a ncn workflow
+// @Param     workflow_ids  query  []string  true  "workflow ids"  collectionFormat(csv)
+// @Tags      Workflow
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
-// @Router    /v1/ncns/{hostname}/rebuild [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
+// @Router    /v1/workflows [get]
+// @Security  OAuth2Application[admin,read]
+func (u NcnController) NcnGetWorkflows(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnCreateRebootWorkflow
-// @Summary   End to end reboot of a single ncn
-// @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN
+// NcnDeleteWorkflow
+// @Summary   Delete a ncn workflow
+// @Param     name  path  string  true  "name of workflow"
+// @Tags      Workflow
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
-// @Router    /v1/ncns/{hostname}/reboot [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
+// @Router    /v1/workflows/{name} [delete]
+// @Security  OAuth2Application[admin,read]
+func (u NcnController) NcnDeleteWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnsCreateRebootsWorkflow
-// @Summary   End to end rolling reboot request
-// @Tags      NCN v2
+// NcnRetryWorkflow
+// @Summary   Retry a failed ncn workflow, skip passed steps
+// @Param     name  path  string  true  "name of workflow"
+// @Tags      Workflow
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
-// @Router    /v2/ncns/reboot [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
+// @Router    /v1/workflows/{name}/retry [put]
+// @Security  OAuth2Application[admin,read]
+func (u NcnController) NcnRetryWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
-// NcnsCreateRebuildWorkflow
-// @Summary   End to end rolling rebuild request
-// @Tags      NCN v2
+// NcnRerunWorkflow
+// @Summary   Rerun a workflow, all steps will run
+// @Param     name  path  string  true  "name of workflow"
+// @Tags      Workflow
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
-// @Router    /v2/ncns/rebuild [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
-}
-
-// NcnAdd
-// @Summary   Add a ncn
-// @Tags      NCN v2
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v2/ncn [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnAdd(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
-}
-
-// NcnRemove
-// @Summary   Remove a ncn
-// @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN v2
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v2/ncns/{hostname} [delete]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnRemove(c *gin.Context) {
+// @Router    /v1/workflows/{name}/rerun [put]
+// @Security  OAuth2Application[admin,read]
+func (u NcnController) NcnRerunWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
