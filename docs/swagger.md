@@ -321,7 +321,7 @@ Actions we need to perform before rebuild a k8s node
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/backup
+### /v1/ncns/{hostname}/backup
 
 #### POST
 ##### Summary
@@ -400,7 +400,7 @@ Create backup of a ncn based on a predefined list so critical files can be resto
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/boot-parameters
+### /v1/ncns/{hostname}/boot-parameters
 
 #### PUT
 ##### Summary
@@ -449,7 +449,7 @@ After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` ar
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/post-rebuild
+### /v1/ncns/{hostname}/post-rebuild
 
 #### POST
 ##### Summary
@@ -513,7 +513,7 @@ After a ncn has been rebuilt, some `CSM specific` steps are required.
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/reboot
+### /v1/ncns/{hostname}/reboot
 
 #### POST
 ##### Summary
@@ -567,7 +567,7 @@ Set to boot from pxe and power cycle the ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/restore
+### /v1/ncns/{hostname}/restore
 
 #### POST
 ##### Summary
@@ -623,7 +623,7 @@ Restore previously backup files to a ncn.
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{hostname}/validate
+### /v1/ncns/{hostname}/validate
 
 #### POST
 ##### Summary
@@ -674,7 +674,7 @@ Run validation step of a ncn
 | --- | --- | --- |
 | OAuth2Application | admin | read |
 
-### /v1/ncn/{hostname}/wipe
+### /v1/ncns/{hostname}/wipe
 
 #### POST
 ##### Summary
@@ -827,7 +827,7 @@ for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v1/ncn/{type}/post-upgrade
+### /v1/ncns/{type}/post-upgrade
 
 #### POST
 ##### Summary
@@ -901,12 +901,18 @@ After all ncn of a certain type has been rebuilt, some `CSM specific` steps are 
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncn/reboot
+### /v2/ncns/{hostname}/reboot
 
 #### POST
 ##### Summary
 
-Perform post upgrade actions
+End to end reboot of a single ncn
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | hostname | Yes | string |
 
 ##### Responses
 
@@ -920,60 +926,18 @@ Perform post upgrade actions
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncn/reboot/{reboot_job_id}
-
-#### DELETE
-##### Summary
-
-Delete a reboot job
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| reboot_job_id | path | job id | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
-
-#### GET
-##### Summary
-
-Get status of a reboot job
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| reboot_job_id | path | job id | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
-
-### /v2/ncn/rebuild
+### /v2/ncns/{hostname}/rebuild
 
 #### POST
 ##### Summary
 
-Perform post upgrade actions
+End to end rebuild of a single ncn
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | hostname | Yes | string |
 
 ##### Responses
 
@@ -987,41 +951,18 @@ Perform post upgrade actions
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncn/rebuild/{rebuild_job_id}
-
-#### DELETE
-##### Summary
-
-Delete a rebuild job
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| rebuild_job_id | path | job id | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+### /v2/ncns/jobs
 
 #### GET
 ##### Summary
 
-Get status of a rebuild job
+Get status of a ncn job
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
-| rebuild_job_id | path | job id | Yes | string |
+| job_ids | query | job ids | Yes | [ string ] |
 
 ##### Responses
 
@@ -1034,6 +975,113 @@ Get status of a rebuild job
 | Security Schema | Scopes | |
 | --- | --- | --- |
 | OAuth2Application | admin | read |
+
+### /v2/ncns/jobs/{job_id}
+
+#### DELETE
+##### Summary
+
+Delete a ncn job
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| job_id | path | job id | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
+
+### /v3/ncn
+
+#### POST
+##### Summary
+
+Add a ncn
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v3/ncns/{hostname}
+
+#### DELETE
+##### Summary
+
+Remove a ncn
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | hostname | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v3/ncns/reboot
+
+#### POST
+##### Summary
+
+End to end rolling reboot request
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v3/ncns/rebuild
+
+#### POST
+##### Summary
+
+End to end rolling rebuild request
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### Models
 

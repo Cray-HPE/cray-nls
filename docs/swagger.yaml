@@ -355,7 +355,7 @@ paths:
       summary: Kubernetes node pre rebuild action
       tags:
       - Kubernetes
-  /v1/ncn/{hostname}/backup:
+  /v1/ncns/{hostname}/backup:
     post:
       consumes:
       - application/json
@@ -442,7 +442,7 @@ paths:
       summary: Create a NCN backup
       tags:
       - NCN
-  /v1/ncn/{hostname}/boot-parameters:
+  /v1/ncns/{hostname}/boot-parameters:
     put:
       consumes:
       - application/json
@@ -504,7 +504,7 @@ paths:
       summary: Set boot parameters before reboot a NCN
       tags:
       - NCN
-  /v1/ncn/{hostname}/post-rebuild:
+  /v1/ncns/{hostname}/post-rebuild:
     post:
       consumes:
       - application/json
@@ -576,7 +576,7 @@ paths:
       summary: Perform post rebuild action on a NCN
       tags:
       - NCN
-  /v1/ncn/{hostname}/reboot:
+  /v1/ncns/{hostname}/reboot:
     post:
       consumes:
       - application/json
@@ -638,7 +638,7 @@ paths:
       summary: Perform reboot on a NCN
       tags:
       - NCN
-  /v1/ncn/{hostname}/restore:
+  /v1/ncns/{hostname}/restore:
     post:
       consumes:
       - application/json
@@ -702,7 +702,7 @@ paths:
       summary: Restore a NCN backup
       tags:
       - NCN
-  /v1/ncn/{hostname}/validate:
+  /v1/ncns/{hostname}/validate:
     post:
       consumes:
       - application/json
@@ -762,7 +762,7 @@ paths:
       summary: Perform validation on a NCN
       tags:
       - NCN
-  /v1/ncn/{hostname}/wipe:
+  /v1/ncns/{hostname}/wipe:
     post:
       consumes:
       - application/json
@@ -923,7 +923,7 @@ paths:
       summary: Perform disk wipe on a NCN
       tags:
       - NCN
-  /v1/ncn/{type}/post-upgrade:
+  /v1/ncns/{type}/post-upgrade:
     post:
       consumes:
       - application/json
@@ -1005,7 +1005,96 @@ paths:
       summary: Perform post upgrade actions
       tags:
       - NCN
-  /v2/ncn/reboot:
+  /v2/ncns/{hostname}/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end reboot of a single ncn
+      tags:
+      - NCN v2
+  /v2/ncns/{hostname}/rebuild:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end rebuild of a single ncn
+      tags:
+      - NCN v2
+  /v2/ncns/jobs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - collectionFormat: csv
+        description: job ids
+        in: query
+        items:
+          type: string
+        name: job_ids
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Get status of a ncn job
+      tags:
+      - NCN v2
+  /v2/ncns/jobs/{job_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: job id
+        in: path
+        name: job_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+        - read
+      summary: Delete a ncn job
+      tags:
+      - NCN v2
+  /v3/ncn:
     post:
       consumes:
       - application/json
@@ -1017,17 +1106,17 @@ paths:
       security:
       - OAuth2Application:
         - admin
-      summary: Perform post upgrade actions
+      summary: Add a ncn
       tags:
-      - NCN v2
-  /v2/ncn/reboot/{reboot_job_id}:
+      - NCN v3
+  /v3/ncns/{hostname}:
     delete:
       consumes:
       - application/json
       parameters:
-      - description: job id
+      - description: hostname
         in: path
-        name: reboot_job_id
+        name: hostname
         required: true
         type: string
       produces:
@@ -1038,32 +1127,10 @@ paths:
       security:
       - OAuth2Application:
         - admin
-        - read
-      summary: Delete a reboot job
+      summary: Remove a ncn
       tags:
-      - NCN v2
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: job id
-        in: path
-        name: reboot_job_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      security:
-      - OAuth2Application:
-        - admin
-        - read
-      summary: Get status of a reboot job
-      tags:
-      - NCN v2
-  /v2/ncn/rebuild:
+      - NCN v3
+  /v3/ncns/reboot:
     post:
       consumes:
       - application/json
@@ -1075,19 +1142,13 @@ paths:
       security:
       - OAuth2Application:
         - admin
-      summary: Perform post upgrade actions
+      summary: End to end rolling reboot request
       tags:
-      - NCN v2
-  /v2/ncn/rebuild/{rebuild_job_id}:
-    delete:
+      - NCN v3
+  /v3/ncns/rebuild:
+    post:
       consumes:
       - application/json
-      parameters:
-      - description: job id
-        in: path
-        name: rebuild_job_id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -1096,31 +1157,9 @@ paths:
       security:
       - OAuth2Application:
         - admin
-        - read
-      summary: Delete a rebuild job
+      summary: End to end rolling rebuild request
       tags:
-      - NCN v2
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: job id
-        in: path
-        name: rebuild_job_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      security:
-      - OAuth2Application:
-        - admin
-        - read
-      summary: Get status of a rebuild job
-      tags:
-      - NCN v2
+      - NCN v3
 securityDefinitions:
   OAuth2Application:
     flow: application

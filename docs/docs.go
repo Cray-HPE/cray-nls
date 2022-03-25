@@ -254,7 +254,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/backup": {
+        "/v1/ncns/{hostname}/backup": {
             "post": {
                 "security": [
                     {
@@ -317,7 +317,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/boot-parameters": {
+        "/v1/ncns/{hostname}/boot-parameters": {
             "put": {
                 "security": [
                     {
@@ -389,7 +389,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/post-rebuild": {
+        "/v1/ncns/{hostname}/post-rebuild": {
             "post": {
                 "security": [
                     {
@@ -452,7 +452,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/reboot": {
+        "/v1/ncns/{hostname}/reboot": {
             "post": {
                 "security": [
                     {
@@ -515,7 +515,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/restore": {
+        "/v1/ncns/{hostname}/restore": {
             "post": {
                 "security": [
                     {
@@ -578,7 +578,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/validate": {
+        "/v1/ncns/{hostname}/validate": {
             "post": {
                 "security": [
                     {
@@ -642,7 +642,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{hostname}/wipe": {
+        "/v1/ncns/{hostname}/wipe": {
             "post": {
                 "security": [
                     {
@@ -705,7 +705,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncn/{type}/post-upgrade": {
+        "/v1/ncns/{type}/post-upgrade": {
             "post": {
                 "security": [
                     {
@@ -768,33 +768,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v2/ncn/reboot": {
-            "post": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN v2"
-                ],
-                "summary": "Perform post upgrade actions",
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/v2/ncn/reboot/{reboot_job_id}": {
+        "/v2/ncns/jobs": {
             "get": {
                 "security": [
                     {
@@ -813,13 +787,17 @@ const docTemplate = `{
                 "tags": [
                     "NCN v2"
                 ],
-                "summary": "Get status of a reboot job",
+                "summary": "Get status of a ncn job",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "job id",
-                        "name": "reboot_job_id",
-                        "in": "path",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "job ids",
+                        "name": "job_ids",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -828,7 +806,9 @@ const docTemplate = `{
                         "description": "Not Implemented"
                     }
                 }
-            },
+            }
+        },
+        "/v2/ncns/jobs/{job_id}": {
             "delete": {
                 "security": [
                     {
@@ -847,12 +827,12 @@ const docTemplate = `{
                 "tags": [
                     "NCN v2"
                 ],
-                "summary": "Delete a reboot job",
+                "summary": "Delete a ncn job",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "job id",
-                        "name": "reboot_job_id",
+                        "name": "job_id",
                         "in": "path",
                         "required": true
                     }
@@ -864,7 +844,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v2/ncn/rebuild": {
+        "/v2/ncns/{hostname}/reboot": {
             "post": {
                 "security": [
                     {
@@ -882,39 +862,12 @@ const docTemplate = `{
                 "tags": [
                     "NCN v2"
                 ],
-                "summary": "Perform post upgrade actions",
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/v2/ncn/rebuild/{rebuild_job_id}": {
-            "get": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin",
-                            "read"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN v2"
-                ],
-                "summary": "Get status of a rebuild job",
+                "summary": "End to end reboot of a single ncn",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "job id",
-                        "name": "rebuild_job_id",
+                        "description": "hostname",
+                        "name": "hostname",
                         "in": "path",
                         "required": true
                     }
@@ -924,13 +877,14 @@ const docTemplate = `{
                         "description": "Not Implemented"
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/v2/ncns/{hostname}/rebuild": {
+            "post": {
                 "security": [
                     {
                         "OAuth2Application": [
-                            "admin",
-                            "read"
+                            "admin"
                         ]
                     }
                 ],
@@ -943,12 +897,125 @@ const docTemplate = `{
                 "tags": [
                     "NCN v2"
                 ],
-                "summary": "Delete a rebuild job",
+                "summary": "End to end rebuild of a single ncn",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "job id",
-                        "name": "rebuild_job_id",
+                        "description": "hostname",
+                        "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v3/ncn": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v3"
+                ],
+                "summary": "Add a ncn",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v3/ncns/reboot": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v3"
+                ],
+                "summary": "End to end rolling reboot request",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v3/ncns/rebuild": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v3"
+                ],
+                "summary": "End to end rolling rebuild request",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v3/ncns/{hostname}": {
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN v3"
+                ],
+                "summary": "Remove a ncn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hostname",
+                        "name": "hostname",
                         "in": "path",
                         "required": true
                     }
