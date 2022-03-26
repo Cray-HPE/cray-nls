@@ -38,7 +38,7 @@ type NcnRoutes struct {
 // Setup Ncn routes
 func (s NcnRoutes) Setup() {
 	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/api/v1")
+	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
 		api.POST("/ncns/:hostname/reboot", s.ncnsController.NcnCreateRebootWorkflow)
 

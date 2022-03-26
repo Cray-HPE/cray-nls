@@ -81,12 +81,6 @@ End to end rebuild of a single ncn
 
 Get status of a ncn workflow
 
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| workflow_ids | query | workflow ids | Yes | [ string ] |
-
 ##### Responses
 
 | Code | Description |

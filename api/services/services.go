@@ -21,12 +21,12 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package controllers
+package services
 
 import "go.uber.org/fx"
 
-// Module exported for initializing application
+// Module exports services present
 var Module = fx.Options(
-	fx.Provide(NewNcnController),
-	fx.Provide(NewWorkflowController),
+	fx.Provide(NewNcnService),
+	fx.Provide(NewWorkflowService),
 )

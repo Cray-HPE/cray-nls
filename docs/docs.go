@@ -110,19 +110,6 @@ const docTemplate = `{
                     "Workflow"
                 ],
                 "summary": "Get status of a ncn workflow",
-                "parameters": [
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "workflow ids",
-                        "name": "workflow_ids",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "501": {
                         "description": "Not Implemented"

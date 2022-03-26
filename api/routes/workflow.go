@@ -21,11 +21,39 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package services
+package routes
 
-import "go.uber.org/fx"
-
-// Module exports services present
-var Module = fx.Options(
-	fx.Provide(NewNcnService),
+import (
+	"github.com/Cray-HPE/cray-nls/api/controllers"
+	"github.com/Cray-HPE/cray-nls/utils"
 )
+
+// WorkflowRoutes struct
+type WorkflowRoutes struct {
+	logger             utils.Logger
+	handler            utils.RequestHandler
+	workflowController controllers.WorkflowController
+}
+
+// Setup Workflow routes
+func (s WorkflowRoutes) Setup() {
+	s.logger.Info("Setting up routes")
+	api := s.handler.Gin.Group("/apis/nls/v1")
+	{
+		api.GET("/workflows", s.workflowController.GetWorkflows)
+
+	}
+}
+
+// NewWorkflowRoutes creates new Workflow controller
+func NewWorkflowRoutes(
+	logger utils.Logger,
+	handler utils.RequestHandler,
+	workflowController controllers.WorkflowController,
+) WorkflowRoutes {
+	return WorkflowRoutes{
+		handler:            handler,
+		logger:             logger,
+		workflowController: workflowController,
+	}
+}

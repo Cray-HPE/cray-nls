@@ -28,6 +28,7 @@ import "go.uber.org/fx"
 // Module exports dependency to container
 var Module = fx.Options(
 	fx.Provide(NewNcnRoutes),
+	fx.Provide(NewWorkflowRoutes),
 	fx.Provide(NewRoutes),
 )
 
@@ -42,9 +43,11 @@ type Route interface {
 // NewRoutes sets up routes
 func NewRoutes(
 	ncnRoutes NcnRoutes,
+	workflowRoutes WorkflowRoutes,
 ) Routes {
 	return Routes{
 		ncnRoutes,
+		workflowRoutes,
 	}
 }
 

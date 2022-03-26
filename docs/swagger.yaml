@@ -63,15 +63,6 @@ paths:
     get:
       consumes:
       - application/json
-      parameters:
-      - collectionFormat: csv
-        description: workflow ids
-        in: query
-        items:
-          type: string
-        name: workflow_ids
-        required: true
-        type: array
       produces:
       - application/json
       responses:

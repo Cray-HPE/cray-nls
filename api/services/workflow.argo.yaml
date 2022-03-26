@@ -1,0 +1,167 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: workflow-template-hello-world-
+spec:
+  entrypoint: whalesay
+  volumes:
+    - name: ssh
+      hostPath:
+        path: /root/.ssh
+        type: Directory
+    - name: k8s
+      hostPath:
+        path: /etc/kubernetes
+        type: Directory
+    - name: user-bin
+      hostPath:
+        path: /usr/bin
+        type: Directory
+  templates:
+    - name: whalesay
+      dag:
+        tasks:
+          - name: A
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: "echo hello world"
+          - name: wait-for-cfs
+            dependencies: [A]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames x3000c0s4b0n0
+          - name: ensure-nexus-can-start-on-any-node
+            dependencies: [A]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    workers="$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | sed -e 's,^node/,,' | paste -sd,)"
+                    export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+                    kubectl get configmap -n nexus cray-precache-images -o json | jq -r '.data.images_to_cache' | while read image; do echo >&2 "+ caching $image"; pdsh -w "$workers" "crictl pull $image" 2>/dev/null; done
+          - name: ensure-etcd-pods
+            dependencies: [A]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    while [[ "$(kubectl get po -A -l 'app=etcd' | grep -v "Running"| wc -l)" != "1" ]]; do
+                        echo "Some etcd pods are not in running state, wait for 5s ..."
+                        kubectl get po -A -l 'app=etcd' | grep -v "Running"
+                        sleep 5
+                    done
+
+                    etcdClusters=$(kubectl get Etcdclusters -n services | grep "cray-"|awk '{print $1}')
+                    for cluster in $etcdClusters
+                    do
+                        numOfPods=$(kubectl get pods -A -l 'app=etcd'| grep $cluster | grep "Running" | wc -l)
+                        if [[ $numOfPods -ne 3 ]];then
+                            echo "ERROR - Etcd cluster: $cluster should have 3 pods running but only $numOfPods are running"
+                            exit 1
+                        fi
+                    done
+          - name: ensure-pg-pods
+            dependencies: [A]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    wget -q http://rgw-vip.nmn/ncn-utils/csi;chmod 0755 csi
+                    mv csi /usr/local/bin/csi
+                    csi pit validate --postgres
+          - name: drain
+            dependencies:
+              [
+                wait-for-cfs,
+                ensure-nexus-can-start-on-any-node,
+                ensure-etcd-pods,
+                ensure-pg-pods,
+              ]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"
+          - name: backup-credentials
+            dependencies:
+              [
+                wait-for-cfs,
+                ensure-nexus-can-start-on-any-node,
+                ensure-etcd-pods,
+                ensure-pg-pods,
+              ]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"
+          - name: update-bss
+            dependencies:
+              [
+                wait-for-cfs,
+                ensure-nexus-can-start-on-any-node,
+                ensure-etcd-pods,
+                ensure-pg-pods,
+              ]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"
+          - name: wipe-and-rebuild
+            dependencies: [update-bss, backup-credentials, drain]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"
+          - name: restore-ssh
+            dependencies: [wipe-and-rebuild]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"
+          - name: wait-for-cfs-2-and-more
+            dependencies: [wipe-and-rebuild]
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: message
+                  value: |
+                    echo "NOT IMPLEMENTED"

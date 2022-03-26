@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: ssh-with-kubeconfig
+spec:
+  volumes:
+    - name: ssh
+      hostPath:
+        path: /root/.ssh
+        type: Directory
+    - name: k8s
+      hostPath:
+        path: /etc/kubernetes
+        type: Directory
+    - name: user-bin
+      hostPath:
+        path: /usr/bin
+        type: Directory
+  entrypoint: bash-script-example
+  templates:
+    - name: bash-script-example
+      inputs:
+        parameters:
+          - name: message
+      nodeSelector:
+        kubernetes.io/hostname: ncn-w003
+      script:
+        image: docker/whalesay:latest
+        command: [bash]
+        source: |
+          cat <<'EOF' > {{workflow.name}}.sh
+              set -ex
+              {{inputs.parameters.message}}
+          EOF
+          chmod +x {{workflow.name}}.sh
+          scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{workflow.name}}.sh root@ncn-m001:/tmp/{{workflow.name}}.sh
+          ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 '/tmp/{{workflow.name}}.sh'
+        volumeMounts:
+          - name: ssh
+            mountPath: /myssh
+          - name: k8s
+            mountPath: /etc/kubernetes
+          - name: user-bin
+            mountPath: /mybin

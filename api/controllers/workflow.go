@@ -24,39 +24,50 @@
 package controllers
 
 import (
-	"github.com/Cray-HPE/cray-nls/services"
+	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
 )
 
-// NcnController data type
-type WorkflowsController struct {
-	service services.NcnService
+// Controller data type
+type WorkflowController struct {
+	service services.WorkflowService
 	logger  utils.Logger
 }
 
-// NewNcnController creates new Ncn controller
-func NewWorkflowsController(NcnService services.NcnService, logger utils.Logger) NcnController {
-	return NcnController{
-		service: NcnService,
+// NewController creates new  controller
+func NewWorkflowController(Service services.WorkflowService, logger utils.Logger) WorkflowController {
+	return WorkflowController{
+		service: Service,
 		logger:  logger,
 	}
 }
 
-// NcnGetWorkflows
+// GetWorkflows
 // @Summary   Get status of a ncn workflow
-// @Param     workflow_ids  query  []string  true  "workflow ids"  collectionFormat(csv)
 // @Tags      Workflow
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows [get]
 // @Security  OAuth2Application[admin,read]
-func (u NcnController) NcnGetWorkflows(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+func (u WorkflowController) GetWorkflows(c *gin.Context) {
+	workflowList, err := u.service.GetWorkflows(c)
+	if err != nil {
+		u.logger.Error(err)
+	}
+	var workflows []interface{}
+	for _, workflow := range workflowList.Items {
+		tmp := map[string]interface{}{
+			"name":  workflow.Name,
+			"phase": workflow.Labels["workflows.argoproj.io/phase"],
+		}
+		workflows = append(workflows, tmp)
+	}
+	c.JSON(200, gin.H{"data": workflows})
 }
 
-// NcnDeleteWorkflow
+// DeleteWorkflow
 // @Summary   Delete a ncn workflow
 // @Param     name  path  string  true  "name of workflow"
 // @Tags      Workflow
@@ -65,11 +76,11 @@ func (u NcnController) NcnGetWorkflows(c *gin.Context) {
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name} [delete]
 // @Security  OAuth2Application[admin,read]
-func (u NcnController) NcnDeleteWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
+	c.JSON(200, gin.H{"data": " updated"})
 }
 
-// NcnRetryWorkflow
+// RetryWorkflows
 // @Summary   Retry a failed ncn workflow, skip passed steps
 // @Param     name  path  string  true  "name of workflow"
 // @Tags      Workflow
@@ -78,11 +89,11 @@ func (u NcnController) NcnDeleteWorkflow(c *gin.Context) {
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name}/retry [put]
 // @Security  OAuth2Application[admin,read]
-func (u NcnController) NcnRetryWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+func (u WorkflowController) RetryWorkflow(c *gin.Context) {
+	c.JSON(200, gin.H{"data": " updated"})
 }
 
-// NcnRerunWorkflow
+// RerunWorkflows
 // @Summary   Rerun a workflow, all steps will run
 // @Param     name  path  string  true  "name of workflow"
 // @Tags      Workflow
@@ -91,6 +102,6 @@ func (u NcnController) NcnRetryWorkflow(c *gin.Context) {
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name}/rerun [put]
 // @Security  OAuth2Application[admin,read]
-func (u NcnController) NcnRerunWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+func (u WorkflowController) RerunWorkflow(c *gin.Context) {
+	c.JSON(200, gin.H{"data": " updated"})
 }

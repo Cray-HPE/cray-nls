@@ -24,7 +24,7 @@
 package controllers
 
 import (
-	"github.com/Cray-HPE/cray-nls/services"
+	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
 )
