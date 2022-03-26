@@ -28,13 +28,14 @@ spec:
         image: docker/whalesay:latest
         command: [bash]
         source: |
-          cat <<'EOF' > {{workflow.name}}.sh
+          ts=$(echo $RANDOM | md5sum | head -c 20; echo)
+          cat <<'EOF' > "${ts}.sh"
               set -ex
               {{inputs.parameters.message}}
           EOF
-          chmod +x {{workflow.name}}.sh
-          scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{workflow.name}}.sh root@ncn-m001:/tmp/{{workflow.name}}.sh
-          ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 '/tmp/{{workflow.name}}.sh'
+          chmod +x ${ts}.sh
+          scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
+          ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
         volumeMounts:
           - name: ssh
             mountPath: /myssh
