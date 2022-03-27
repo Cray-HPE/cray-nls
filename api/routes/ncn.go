@@ -41,6 +41,7 @@ func (s NcnRoutes) Setup() {
 	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
 		api.POST("/ncns/:hostname/reboot", s.ncnsController.NcnCreateRebootWorkflow)
+		api.POST("/ncns/:hostname/rebuild", s.ncnsController.NcnCreateRebuildWorkflow)
 
 	}
 }

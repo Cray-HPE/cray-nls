@@ -31,15 +31,15 @@ import (
 
 // NcnController data type
 type NcnController struct {
-	service services.NcnService
-	logger  utils.Logger
+	workflowService services.WorkflowService
+	logger          utils.Logger
 }
 
 // NewNcnController creates new Ncn controller
-func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnController {
+func NewNcnController(workflowService services.WorkflowService, logger utils.Logger) NcnController {
 	return NcnController{
-		service: NcnService,
-		logger:  logger,
+		workflowService: workflowService,
+		logger:          logger,
 	}
 }
 
@@ -53,7 +53,11 @@ func NewNcnController(NcnService services.NcnService, logger utils.Logger) NcnCo
 // @Router    /v1/ncns/{hostname}/rebuild [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	hostname := c.Param("hostname")
+	u.logger.Infof("Hostname: %s", hostname)
+	u.workflowService.CreateWorkflow(hostname)
+
+	c.JSON(200, gin.H{"data": "work flow created"})
 }
 
 // NcnCreateRebootWorkflow

@@ -84,6 +84,27 @@ func (s WorkflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
+func (s WorkflowService) CreateWorkflow(hostname string) error {
+	s.logger.Infof("Creating workflow for: %s", hostname)
+
+	var myWorkflow v1alpha1.Workflow
+	tmpBytes, _ := yaml.YAMLToJSON(ArgoWorkflow)
+	err := json.Unmarshal(tmpBytes, &myWorkflow)
+	if err != nil {
+		s.logger.Error(err)
+	}
+
+	_, res := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
+		Namespace: "argo",
+		Workflow:  &myWorkflow,
+	})
+	if res != nil {
+		s.logger.Infof("Creating workflow for: %s FAILED", hostname)
+		s.logger.Error(res)
+	}
+	return res
+}
+
 func (s WorkflowService) initializeWorkflowTemplate(template []byte) error {
 	s.logger.Infof("initialize workflow template")
 
