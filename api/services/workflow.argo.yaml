@@ -125,6 +125,9 @@ spec:
                   value: |
                     echo "NOT IMPLEMENTED"
           - name: update-bss
+            retryStrategy:
+              limit: "2"
+              retryPolicy: "Always"
             dependencies:
               [
                 wait-for-cfs,
@@ -146,6 +149,9 @@ spec:
 
                     csi handoff bss-update-param --set metal.no-wipe=0 --limit x3000c0s4b0n0
           - name: wipe-and-rebuild
+            retryStrategy:
+              limit: "2"
+              retryPolicy: "Always"
             dependencies: [update-bss, backup-credentials, drain]
             templateRef:
               name: ssh-with-kubeconfig
@@ -155,56 +161,8 @@ spec:
                 - name: message
                   value: |
                     set -e
-                    cat <<'EOF' > wipe_disk.sh
-                        lsblk | grep -q /var/lib/sdu
-                        sdu_rc=$?
-                        vgs | grep -q metal
-                        vgs_rc=$?
-                        set -e
-                        systemctl disable kubelet.service || true
-                        systemctl stop kubelet.service || true
-                        systemctl disable containerd.service || true
-                        systemctl stop containerd.service || true
-                        umount /var/lib/containerd /var/lib/kubelet || true
-                        if [[ "$sdu_rc" -eq 0 ]]; then
-                          umount /var/lib/sdu || true
-                        fi
-                        for md in /dev/md/*; do mdadm -S $md || echo nope ; done
-                        if [[ "$vgs_rc" -eq 0 ]]; then
-                          vgremove -f --select 'vg_name=~metal*' || true
-                          pvremove /dev/md124 || true
-                        fi
-                        wipefs --all --force /dev/sd* /dev/disk/by-label/* || true
-                        sgdisk --zap-all /dev/sd*
-                    EOF
-                    chmod +x wipe_disk.sh
-                    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null wipe_disk.sh ncn-w001:/tmp/wipe_disk.sh
-                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 '/tmp/wipe_disk.sh'
-
-                    target_ncn_mgmt_host="ncn-w001-mgmt"
-                    VAULT_TOKEN=$(kubectl get secrets cray-vault-unseal-keys -n vault -o jsonpath={.data.vault-root} | base64 -d)
-                    IPMI_USERNAME=""
-                    IPMI_PASSWORD=""
-                    for VAULT_POD in $(kubectl get pods -n vault --field-selector status.phase=Running --no-headers \
-                                        -o custom-columns=:.metadata.name | grep -E "^cray-vault-(0|[1-9][0-9]*)$") ; do
-                        IPMI_USERNAME=$(kubectl exec -it -n vault -c vault ${VAULT_POD} -- sh -c \
-                            "export VAULT_ADDR=http://localhost:8200; export VAULT_TOKEN=`echo $VAULT_TOKEN`; \
-                            vault kv get -format=json secret/hms-creds/x3000c0s4b0n0" | 
-                            jq -r '.data.Username')
-                        # If we are not able to get the username, no need to try and get the password.
-                        [[ -n ${IPMI_USERNAME} ]] || continue
-                        export IPMI_PASSWORD=$(kubectl exec -it -n vault -c vault ${VAULT_POD} -- sh -c \
-                            "export VAULT_ADDR=http://localhost:8200; export VAULT_TOKEN=`echo $VAULT_TOKEN`; \
-                            vault kv get -format=json secret/hms-creds/x3000c0s4b0n0" | 
-                            jq -r '.data.Password')
-                        break
-                    done
-
-                    ipmitool -I lanplus -U ${IPMI_USERNAME} -E -H w001_mgmt_host chassis bootdev pxe options=efiboot
-                    ipmitool -I lanplus -U ${IPMI_USERNAME} -E -H w001_mgmt_host chassis power off
-                    sleep 20
-                    ipmitool -I lanplus -U ${IPMI_USERNAME} -E -H w001_mgmt_host chassis power status
-                    ipmitool -I lanplus -U ${IPMI_USERNAME} -E -H w001_mgmt_host chassis power on
+                    mv /etc/cray/upgrade/csm/ncn-w001/state /etc/cray/upgrade/csm/ncn-w001/state.bak || true
+                    NONINTERACTIVE=1 /usr/share/doc/csm/upgrade/1.2/scripts/common/ncn-rebuild-common.sh ncn-w001 --rebuild
 
           - name: wait-for-k8s
             dependencies: [wipe-and-rebuild]
@@ -230,6 +188,9 @@ spec:
                     set -e
                     echo "ncn-w001 joined k8s"
           - name: update-bss-no-wipe
+            retryStrategy:
+              limit: "2"
+              retryPolicy: "Always"
             dependencies: [wait-for-k8s]
             templateRef:
               name: ssh-with-kubeconfig
@@ -285,7 +246,10 @@ spec:
                     scp /root/docs-csm-latest.noarch.rpm ncn-w001:/root/docs-csm-latest.noarch.rpm
                     ssh ncn-w001 "rpm --force -Uvh /root/docs-csm-latest.noarch.rpm"
           - name: goss
-            dependencies: [wait-for-cfs-2-and-more]
+            retryStrategy:
+              limit: "2"
+              retryPolicy: "Always"
+            dependencies: [wait-for-cfs-2-and-more, wait-for-key-pods]
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
