@@ -85,6 +85,8 @@ func (s WorkflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 }
 
 func (s WorkflowService) CreateWorkflow(hostname string) error {
+	//TODO: need to make sure there is no running workflow
+
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
 	var myWorkflow v1alpha1.Workflow

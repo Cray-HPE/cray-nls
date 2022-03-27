@@ -2,11 +2,9 @@ basePath: /apis/nls
 info:
   contact: {}
   description: |
-    This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I
+    ## TODO
 
-    ---
-
-    ## Argo workflow Demo
+    we need some doc here
 
     ---
 
@@ -37,7 +35,7 @@ paths:
         - admin
       summary: End to end reboot of a single ncn
       tags:
-      - NCN
+      - NCNs
   /v1/ncns/{hostname}/rebuild:
     post:
       consumes:
@@ -58,7 +56,7 @@ paths:
         - admin
       summary: End to end rebuild of a single ncn
       tags:
-      - NCN
+      - NCNs
   /v1/workflows:
     get:
       consumes:
@@ -155,7 +153,7 @@ paths:
         - admin
       summary: Add a ncn
       tags:
-      - NCN v2
+      - V2
   /v2/ncns/{hostname}:
     delete:
       consumes:
@@ -176,7 +174,7 @@ paths:
         - admin
       summary: Remove a ncn
       tags:
-      - NCN v2
+      - V2
   /v2/ncns/reboot:
     post:
       consumes:
@@ -191,7 +189,7 @@ paths:
         - admin
       summary: End to end rolling reboot request
       tags:
-      - NCN v2
+      - V2
   /v2/ncns/rebuild:
     post:
       consumes:
@@ -206,7 +204,7 @@ paths:
         - admin
       summary: End to end rolling rebuild request
       tags:
-      - NCN v2
+      - V2
 securityDefinitions:
   OAuth2Application:
     flow: application
@@ -217,3 +215,13 @@ securityDefinitions:
     tokenUrl: https://example.com/oauth/token
     type: oauth2
 swagger: "2.0"
+tags:
+- description: |
+    > > > > #### End to end rebuild/reboot of a single ncn node
+  name: NCNs
+- description: |
+    > > > #### Workflow management
+  name: Workflow
+- description: |
+    > > > > > #### Future phase: End to end rebuild/reboot of a group of ncn nodes
+  name: V2

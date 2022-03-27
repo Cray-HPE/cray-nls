@@ -36,7 +36,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN"
+                    "NCNs"
                 ],
                 "summary": "End to end reboot of a single ncn",
                 "parameters": [
@@ -71,7 +71,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN"
+                    "NCNs"
                 ],
                 "summary": "End to end rebuild of a single ncn",
                 "parameters": [
@@ -241,7 +241,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN v2"
+                    "V2"
                 ],
                 "summary": "Add a ncn",
                 "responses": {
@@ -267,7 +267,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN v2"
+                    "V2"
                 ],
                 "summary": "End to end rolling reboot request",
                 "responses": {
@@ -293,7 +293,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN v2"
+                    "V2"
                 ],
                 "summary": "End to end rolling rebuild request",
                 "responses": {
@@ -319,7 +319,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCN v2"
+                    "V2"
                 ],
                 "summary": "Remove a ncn",
                 "parameters": [
@@ -349,7 +349,21 @@ const docTemplate = `{
                 "read": "                              Grants read access"
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "description": "\u003e \u003e \u003e \u003e #### End to end rebuild/reboot of a single ncn node\n",
+            "name": "NCNs"
+        },
+        {
+            "description": "\u003e \u003e \u003e #### Workflow management\n",
+            "name": "Workflow"
+        },
+        {
+            "description": "\u003e \u003e \u003e \u003e \u003e #### Future phase: End to end rebuild/reboot of a group of ncn nodes\n",
+            "name": "V2"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
@@ -359,7 +373,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/apis/nls",
 	Schemes:          []string{},
 	Title:            "NCN Lifecycle Management API",
-	Description:      "This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I\n\n---\n\n## Argo workflow Demo\n\n---\n\n[API Doc](swagger.md)\n",
+	Description:      "## TODO\n\nwe need some doc here\n\n---\n\n[API Doc](swagger.md)\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

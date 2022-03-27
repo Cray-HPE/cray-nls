@@ -46,7 +46,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // NcnCreateRebuildWorkflow
 // @Summary   End to end rebuild of a single ncn
 // @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN
+// @Tags      NCNs
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -63,7 +63,7 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 // NcnCreateRebootWorkflow
 // @Summary   End to end reboot of a single ncn
 // @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN
+// @Tags      NCNs
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -75,7 +75,7 @@ func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 
 // NcnsCreateRebootsWorkflow
 // @Summary   End to end rolling reboot request
-// @Tags      NCN v2
+// @Tags      V2
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -87,7 +87,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 
 // NcnsCreateRebuildWorkflow
 // @Summary   End to end rolling rebuild request
-// @Tags      NCN v2
+// @Tags      V2
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -99,7 +99,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 
 // NcnAdd
 // @Summary   Add a ncn
-// @Tags      NCN v2
+// @Tags      V2
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -112,7 +112,7 @@ func (u NcnController) NcnAdd(c *gin.Context) {
 // NcnRemove
 // @Summary   Remove a ncn
 // @Param     hostname  path  string  true  "hostname"
-// @Tags      NCN v2
+// @Tags      V2
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"

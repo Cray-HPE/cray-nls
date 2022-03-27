@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
-  generateName: workflow-template-hello-world-
+  generateName: ncn-lifecycle-rebuild-
 spec:
   entrypoint: whalesay
   volumes:
@@ -21,16 +21,7 @@ spec:
     - name: whalesay
       dag:
         tasks:
-          - name: A
-            templateRef:
-              name: ssh-with-kubeconfig
-              template: bash-script-example
-            arguments:
-              parameters:
-                - name: message
-                  value: "echo hello world"
           - name: wait-for-cfs
-            dependencies: [A]
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -40,7 +31,6 @@ spec:
                   value: |
                     /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames x3000c0s4b0n0
           - name: ensure-nexus-can-start-on-any-node
-            dependencies: [A]
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -52,7 +42,6 @@ spec:
                     export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
                     kubectl get configmap -n nexus cray-precache-images -o json | jq -r '.data.images_to_cache' | while read image; do echo >&2 "+ caching $image"; pdsh -w "$workers" "crictl pull $image" 2>/dev/null; done
           - name: ensure-etcd-pods
-            dependencies: [A]
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -76,7 +65,6 @@ spec:
                         fi
                     done
           - name: ensure-pg-pods
-            dependencies: [A]
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -89,12 +77,10 @@ spec:
                     csi pit validate --postgres
           - name: drain
             dependencies:
-              [
-                wait-for-cfs,
-                ensure-nexus-can-start-on-any-node,
-                ensure-etcd-pods,
-                ensure-pg-pods,
-              ]
+              - wait-for-cfs
+              - ensure-nexus-can-start-on-any-node
+              - ensure-etcd-pods
+              - ensure-pg-pods
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -110,12 +96,10 @@ spec:
                     csi automate ncn kubernetes --action delete-ncn --ncn ncn-w001 --kubeconfig /etc/kubernetes/admin.conf
           - name: backup-credentials
             dependencies:
-              [
-                wait-for-cfs,
-                ensure-nexus-can-start-on-any-node,
-                ensure-etcd-pods,
-                ensure-pg-pods,
-              ]
+              - wait-for-cfs
+              - ensure-nexus-can-start-on-any-node
+              - ensure-etcd-pods
+              - ensure-pg-pods
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -125,16 +109,11 @@ spec:
                   value: |
                     echo "NOT IMPLEMENTED"
           - name: update-bss
-            retryStrategy:
-              limit: "2"
-              retryPolicy: "Always"
             dependencies:
-              [
-                wait-for-cfs,
-                ensure-nexus-can-start-on-any-node,
-                ensure-etcd-pods,
-                ensure-pg-pods,
-              ]
+              - wait-for-cfs
+              - ensure-nexus-can-start-on-any-node
+              - ensure-etcd-pods
+              - ensure-pg-pods
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -149,10 +128,10 @@ spec:
 
                     csi handoff bss-update-param --set metal.no-wipe=0 --limit x3000c0s4b0n0
           - name: wipe-and-rebuild
-            retryStrategy:
-              limit: "2"
-              retryPolicy: "Always"
-            dependencies: [update-bss, backup-credentials, drain]
+            dependencies:
+              - update-bss
+              - backup-credentials
+              - drain
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -163,35 +142,12 @@ spec:
                     set -e
                     mv /etc/cray/upgrade/csm/ncn-w001/state /etc/cray/upgrade/csm/ncn-w001/state.bak || true
                     NONINTERACTIVE=1 /usr/share/doc/csm/upgrade/1.2/scripts/common/ncn-rebuild-common.sh ncn-w001 --rebuild
-
-          - name: wait-for-k8s
-            dependencies: [wipe-and-rebuild]
-            templateRef:
-              name: ssh-with-kubeconfig
-              template: bash-script-example
-            arguments:
-              parameters:
-                - name: message
-                  value: |
-                    export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
-                    -d client_id=admin-client \
-                    -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
-                    https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
-
-                    set +e
-                    echo "waiting for k8s: ncn-w001 ..."
-                    until csi automate ncn kubernetes --action is-member --ncn ncn-w001 --kubeconfig /etc/kubernetes/admin.conf
-                    do
-                        sleep 5
-                    done
-                    # Restore set -e
-                    set -e
-                    echo "ncn-w001 joined k8s"
           - name: update-bss-no-wipe
             retryStrategy:
               limit: "2"
               retryPolicy: "Always"
-            dependencies: [wait-for-k8s]
+            dependencies:
+              - wipe-and-rebuild
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -206,7 +162,8 @@ spec:
 
                     csi handoff bss-update-param --set metal.no-wipe=1 --limit x3000c0s4b0n0
           - name: wait-for-cfs-2-and-more
-            dependencies: [wait-for-k8s]
+            dependencies:
+              - wipe-and-rebuild
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -216,7 +173,8 @@ spec:
                   value: |
                     /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames x3000c0s4b0n0
           - name: wait-for-key-pods
-            dependencies: [wait-for-k8s]
+            dependencies:
+              - wipe-and-rebuild
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example
@@ -246,10 +204,9 @@ spec:
                     scp /root/docs-csm-latest.noarch.rpm ncn-w001:/root/docs-csm-latest.noarch.rpm
                     ssh ncn-w001 "rpm --force -Uvh /root/docs-csm-latest.noarch.rpm"
           - name: goss
-            retryStrategy:
-              limit: "2"
-              retryPolicy: "Always"
-            dependencies: [wait-for-cfs-2-and-more, wait-for-key-pods]
+            dependencies:
+              - wait-for-cfs-2-and-more
+              - wait-for-key-pods
             templateRef:
               name: ssh-with-kubeconfig
               template: bash-script-example

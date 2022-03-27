@@ -22,6 +22,9 @@ spec:
       inputs:
         parameters:
           - name: message
+      retryStrategy:
+        limit: "2"
+        retryPolicy: "Always"
       nodeSelector:
         kubernetes.io/hostname: ncn-w003
       script:
@@ -30,7 +33,7 @@ spec:
         source: |
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF' > "${ts}.sh"
-              set -ex
+              set -e
               {{inputs.parameters.message}}
           EOF
           chmod +x ${ts}.sh
