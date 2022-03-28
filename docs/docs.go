@@ -373,7 +373,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/apis/nls",
 	Schemes:          []string{},
 	Title:            "NCN Lifecycle Management API",
-	Description:      "## TODO\n\nwe need some doc here\n\n---\n\n[API Doc](swagger.md)\n",
+	Description:      "## TODO\n\nwe need some doc here @Alex\n\n---\n\n[API Doc](swagger.md)\n",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

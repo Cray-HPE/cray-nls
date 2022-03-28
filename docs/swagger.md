@@ -1,7 +1,7 @@
 # NCN Lifecycle Management API
 ## TODO
 
-we need some doc here
+we need some doc here @Alex
 
 ---
 
