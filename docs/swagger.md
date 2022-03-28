@@ -10,12 +10,15 @@ Similar to other exposed services, authentication is done by keycloak. Keycloak 
 Each route of these APIs are protected by configuring OPA policy.
 
 - **Crawl Phase**
+
   we will only `admin` and `user` roles. Users have `admin` role are allowed to invoke any APIs. Users with `user` role will only be able to call **GET** APIs.
 
 - **Walk Phase**
+
   we can introduce more granular permissions/roles based on future requirements.
 
 - **Run Phase**
+
   we can even go to resources level. For example, `User A` could have all permissions of `ceph nodes` but this user won't be able to rebuild/reboot any k8s nodes. `Monitoring User` can rerun/retry any failed rebuild/reboots but can't initiate such operation.
 
 ### Microservices
@@ -23,6 +26,7 @@ Each route of these APIs are protected by configuring OPA policy.
 The jwt token will be passed down to each microservices and individual microservice should enforce authZ in its own domain. Any credentials needed by each microservice should be obtained in a secure manner. SSH as root should be avoided if possible. However, there are certain operations requires root access via ssh. In those cases, we should use Vault to generate one time, short lived temporary SSH keys. Note that these goals will be achieved phase by phase.
 
 - **Crawl Phase**
+
   In crawl phase, we execute steps almost identical to what we have today. Most steps need direct root access via SSH. SSH credentials are mounted onto each short lived _Job Pods_ as `hostPath`. JWT tokens needed for other microservice calls are obtained from `ncn-m001` over SSH:
 
   ```
@@ -41,6 +45,7 @@ The jwt token will be passed down to each microservices and individual microserv
   - Any steps can be performed by make REST/gRPC request to a microservice should not use SSH any more
 
 - **Run Phase**
+
   Each microservice should implement it's own granular/resources level authZ
 
 ### Logging/Audit
