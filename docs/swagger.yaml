@@ -149,7 +149,6 @@ paths:
       security:
       - OAuth2Application:
         - admin
-        - read
       summary: Delete a ncn workflow
       tags:
       - Workflow
@@ -171,7 +170,6 @@ paths:
       security:
       - OAuth2Application:
         - admin
-        - read
       summary: Rerun a workflow, all steps will run
       tags:
       - Workflow
@@ -193,7 +191,6 @@ paths:
       security:
       - OAuth2Application:
         - admin
-        - read
       summary: Retry a failed ncn workflow, skip passed steps
       tags:
       - Workflow

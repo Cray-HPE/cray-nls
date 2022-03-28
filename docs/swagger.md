@@ -170,9 +170,9 @@ Delete a ncn workflow
 
 ##### Security
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /v1/workflows/{name}/rerun
 
@@ -195,9 +195,9 @@ Rerun a workflow, all steps will run
 
 ##### Security
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /v1/workflows/{name}/retry
 
@@ -220,9 +220,9 @@ Retry a failed ncn workflow, skip passed steps
 
 ##### Security
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
 ### /v2/ncn
 

@@ -122,8 +122,7 @@ const docTemplate = `{
                 "security": [
                     {
                         "OAuth2Application": [
-                            "admin",
-                            "read"
+                            "admin"
                         ]
                     }
                 ],
@@ -158,8 +157,7 @@ const docTemplate = `{
                 "security": [
                     {
                         "OAuth2Application": [
-                            "admin",
-                            "read"
+                            "admin"
                         ]
                     }
                 ],
@@ -194,8 +192,7 @@ const docTemplate = `{
                 "security": [
                     {
                         "OAuth2Application": [
-                            "admin",
-                            "read"
+                            "admin"
                         ]
                     }
                 ],
