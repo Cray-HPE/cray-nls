@@ -51,9 +51,6 @@ import (
 // @tag.name  Workflow
 // @tag.description.markdown
 
-// @tag.name  V2
-// @tag.description.markdown
-
 func main() {
 	godotenv.Load()
 	logger := utils.GetLogger().GetFxLogger()
