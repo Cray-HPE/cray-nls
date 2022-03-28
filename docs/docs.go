@@ -241,9 +241,156 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "V2"
+                    "V2 NCN"
                 ],
                 "summary": "Add a ncn",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/hooks": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCN Hooks"
+                ],
+                "summary": "Add additional steps after a ncn boot(reboot)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "filter",
+                        "name": "filter",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/hooks/before-k8s-drain": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCN Hooks"
+                ],
+                "summary": "Add additional steps before k8s drain",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/hooks/before-wipe": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCN Hooks"
+                ],
+                "summary": "Add additional steps before wipe a ncn",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/hooks/post-boot": {
+            "post": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCN Hooks"
+                ],
+                "summary": "Add additional steps after a ncn boot(reboot)",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/hooks/{hook_name}": {
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCN Hooks"
+                ],
+                "summary": "Remove a ncn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hook_name",
+                        "name": "hook_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "501": {
                         "description": "Not Implemented"
@@ -267,9 +414,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "V2"
+                    "V2 NCNs"
                 ],
-                "summary": "End to end rolling reboot request",
+                "summary": "End to end rolling reboot ncns",
                 "responses": {
                     "501": {
                         "description": "Not Implemented"
@@ -293,9 +440,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "V2"
+                    "V2 NCNs"
                 ],
-                "summary": "End to end rolling rebuild request",
+                "summary": "End to end rolling rebuild ncns",
                 "responses": {
                     "501": {
                         "description": "Not Implemented"
@@ -319,7 +466,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "V2"
+                    "V2 NCN"
                 ],
                 "summary": "Remove a ncn",
                 "parameters": [

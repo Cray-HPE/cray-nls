@@ -210,12 +210,119 @@ Remove a ncn
 | --- | --- |
 | OAuth2Application | admin |
 
+### /v2/ncns/hooks
+
+#### GET
+##### Summary
+
+Add additional steps after a ncn boot(reboot)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| filter | query | filter | No | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/{hook_name}
+
+#### DELETE
+##### Summary
+
+Remove a ncn
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hook_name | path | hook_name | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/before-k8s-drain
+
+#### POST
+##### Summary
+
+Add additional steps before k8s drain
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/before-wipe
+
+#### POST
+##### Summary
+
+Add additional steps before wipe a ncn
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/post-boot
+
+#### POST
+##### Summary
+
+Add additional steps after a ncn boot(reboot)
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
 ### /v2/ncns/reboot
 
 #### POST
 ##### Summary
 
-End to end rolling reboot request
+End to end rolling reboot ncns
 
 ##### Responses
 
@@ -234,7 +341,7 @@ End to end rolling reboot request
 #### POST
 ##### Summary
 
-End to end rolling rebuild request
+End to end rolling rebuild ncns
 
 ##### Responses
 

@@ -74,8 +74,8 @@ func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 }
 
 // NcnsCreateRebootsWorkflow
-// @Summary   End to end rolling reboot request
-// @Tags      V2
+// @Summary   End to end rolling reboot ncns
+// @Tags      V2 NCNs
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -86,8 +86,8 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 }
 
 // NcnsCreateRebuildWorkflow
-// @Summary   End to end rolling rebuild request
-// @Tags      V2
+// @Summary   End to end rolling rebuild ncns
+// @Tags      V2 NCNs
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -97,9 +97,71 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": "Ncn updated"})
 }
 
+// NcnsBeforeK8sDrainHook
+// @Summary   Add additional steps before k8s drain
+// @Tags      V2 NCN Hooks
+// @Accept    json
+// @Produce   json
+// @Failure   501  "Not Implemented"
+// @Router    /v2/ncns/hooks/before-k8s-drain [post]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsBeforeK8sDrainHook(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnsBeforeWipeHook
+// @Summary   Add additional steps before wipe a ncn
+// @Tags      V2 NCN Hooks
+// @Accept    json
+// @Produce   json
+// @Failure   501  "Not Implemented"
+// @Router    /v2/ncns/hooks/before-wipe [post]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsBeforeWipeHook(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnsPostBootHook
+// @Summary   Add additional steps after a ncn boot(reboot)
+// @Tags      V2 NCN Hooks
+// @Accept    json
+// @Produce   json
+// @Failure   501  "Not Implemented"
+// @Router    /v2/ncns/hooks/post-boot [post]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsPostBootHook(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnsGetHooks
+// @Summary   Add additional steps after a ncn boot(reboot)
+// @Param     filter  query  string  false  "filter"
+// @Tags      V2 NCN Hooks
+// @Accept    json
+// @Produce   json
+// @Failure   501  "Not Implemented"
+// @Router    /v2/ncns/hooks [get]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsGetHooks(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
+// NcnsRemoveHook
+// @Summary   Remove a ncn
+// @Param     hook_name  path  string  true  "hook_name"
+// @Tags      V2 NCN Hooks
+// @Accept    json
+// @Produce   json
+// @Failure   501  "Not Implemented"
+// @Router    /v2/ncns/hooks/{hook_name} [delete]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsRemoveHook(c *gin.Context) {
+	c.JSON(200, gin.H{"data": "Ncn updated"})
+}
+
 // NcnAdd
 // @Summary   Add a ncn
-// @Tags      V2
+// @Tags      V2 NCN
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
@@ -112,7 +174,7 @@ func (u NcnController) NcnAdd(c *gin.Context) {
 // NcnRemove
 // @Summary   Remove a ncn
 // @Param     hostname  path  string  true  "hostname"
-// @Tags      V2
+// @Tags      V2 NCN
 // @Accept    json
 // @Produce   json
 // @Failure   501  "Not Implemented"
