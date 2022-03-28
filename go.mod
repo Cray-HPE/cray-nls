@@ -71,8 +71,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/antonmedv/expr v1.9.0 // indirect
 	github.com/argoproj/argo-events v0.17.1-0.20220223155401-ddda8800f9f8 // indirect
-	github.com/argoproj/argo-workflows v2.5.2+incompatible
-	github.com/argoproj/pkg v0.11.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/colinmarc/hdfs v1.1.4-0.20180805212432-9746310a4d31 // indirect
@@ -136,8 +134,13 @@ require (
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 	upper.io/db.v3 v3.8.0+incompatible // indirect
 )
 
-require github.com/argoproj/argo v2.5.2+incompatible // indirect
+require (
+	github.com/argoproj/pkg v0.11.0
+	github.com/stretchr/testify v1.7.1
+	sigs.k8s.io/yaml v1.3.0
+)
+
+require github.com/pmezard/go-difflib v1.0.0 // indirect
