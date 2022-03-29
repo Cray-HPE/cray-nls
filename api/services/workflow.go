@@ -30,6 +30,7 @@ import (
 	"github.com/argoproj/pkg/json"
 	"sigs.k8s.io/yaml"
 
+	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -37,12 +38,6 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 )
-
-//go:embed template.argo.yaml
-var ArgoWorkflowTemplate []byte
-
-//go:embed workflow.argo.yaml
-var ArgoWorkflow []byte
 
 // WorkflowService service layer
 type WorkflowService struct {
@@ -76,7 +71,7 @@ func NewWorkflowService(logger utils.Logger) WorkflowService {
 		workflowCient:         serviceClient.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
 	}
-	res.initializeWorkflowTemplate(ArgoWorkflowTemplate)
+	res.initializeWorkflowTemplate(argo_templates.ArgoWorkflowTemplate)
 	return res
 }
 
@@ -90,7 +85,7 @@ func (s WorkflowService) CreateWorkflow(hostname string) error {
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
 	var myWorkflow v1alpha1.Workflow
-	tmpBytes, _ := yaml.YAMLToJSON(ArgoWorkflow)
+	tmpBytes, _ := yaml.YAMLToJSON(argo_templates.ArgoWorkflow)
 	err := json.Unmarshal(tmpBytes, &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
