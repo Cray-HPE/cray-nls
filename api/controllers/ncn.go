@@ -53,6 +53,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Accept    json
 // @Produce   json
 // @Success   200  {object}  models.Workflow
+// @Failure   400  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/ncns/{hostname}/rebuild [post]
 // @Security  OAuth2Application[admin]

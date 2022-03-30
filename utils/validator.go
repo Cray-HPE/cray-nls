@@ -23,12 +23,18 @@
 //
 package utils
 
-import "go.uber.org/fx"
+import "regexp"
 
-// Module exports dependency
-var Module = fx.Options(
-	fx.Provide(NewRequestHandler),
-	fx.Provide(NewEnv),
-	fx.Provide(GetLogger),
-	fx.Provide(NewValidator),
-)
+type Validator struct {
+}
+
+// NewValidator creates a new environment
+func NewValidator() Validator {
+
+	return Validator{}
+}
+
+// GetGinLogger get the gin logger
+func (validator Validator) ValidateHostname(hostname string) (bool, error) {
+	return regexp.Match(`^ncn-[s|w|m][0-9]*`, []byte(hostname))
+}

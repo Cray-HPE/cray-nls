@@ -73,7 +73,7 @@ func NewWorkflowService(logger utils.Logger) WorkflowService {
 		workflowCient:         serviceClient.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
 	}
-	res.initializeWorkflowTemplate(argo_templates.ArgoWorkflowTemplate)
+	res.initializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
 	return res
 }
 
@@ -102,8 +102,8 @@ func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, er
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
 	var myWorkflow v1alpha1.Workflow
-	tmpBytes, _ := yaml.YAMLToJSON(argo_templates.ArgoWorkflow)
-	err = json.Unmarshal(tmpBytes, &myWorkflow)
+
+	err = json.Unmarshal(argo_templates.GetWrokerRebuildWorkflow(hostname, ""), &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
