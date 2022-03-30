@@ -2,10 +2,18 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: ncn-lifecycle-rebuild-
+  labels:
+    targetNcn: ncn-w001
 spec:
-  podMetadata:
-    labels:
-      targetNcn: ncn-w001
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: NotIn
+            values:
+            - ncn-w001
   entrypoint: rebuild
   volumes:
     - name: ssh
@@ -32,7 +40,7 @@ spec:
               parameters:
                 - name: message
                   value: |
-                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames x3000c0s4b0n0
+                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
           - name: ensure-nexus-can-start-on-any-node
             templateRef:
               name: ssh-with-kubeconfig
@@ -115,7 +123,7 @@ spec:
                     -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
-                    csi handoff bss-update-param --set metal.no-wipe=0 --limit x3000c0s4b0n0
+                    csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
           - name: wipe-and-rebuild
             dependencies:
               - update-bss
@@ -148,7 +156,7 @@ spec:
                     -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
-                    csi handoff bss-update-param --set metal.no-wipe=1 --limit x3000c0s4b0n0
+                    csi handoff bss-update-param --set metal.no-wipe=1 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
           - name: wait-for-cfs-2-and-more
             dependencies:
               - wipe-and-rebuild
@@ -159,7 +167,7 @@ spec:
               parameters:
                 - name: message
                   value: |
-                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames x3000c0s4b0n0
+                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
           - name: wait-for-key-pods
             dependencies:
               - wipe-and-rebuild

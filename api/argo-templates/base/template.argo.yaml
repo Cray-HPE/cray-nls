@@ -8,14 +8,6 @@ spec:
       hostPath:
         path: /root/.ssh
         type: Directory
-    - name: k8s
-      hostPath:
-        path: /etc/kubernetes
-        type: Directory
-    - name: user-bin
-      hostPath:
-        path: /usr/bin
-        type: Directory
   entrypoint: bash-script-example
   templates:
     - name: bash-script-example
@@ -25,8 +17,6 @@ spec:
       retryStrategy:
         limit: "2"
         retryPolicy: "Always"
-      nodeSelector:
-        kubernetes.io/hostname: ncn-w003
       script:
         image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
         command: [sh]

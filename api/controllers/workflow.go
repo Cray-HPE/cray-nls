@@ -59,8 +59,9 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	var workflows []interface{}
 	for _, workflow := range workflowList.Items {
 		tmp := map[string]interface{}{
-			"name":  workflow.Name,
-			"phase": workflow.Labels["workflows.argoproj.io/phase"],
+			"name":      workflow.Name,
+			"phase":     workflow.Labels["workflows.argoproj.io/phase"],
+			"targetNcn": workflow.Labels["targetNcn"],
 		}
 		workflows = append(workflows, tmp)
 	}

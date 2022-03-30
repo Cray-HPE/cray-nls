@@ -26,8 +26,10 @@ package services
 import (
 	"context"
 	_ "embed"
+	"fmt"
 
 	"github.com/argoproj/pkg/json"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
@@ -79,27 +81,40 @@ func (s WorkflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s WorkflowService) CreateWorkflow(hostname string) error {
-	//TODO: need to make sure there is no running workflow
+func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
+		Namespace: "argo",
+		ListOptions: &v1.ListOptions{
+			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true",
+		},
+	})
+
+	if workflows.Items.Len() > 0 {
+		err := fmt.Errorf("another workflow is still running")
+		s.logger.Error(err)
+		return nil, err
+	}
 
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
 	var myWorkflow v1alpha1.Workflow
 	tmpBytes, _ := yaml.YAMLToJSON(argo_templates.ArgoWorkflow)
-	err := json.Unmarshal(tmpBytes, &myWorkflow)
+	err = json.Unmarshal(tmpBytes, &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
+		return nil, err
 	}
 
-	_, res := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
+	res, err := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
 		Workflow:  &myWorkflow,
 	})
-	if res != nil {
+	if err != nil {
 		s.logger.Infof("Creating workflow for: %s FAILED", hostname)
-		s.logger.Error(res)
+		s.logger.Error(err)
+		return nil, err
 	}
-	return res
+	return res, nil
 }
 
 func (s WorkflowService) initializeWorkflowTemplate(template []byte) error {

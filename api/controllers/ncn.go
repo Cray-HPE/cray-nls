@@ -24,6 +24,9 @@
 package controllers
 
 import (
+	"fmt"
+
+	"github.com/Cray-HPE/cray-nls/api/models"
 	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
@@ -49,15 +52,25 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Tags      NCNs
 // @Accept    json
 // @Produce   json
-// @Failure   501  "Not Implemented"
+// @Success   200  {object}  models.Workflow
+// @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/ncns/{hostname}/rebuild [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
 	u.logger.Infof("Hostname: %s", hostname)
-	u.workflowService.CreateWorkflow(hostname)
+	workflow, err := u.workflowService.CreateWorkflow(hostname)
 
-	c.JSON(200, gin.H{"data": "work flow created"})
+	if err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(500, errResponse)
+	} else {
+		myWorkflow := models.Workflow{
+			Name:      workflow.Name,
+			TargetNcn: workflow.Labels["targetNcn"],
+		}
+		c.JSON(200, myWorkflow)
+	}
 }
 
 // NcnCreateRebootWorkflow

@@ -125,9 +125,10 @@ End to end rebuild of a single ncn
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [Workflow](#workflow) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -417,3 +418,18 @@ End to end rolling rebuild ncns
 | Security Schema | Scopes |
 | --- | --- |
 | OAuth2Application | admin |
+
+### Models
+
+#### ResponseError
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| message | string |  | No |
+
+#### Workflow
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| targetNcn | string |  | No |
