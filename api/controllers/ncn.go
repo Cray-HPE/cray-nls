@@ -54,6 +54,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Produce   json
 // @Success   200  {object}  models.Workflow
 // @Failure   400  {object}  utils.ResponseError
+// @Failure   404  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/ncns/{hostname}/rebuild [post]
 // @Security  OAuth2Application[admin]
@@ -89,6 +90,7 @@ func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 
 // NcnsCreateRebootsWorkflow
 // @Summary   End to end rolling reboot ncns
+// @Param     include  body  []string  false  "hostnames to include"
 // @Tags      V2 NCNs
 // @Accept    json
 // @Produce   json
@@ -101,6 +103,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 
 // NcnsCreateRebuildWorkflow
 // @Summary   End to end rolling rebuild ncns
+// @Param     include  body  []string  false  "hostnames to include"
 // @Tags      V2 NCNs
 // @Accept    json
 // @Produce   json
@@ -148,7 +151,7 @@ func (u NcnController) NcnsPostBootHook(c *gin.Context) {
 }
 
 // NcnsGetHooks
-// @Summary   Add additional steps after a ncn boot(reboot)
+// @Summary   Get ncn lifecycle hooks
 // @Param     filter  query  string  false  "filter"
 // @Tags      V2 NCN Hooks
 // @Accept    json
@@ -161,7 +164,7 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 }
 
 // NcnsRemoveHook
-// @Summary   Remove a ncn
+// @Summary   Remove a ncn lifecycle hook
 // @Param     hook_name  path  string  true  "hook_name"
 // @Tags      V2 NCN Hooks
 // @Accept    json

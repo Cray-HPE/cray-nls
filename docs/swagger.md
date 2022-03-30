@@ -128,6 +128,8 @@ End to end rebuild of a single ncn
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | OK | [Workflow](#workflow) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
@@ -279,7 +281,7 @@ Remove a ncn
 #### GET
 ##### Summary
 
-Add additional steps after a ncn boot(reboot)
+Get ncn lifecycle hooks
 
 ##### Parameters
 
@@ -304,7 +306,7 @@ Add additional steps after a ncn boot(reboot)
 #### DELETE
 ##### Summary
 
-Remove a ncn
+Remove a ncn lifecycle hook
 
 ##### Parameters
 
@@ -388,6 +390,12 @@ Add additional steps after a ncn boot(reboot)
 
 End to end rolling reboot ncns
 
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
+
 ##### Responses
 
 | Code | Description |
@@ -406,6 +414,12 @@ End to end rolling reboot ncns
 ##### Summary
 
 End to end rolling rebuild ncns
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
 
 ##### Responses
 

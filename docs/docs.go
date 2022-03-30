@@ -90,6 +90,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/Workflow"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -275,7 +287,7 @@ const docTemplate = `{
                 "tags": [
                     "V2 NCN Hooks"
                 ],
-                "summary": "Add additional steps after a ncn boot(reboot)",
+                "summary": "Get ncn lifecycle hooks",
                 "parameters": [
                     {
                         "type": "string",
@@ -387,7 +399,7 @@ const docTemplate = `{
                 "tags": [
                     "V2 NCN Hooks"
                 ],
-                "summary": "Remove a ncn",
+                "summary": "Remove a ncn lifecycle hook",
                 "parameters": [
                     {
                         "type": "string",
@@ -423,6 +435,19 @@ const docTemplate = `{
                     "V2 NCNs"
                 ],
                 "summary": "End to end rolling reboot ncns",
+                "parameters": [
+                    {
+                        "description": "hostnames to include",
+                        "name": "include",
+                        "in": "body",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
                 "responses": {
                     "501": {
                         "description": "Not Implemented"
@@ -449,6 +474,19 @@ const docTemplate = `{
                     "V2 NCNs"
                 ],
                 "summary": "End to end rolling rebuild ncns",
+                "parameters": [
+                    {
+                        "description": "hostnames to include",
+                        "name": "include",
+                        "in": "body",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
                 "responses": {
                     "501": {
                         "description": "Not Implemented"
