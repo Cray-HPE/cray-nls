@@ -94,20 +94,6 @@ spec:
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
                     csi automate ncn kubernetes --action delete-ncn --ncn ncn-w001 --kubeconfig /etc/kubernetes/admin.conf
-          - name: backup-credentials
-            dependencies:
-              - wait-for-cfs
-              - ensure-nexus-can-start-on-any-node
-              - ensure-etcd-pods
-              - ensure-pg-pods
-            templateRef:
-              name: ssh-with-kubeconfig
-              template: bash-script-example
-            arguments:
-              parameters:
-                - name: message
-                  value: |
-                    echo "NOT IMPLEMENTED"
           - name: update-bss
             dependencies:
               - wait-for-cfs
