@@ -88,6 +88,10 @@ func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, er
 			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true",
 		},
 	})
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
 
 	if workflows.Items.Len() > 0 {
 		err := fmt.Errorf("another workflow is still running")
