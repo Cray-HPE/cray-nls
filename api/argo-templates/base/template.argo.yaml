@@ -1,5 +1,5 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Workflow
+kind: WorkflowTemplate
 metadata:
   name: ssh-with-kubeconfig
 spec:
@@ -28,9 +28,10 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: ncn-w003
       script:
-        image: docker/whalesay:latest
-        command: [bash]
+        image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
+        command: [sh]
         source: |
+          #!/bin/sh
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF' > "${ts}.sh"
               set -e
@@ -42,7 +43,3 @@ spec:
         volumeMounts:
           - name: ssh
             mountPath: /myssh
-          - name: k8s
-            mountPath: /etc/kubernetes
-          - name: user-bin
-            mountPath: /mybin

@@ -3,7 +3,10 @@ kind: Workflow
 metadata:
   generateName: ncn-lifecycle-rebuild-
 spec:
-  entrypoint: whalesay
+  podMetadata:
+    labels:
+      targetNcn: ncn-w001
+  entrypoint: rebuild
   volumes:
     - name: ssh
       hostPath:
@@ -18,7 +21,7 @@ spec:
         path: /usr/bin
         type: Directory
   templates:
-    - name: whalesay
+    - name: rebuild
       dag:
         tasks:
           - name: wait-for-cfs
@@ -116,7 +119,6 @@ spec:
           - name: wipe-and-rebuild
             dependencies:
               - update-bss
-              - backup-credentials
               - drain
             templateRef:
               name: ssh-with-kubeconfig

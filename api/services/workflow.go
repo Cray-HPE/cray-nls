@@ -114,25 +114,25 @@ func (s WorkflowService) initializeWorkflowTemplate(template []byte) error {
 
 	workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
 
-	initialized := false
 	for _, workflowTemplate := range workflowTemplateList.Items {
 		if workflowTemplate.Name == myWorkflowTemplate.Name {
-			initialized = true
 			s.logger.Info("workflow template has already been initialized")
+			s.workflowTemplateCient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+				Namespace: "argo",
+				Name:      workflowTemplate.Name,
+			})
 			break
 		}
 	}
 
-	if !initialized {
-		_, err = s.workflowTemplateCient.CreateWorkflowTemplate(
-			s.ctx,
-			&workflowtemplate.WorkflowTemplateCreateRequest{
-				Namespace: "argo",
-				Template:  &myWorkflowTemplate,
-			})
-		if err != nil {
-			s.logger.Error(err)
-		}
+	_, err = s.workflowTemplateCient.CreateWorkflowTemplate(
+		s.ctx,
+		&workflowtemplate.WorkflowTemplateCreateRequest{
+			Namespace: "argo",
+			Template:  &myWorkflowTemplate,
+		})
+	if err != nil {
+		s.logger.Error(err)
 	}
 
 	return err
