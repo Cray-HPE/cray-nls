@@ -40,6 +40,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type WorkflowServiceInterface interface {
+	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
+	CreateWorkflow(hostname string) (*v1alpha1.Workflow, error)
+	initializeWorkflowTemplate(template []byte) error
+}
+
 // WorkflowService service layer
 type WorkflowService struct {
 	logger                utils.Logger

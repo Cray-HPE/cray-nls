@@ -28,7 +28,7 @@ import "go.uber.org/fx"
 // Module exports services present
 var Module = fx.Options(
 	fx.Provide(NewNcnService),
-	fx.Provide(NewWorkflowService),
+	fx.Provide(NewWorkflowService, func(r *WorkflowService) WorkflowServiceInterface { return r }),
 	fx.Provide(NewArgoService),
 	fx.Invoke(NewWorkflowService),
 )
