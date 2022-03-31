@@ -23,7 +23,10 @@
 //
 package utils
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+)
 
 type Validator struct {
 }
@@ -35,6 +38,14 @@ func NewValidator() Validator {
 }
 
 // GetGinLogger get the gin logger
-func (validator Validator) ValidateHostname(hostname string) (bool, error) {
-	return regexp.Match(`^ncn-[s|w|m][0-9]*`, []byte(hostname))
+func (validator Validator) ValidateHostname(hostname string) error {
+	isValid, err := regexp.Match(`^ncn-[s|w|m][0-9]*$`, []byte(hostname))
+	if err != nil {
+		return err
+	}
+
+	if !isValid {
+		return fmt.Errorf("invalid hostname: %s", hostname)
+	}
+	return nil
 }

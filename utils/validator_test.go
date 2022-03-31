@@ -8,23 +8,25 @@ import (
 func TestValidator(t *testing.T) {
 	var tests = []struct {
 		hostname string
-		want     bool
+		wantErr  bool
 	}{
-		{"ncn-m001", true},
-		{"ncn-w001", true},
-		{"ncn-s001", true},
-		{"ncn-m011", true},
-		{"ncn-x001", false},
-		{"sccn-m001", false},
-		{"ncn-x001", false},
+		{"ncn-m001", false},
+		{"ncn-w001", false},
+		{"ncn-s001", false},
+		{"ncn-m011", false},
+		{"ncn-x001", true},
+		{"sccn-m001", true},
+		{"ncn-x001", true},
+		{"ncn-m001asdf", true},
 	}
 	validator := NewValidator()
 	for _, tt := range tests {
 		testname := fmt.Sprintf("%s", tt.hostname)
 		t.Run(testname, func(t *testing.T) {
-			ans, _ := validator.ValidateHostname(tt.hostname)
-			if ans != tt.want {
-				t.Errorf("got %v, want %v", ans, tt.want)
+			err := validator.ValidateHostname(tt.hostname)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

@@ -101,9 +101,9 @@ func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, er
 
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
+	workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(argo_templates.GetWrokerRebuildWorkflow(hostname, ""))
 	var myWorkflow v1alpha1.Workflow
-
-	err = json.Unmarshal(argo_templates.GetWrokerRebuildWorkflow(hostname, ""), &myWorkflow)
+	err = json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err

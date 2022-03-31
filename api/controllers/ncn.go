@@ -36,6 +36,7 @@ import (
 type NcnController struct {
 	workflowService services.WorkflowService
 	logger          utils.Logger
+	validator       utils.Validator
 }
 
 // NewNcnController creates new Ncn controller
@@ -60,18 +61,26 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
+	err := u.validator.ValidateHostname(hostname)
+	if err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(400, errResponse)
+		return
+	}
 	u.logger.Infof("Hostname: %s", hostname)
 	workflow, err := u.workflowService.CreateWorkflow(hostname)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(500, errResponse)
+		return
 	} else {
 		myWorkflow := models.Workflow{
 			Name:      workflow.Name,
 			TargetNcn: workflow.Labels["targetNcn"],
 		}
 		c.JSON(200, myWorkflow)
+		return
 	}
 }
 
