@@ -69,6 +69,8 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
+	github.com/alecthomas/colour v0.1.0 // indirect
+	github.com/alecthomas/repr v0.0.0-20210801044451-80ca428c5142 // indirect
 	github.com/antonmedv/expr v1.9.0 // indirect
 	github.com/argoproj/argo-events v0.17.1-0.20220223155401-ddda8800f9f8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -108,6 +110,7 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cobra v1.3.0 // indirect
@@ -143,4 +146,7 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/pmezard/go-difflib v1.0.0 // indirect
+require (
+	github.com/alecthomas/assert v1.0.0
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+)

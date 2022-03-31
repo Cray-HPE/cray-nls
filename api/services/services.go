@@ -29,4 +29,6 @@ import "go.uber.org/fx"
 var Module = fx.Options(
 	fx.Provide(NewNcnService),
 	fx.Provide(NewWorkflowService),
+	fx.Provide(NewArgoService),
+	fx.Invoke(NewWorkflowService),
 )
