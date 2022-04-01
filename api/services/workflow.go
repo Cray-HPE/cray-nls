@@ -23,6 +23,8 @@
 //
 package services
 
+//go:generate mockgen -destination=../mocks/services/workflow.go -package=mocks -source=workflow.go
+
 import (
 	"context"
 	_ "embed"
