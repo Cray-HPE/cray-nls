@@ -45,6 +45,12 @@ import (
 // @scope.read                              Grants read access
 // @scope.admin                             Grants read and write access to administrative information
 
+// @tag.name  NCNs
+// @tag.description.markdown
+
+// @tag.name  Workflow
+// @tag.description.markdown
+
 func main() {
 	godotenv.Load()
 	logger := utils.GetLogger().GetFxLogger()

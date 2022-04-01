@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ssh-with-kubeconfig
+spec:
+  volumes:
+    - name: ssh
+      hostPath:
+        path: /root/.ssh
+        type: Directory
+  entrypoint: bash-script-example
+  templates:
+    - name: bash-script-example
+      inputs:
+        parameters:
+          - name: message
+      retryStrategy:
+        limit: "2"
+        retryPolicy: "Always"
+      script:
+        image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
+        command: [sh]
+        source: |
+          #!/bin/sh
+          ts=$(echo $RANDOM | md5sum | head -c 20; echo)
+          cat <<'EOF' > "${ts}.sh"
+              set -e
+              {{inputs.parameters.message}}
+          EOF
+          chmod +x ${ts}.sh
+          scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
+          ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
+        volumeMounts:
+          - name: ssh
+            mountPath: /myssh

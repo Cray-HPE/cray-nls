@@ -1,35 +1,70 @@
 # NCN Lifecycle Management API
-This doc descibes REST API for ncn lifecycle management. Note that in this version, we only provide APIs for individual operation. A full end to end lifecycle management API is out of scope in Phase I
+## Security
 
----
+### Authentication
 
-## Kubernetes Nodes
+Similar to other exposed services, authentication is done by keycloak. Keycloak issued jwt token is verified and passed to API gateway.
 
-#### e2e upgrade flow
+### Routes/AuthZ
 
-1. `/etcd/{hostname}/prepare`
-   > NOTE: no-op for **worker** nodes
-1. `/kubernetes/{hostname}/pre-rebuild`
-1. `/kubernetes/{hostname}/drain`
-1. `/ncn/{hostname}/backup`
-1. `/ncn/{hostname}/wipe`
-1. PUT `/ncn/{hostname}/boot-parameters`
-1. `/ncn/{hostname}/reboot`
+Each route of these APIs are protected by configuring OPA policy.
 
-   > NOTE: how do we wait for boot? maybe wait for ncn ready on k8s?
+- **Crawl Phase**
 
-1. `/ncn/{hostname}/restore`
-1. `/ncn/{hostname}/post-rebuild`
-1. `/kubernetes/{hostname}/post-rebuild`
-1. `/ncn/{hostname}/validate`
+  we will only `admin` and `user` roles. Users have `admin` role are allowed to invoke any APIs. Users with `user` role will only be able to call **GET** APIs.
 
-##### After all Kubernetes nodes are upgraded
+- **Walk Phase**
 
-1. `/ncn/kubernetes/post-upgrade`
+  we can introduce more granular permissions/roles based on future requirements.
 
----
+- **Run Phase**
 
-## Ceph Storage Node
+  we can even go to resources level. For example, `User A` could have all permissions of `ceph nodes` but this user won't be able to rebuild/reboot any k8s nodes. `Monitoring User` can rerun/retry any failed rebuild/reboots but can't initiate such operation.
+
+### Microservices
+
+The jwt token will be passed down to each microservices and individual microservice should enforce authZ in its own domain. Any credentials needed by each microservice should be obtained in a secure manner. SSH as root should be avoided if possible. However, there are certain operations requires root access via ssh. In those cases, we should use Vault to generate one time, short lived temporary SSH keys. Note that these goals will be achieved phase by phase.
+
+- **Crawl Phase**
+
+  In crawl phase, we execute steps almost identical to what we have today. Most steps need direct root access via SSH. SSH credentials are mounted onto each short lived _Job Pods_ as `hostPath`. JWT tokens needed for other microservice calls are obtained from `ncn-m001` over SSH:
+
+  ```
+  export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \\
+   -d client_id=admin-client \\
+   -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' \| base64 -d` \\
+   https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token \| jq -r '.access_token')
+  ```
+
+  > NOTE: This is exactly what our 1.0.x and 1.2.x does
+
+- **Walk Phase**
+
+  - SSH credentials need to be controlled by Vault and only one time credentials should be used
+  - JWT token should be passed from API gateway instead of getting it from `ncn-m001` as root user
+  - Any steps can be performed by make REST/gRPC request to a microservice should not use SSH any more
+
+- **Run Phase**
+
+  Each microservice should implement it's own granular/resources level authZ
+
+### Logging/Audit
+
+- **Request info**
+
+  API Gateway should log user information from validated JWT token so we know "who did what at when". Each microservice should also log the same information. Additionally, a unique request id should be passed/logged as well such that we can track a request in every microservice. Note that this is slightly different than what istio tracking is because of async operations. It won't carry istio injected `x-b3-traceid` in some cases.
+
+  Required fields:
+
+  - User Info: `name/id/email`, `roles`
+  - HTTP path: `REST API URI`
+  - HTTP method: `GET\|POST\|PUT\|DELETE`
+  - Resources list: `ncn-w001,ncn-w002...`
+  - Operation Result: `failed\|succeed\|terminated`
+
+- **Operation logs**
+
+  Each steps of automation should be logged in order to troubleshoot/audit what exactly happened on ncn(s). This is done by _Argo Workflow_ engine.
 
 ---
 
@@ -50,858 +85,7 @@ This doc descibes REST API for ncn lifecycle management. Note that in this versi
 |read|                              Grants read access|
 |Token URL|<https://example.com/oauth/token>|
 
-### /v1/etcd/{hostname}/prepare
-
-#### PUT
-##### Summary
-
-Prepare baremetal etcd for a master node to rejoin
-
-##### Description
-
-## Prepare baremetal ETCD for rejoining
-
-Prepare a master ncn to rejoin baremetal etcd cluster
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-1. Baremetal etcd cluster is in **healthy** state
-
-1. quorum after removal
-
-#### Action
-
-1. Remove a ncn from baremetal etcd cluster
-
-1. Stop etcd services on the ncn
-
-1. Add the ncn back to etcd cluster so it can rejoin on boot
-
-#### Microservices
-
-\| name           \| protocol/client \| credentials   \| Note \|
-\| -------------- \| --------------- \| ------------- \| ---- \|
-\| baremetal etcd \| ectd go client  \| k8s secret(?) \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname of target ncn | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | ok | string |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/kubernetes/{hostname}/drain
-
-#### POST
-##### Summary
-
-Drain a Kubernetes node
-
-##### Description
-
-## Drain Kubernetes Node
-
-Before we can safely drain/remove a node from k8s cluster, we need to run some `CSM specific logic` to make sure a node can be drained from k8s cluster safely
-
----
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-1. quorum after removal
-
-#### Actions
-
-1. drain node
-
-#### Microservices
-
-\| name       \| protocol/client   \| credentials \| Note \|
-\| ---------- \| ----------------- \| ----------- \| ---- \|
-\| drain node \| csi/k8s go client \| k8s secret  \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/kubernetes/{hostname}/post-rebuild
-
-#### POST
-##### Summary
-
-Kubernetes node post rebuild action
-
-##### Description
-
-## K8s Post Rebuild
-
-After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
-
----
-
-### Master
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-#### Actions
-
-1. `scripts/k8s/update_kubeapi_istio_ca.sh`
-
-#### Microservices
-
-\| name                    \| protocol/client \| credentials \| Note \|
-\| ----------------------- \| --------------- \| ----------- \| ---- \|
-\| update_kubeapi_istio_ca \| ssh as root     \| k8s secret  \|      \|
-
----
-
-### Worker
-
-#### Pre-condition
-
-1. **NCN** is a **worker** node
-
-#### Actions
-
-1. redeploy cps
-
-1. `cfs/wait_for_configuration.sh`
-
-1. ENSURE_KEY_PODS_HAVE_STARTED
-
-#### Microservices
-
-\| name                        \| protocol/client \| credentials \| Note                                                                  \|
-\| --------------------------- \| --------------- \| ----------- \| --------------------------------------------------------------------- \|
-\| cps redeploy                \| ssh as root     \| k8s secret  \| is `cray cps` an api call? if so we can make api calls instead of ssh \|
-\| wait for cfs                \| ssh as root     \| k8s secret  \| All can be done by using k8s client (?)                               \|
-\| ensure key pods are running \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/kubernetes/{hostname}/pre-rebuild
-
-#### POST
-##### Summary
-
-Kubernetes node pre rebuild action
-
-##### Description
-
-## K8s Pre Rebuild
-
-Actions we need to perform before rebuild a k8s node
-
----
-
-### Master
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-1. **NCN** is already the **first master**
-
-#### Action
-
-1. Loop through other master nodes until `scripts/k8s/promote-initial-master.sh` returns 0
-
-2. Update `meta-data.first-master-hostname`
-
-#### Microservices
-
-\| name              \| protocol/client \| credentials \| Note                                                                                \|
-\| ----------------- \| --------------- \| ----------- \| ----------------------------------------------------------------------------------- \|
-\| move first master \| ssh as root     \| k8s secret  \| we need to look into the script and figure out exactly which microservices it calls \|
-\| bss               \| bss go client   \| jwt token   \|                                                                                     \|
-
----
-
-### worker
-
-#### Pre-condition
-
-1. **NCN** is a **worker** node
-
-#### Action
-
-1. ENSURE_NEXUS_CAN_START_ON_ANY_NODE
-
-1. ENSURE_ETCD_PODS_RUNNING
-
-1. ENSURE_POSTGRES_HEALTHY
-
-1. `cfs/wait_for_configuration.sh`
-
-1. snapshot cps deployment
-
-#### Microservices
-
-\| name                         \| protocol/client \| credentials \| Note                                                                  \|
-\| ---------------------------- \| --------------- \| ----------- \| --------------------------------------------------------------------- \|
-\| ensure some pods are running \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
-\| ensure pg healthy            \| ssh as root     \| k8s secret  \| All can be done by using k8s client                                   \|
-\| wait for cfs                 \| ssh as root     \| k8s secret  \| All can be done by using k8s client (?)                               \|
-\| snapshot cps deployment      \| ssh as root     \| k8s secret  \| is `cray cps` an api call? if so we can make api calls instead of ssh \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{hostname}/backup
-
-#### POST
-##### Summary
-
-Create a NCN backup
-
-##### Description
-
-## NCN create backup
-
-Create backup of a ncn based on a predefined list so critical files can be restored after rebuild.
-
----
-
-### Master
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-#### Actions
-
-1. backup local **sat** file
-1. (m001 only) backup **ifcfg-lan0**
-1. upload backup to s3
-
----
-
-## Worker
-
-#### Pre-condition
-
-1. **NCN** is a **worker** node
-
-#### Actions
-
-1. bakcup ssh keys/authroized_keys
-1. upload backup to s3
-
-#### Microservices
-
-\| name          \| protocol/client \| credentials \| Note \|
-\| ------------- \| --------------- \| ----------- \| ---- \|
-\| create backup \| ssh as root     \| k8s secret  \|      \|
-\| upload to s3  \| s3 client       \| jwt token   \|      \|
-
----
-
-### Storage
-
-1. **NCN** is a **ceph storage** node
-
-#### Pre-condition
-
-#### Actions
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{hostname}/boot-parameters
-
-#### PUT
-##### Summary
-
-Set boot parameters before reboot a NCN
-
-##### Description
-
-## NCN set boot parameters
-
-After a node rejoined k8s cluster after rebuild, certain `CSM specific steps` are required. We need to perform such action so we put a system back up health state.
-
----
-
-#### Actions
-
-1. update cloud-init global data
-1. set which image to boot
-
-#### Microservices
-
-\| name                \| protocol/client \| credentials \| Note \|
-\| ------------------- \| --------------- \| ----------- \| ---- \|
-\| set boot parameters \| bss go client   \| jwt token   \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-| bootParameters | body | TODO: use data model from `csi/bss` | Yes | [BootParameters](#bootparameters) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{hostname}/post-rebuild
-
-#### POST
-##### Summary
-
-Perform post rebuild action on a NCN
-
-##### Description
-
-## NCN Post Rebuild
-
-After a ncn has been rebuilt, some `CSM specific` steps are required.
-
----
-
-### Master/Worker
-
-##### Pre-condition
-
-1. **NCN** is a **master** node
-
-#### Actions
-
-1. install latest docs-csm rpm
-
-1. set `metal.no-wipe=1`
-
-#### Microservices
-
-\| name            \| protocol/client \| credentials \| Note                                                                                \|
-\| --------------- \| --------------- \| ----------- \| ----------------------------------------------------------------------------------- \|
-\| install doc rpm \| ssh as root     \| k8s secret  \| we should look into bss/cloud-init so it always install what we specify during boot \|
-\| set no wipe     \| bss client      \| jwt token   \|                                                                                     \|
-
----
-
-### Storage
-
-##### Pre-condition
-
-#### Actions
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
 ### /v1/ncns/{hostname}/reboot
-
-#### POST
-##### Summary
-
-Perform reboot on a NCN
-
-##### Description
-
-## NCN Reboot
-
-Set to boot from pxe and power cycle the ncn
-
----
-
-### Master/Worker/Storage
-
-##### Pre-condition
-
-#### Actions
-
-1. Set boot to pxe
-
-2. `ipmitool` power cycle the ncn
-
-#### Microservices
-
-\| name         \| protocol/client \| credentials \| Note \|
-\| ------------ \| --------------- \| ----------- \| ---- \|
-\| set pxe boot \| ipmi            \| k8s secret  \|      \|
-\| power cycle  \| ipmi            \| k8s secret  \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{hostname}/restore
-
-#### POST
-##### Summary
-
-Restore a NCN backup
-
-##### Description
-
-## NCN restore backup
-
-Restore previously backup files to a ncn.
-
----
-
-### Master/Worker/Storage
-
-##### Pre-condition
-
-`N/A`
-
-#### Actions
-
-1. download backup from s3
-
-1. untar/restore backup
-
-#### Microservices
-
-\| name             \| protocol/client \| credentials \| Note \|
-\| ---------------- \| --------------- \| ----------- \| ---- \|
-\| download from s3 \| s3 client       \| jwt token   \|      \|
-\| restore backup   \| ssh as root     \| k8s secret  \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{hostname}/validate
-
-#### POST
-##### Summary
-
-Perform validation on a NCN
-
-##### Description
-
-## NCN Validation
-
-Run validation step of a ncn
-
----
-
-### Master/Worker/Storage
-
-#### Pre-condition
-
-#### Actions
-
-1. run goss test
-
-#### Microservices
-
-\| name          \| protocol/client \| credentials \| Note                                                  \|
-\| ------------- \| --------------- \| ----------- \| ----------------------------------------------------- \|
-\| run goss test \| ssh as root     \| k8s secret  \| goss has a server that accepts REST call to run tests \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
-
-### /v1/ncns/{hostname}/wipe
-
-#### POST
-##### Summary
-
-Perform disk wipe on a NCN
-
-##### Description
-
-## NCN wipe disk
-
-Wipe a ncn's disk and set BSS `metal.no-wipe` to `0` so it actually gets wiped on boot
-
----
-
-### Master
-
-#### Pre-condition
-
-1. **NCN** is a **master** node
-
-#### Actions
-
-1. Wipe disk
-
-```
-usb_device_path=$(lsblk -b -l -o TRAN,PATH \| awk /usb/'{print $2}')
-usb_rc=$?
-set -e
-if [[ "$usb_rc" -eq 0 ]]; then
-    if blkid -p $usb_device_path; then
-    have_mnt=0
-    for mnt_point in /mnt/rootfs /mnt/sqfs /mnt/livecd /mnt/pitdata; do
-        if mountpoint $mnt_point; then
-        have_mnt=1
-        umount $mnt_point
-        fi
-    done
-    if [ "$have_mnt" -eq 1 ]; then
-        eject $usb_device_path
-    fi
-    fi
-fi
-umount /var/lib/etcd /var/lib/sdu \|\| true
-for md in /dev/md/*; do mdadm -S $md \|\| echo nope ; done
-vgremove -f --select 'vg_name=~metal*' \|\| true
-pvremove /dev/md124 \|\| true
-# Select the devices we care about; RAID, SATA, and NVME devices/handles (but *NOT* USB)
-disk_list=$(lsblk -l -o SIZE,NAME,TYPE,TRAN \| grep -E '(raid\|sata\|nvme\|sas)' \| sort -u \| awk '{print "/dev/"$2}' \| tr '\\n' ' ')
-for disk in $disk_list; do
-    wipefs --all --force wipefs --all --force "$disk" \|\| true
-    sgdisk --zap-all "$disk"
-done
-```
-
-2. set `metal.no-wipe=0`
-
-#### Microservices
-
-\| name \| protocol/client \| credentials \| Note \|
-\| ---- \| --------------- \| ----------- \| ---- \|
-\| wipe \| ssh as root     \| k8s secret  \|      \|
-\| bss  \| bss go client   \| jwt token   \|      \|
-
----
-
-### Worker
-
-1. **NCN** is a **worker** node
-
-#### Actions
-
-1. Wipe disk
-
-```
-lsblk \| grep -q /var/lib/sdu
-sdu_rc=$?
-vgs \| grep -q metal
-vgs_rc=$?
-set -e
-systemctl disable kubelet.service \|\| true
-systemctl stop kubelet.service \|\| true
-systemctl disable containerd.service \|\| true
-systemctl stop containerd.service \|\| true
-umount /var/lib/containerd /var/lib/kubelet \|\| true
-if [[ "$sdu_rc" -eq 0 ]]; then
-    umount /var/lib/sdu \|\| true
-fi
-for md in /dev/md/*; do mdadm -S $md \|\| echo nope ; done
-if [[ "$vgs_rc" -eq 0 ]]; then
-    vgremove -f --select 'vg_name=~metal*' \|\| true
-    pvremove /dev/md124 \|\| true
-fi
-wipefs --all --force /dev/sd* /dev/disk/by-label/* \|\| true
-sgdisk --zap-all /dev/sd*
-```
-
-2. set `metal.no-wipe=0`
-
-#### Microservices
-
-\| name \| protocol/client \| credentials \| Note \|
-\| ---- \| --------------- \| ----------- \| ---- \|
-\| wipe \| ssh as root     \| k8s secret  \|      \|
-\| bss  \| bss go client   \| jwt token   \|      \|
-
----
-
-### Storage
-
-#### Pre-condition
-
-1. **NCN** is a **storage** node
-
-#### Actions
-
-1. Wipe disk
-
-```
-for d in $(lsblk \| grep -B2 -F md1 \| grep ^s \| awk '{print $1}'); do wipefs -af "/dev/$d"; done
-```
-
-2. set `metal.no-wipe=0`
-
-#### Microservices
-
-\| name \| protocol/client \| credentials \| Note \|
-\| ---- \| --------------- \| ----------- \| ---- \|
-\| wipe \| ssh as root     \| k8s secret  \|      \|
-\| bss  \| bss go client   \| jwt token   \|      \|
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | Hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/{type}/post-upgrade
-
-#### POST
-##### Summary
-
-Perform post upgrade actions
-
-##### Description
-
-## NCN Post Upgrade
-
-After all ncn of a certain type has been rebuilt, some `CSM specific` steps are required.
-
----
-
-### Master
-
-##### Pre-condition
-
-1. **NCN** is a **master/worker**
-
-#### Actions
-
-1. `/srv/cray/scripts/common/apply-networking-manifests.sh`
-   NOTE: this is taking quite long. we may want to use async here
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/apply-coredns-pod-affinity.sh`
-
-1. `/usr/share/doc/csm/upgrade/1.2/scripts/k8s/upgrade_control_plane.sh`
-
-#### Microservices
-
-\| name                          \| protocol/client \| credentials \| Note                                              \|
-\| ----------------------------- \| --------------- \| ----------- \| ------------------------------------------------- \|
-\| apply-networking-manifests.sh \| ssh as root     \| k8s secret  \| this sounds like something can be done by k8s API \|
-\| apply-coredns-pod-affinity    \| ssh as root     \| k8s secret  \| this sounds like something can be done by k8s API \|
-\| upgrade_control_plane         \| ssh as root     \| k8s secret  \|                                                   \|
-
----
-
-### Storage
-
-##### Pre-condition
-
-1. **NCN** is a **storage**
-
-#### Actions
-
-1. Deploy node-exporter and alertmanager
-
-1. Update BSS to ensure the Ceph images are loaded if a node is rebuilt
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| type | path | Type of ncn | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 401 | Unauthorized | [ResponseError](#responseerror) |
-| 403 | Forbidden | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/{hostname}/reboot
 
 #### POST
 ##### Summary
@@ -926,7 +110,7 @@ End to end reboot of a single ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncns/{hostname}/rebuild
+### /v1/ncns/{hostname}/rebuild
 
 #### POST
 ##### Summary
@@ -941,6 +125,53 @@ End to end rebuild of a single ncn
 
 ##### Responses
 
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [Workflow](#workflow) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v1/workflows
+
+#### GET
+##### Summary
+
+Get status of a ncn workflow
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes | |
+| --- | --- | --- |
+| OAuth2Application | admin | read |
+
+### /v1/workflows/{name}
+
+#### DELETE
+##### Summary
+
+Delete a ncn workflow
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| name | path | name of workflow | Yes | string |
+
+##### Responses
+
 | Code | Description |
 | ---- | ----------- |
 | 501 | Not Implemented |
@@ -951,18 +182,18 @@ End to end rebuild of a single ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncns/jobs
+### /v1/workflows/{name}/rerun
 
-#### GET
+#### PUT
 ##### Summary
 
-Get status of a ncn job
+Rerun a workflow, all steps will run
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
-| job_ids | query | job ids | Yes | [ string ] |
+| name | path | name of workflow | Yes | string |
 
 ##### Responses
 
@@ -972,22 +203,22 @@ Get status of a ncn job
 
 ##### Security
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
-### /v2/ncns/jobs/{job_id}
+### /v1/workflows/{name}/retry
 
-#### DELETE
+#### PUT
 ##### Summary
 
-Delete a ncn job
+Retry a failed ncn workflow, skip passed steps
 
 ##### Parameters
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
-| job_id | path | job id | Yes | string |
+| name | path | name of workflow | Yes | string |
 
 ##### Responses
 
@@ -997,11 +228,11 @@ Delete a ncn job
 
 ##### Security
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
 
-### /v3/ncn
+### /v2/ncn
 
 #### POST
 ##### Summary
@@ -1020,7 +251,7 @@ Add a ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v3/ncns/{hostname}
+### /v2/ncns/{hostname}
 
 #### DELETE
 ##### Summary
@@ -1045,12 +276,18 @@ Remove a ncn
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v3/ncns/reboot
+### /v2/ncns/hooks
 
-#### POST
+#### GET
 ##### Summary
 
-End to end rolling reboot request
+Get ncn lifecycle hooks
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| filter | query | filter | No | string |
 
 ##### Responses
 
@@ -1064,12 +301,125 @@ End to end rolling reboot request
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v3/ncns/rebuild
+### /v2/ncns/hooks/{hook_name}
+
+#### DELETE
+##### Summary
+
+Remove a ncn lifecycle hook
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hook_name | path | hook_name | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/before-k8s-drain
 
 #### POST
 ##### Summary
 
-End to end rolling rebuild request
+Add additional steps before k8s drain
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/before-wipe
+
+#### POST
+##### Summary
+
+Add additional steps before wipe a ncn
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/hooks/post-boot
+
+#### POST
+##### Summary
+
+Add additional steps after a ncn boot(reboot)
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/reboot
+
+#### POST
+##### Summary
+
+End to end rolling reboot ncns
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v2/ncns/rebuild
+
+#### POST
+##### Summary
+
+End to end rolling rebuild ncns
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
 
 ##### Responses
 
@@ -1085,21 +435,15 @@ End to end rolling rebuild request
 
 ### Models
 
-#### BootParameters
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| image | [BootParameters.ImageObject](#bootparametersimageobject) |  | No |
-
-#### BootParameters.ImageObject
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| path | string |  | No |
-| version | string |  | No |
-
 #### ResponseError
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
+
+#### Workflow
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| targetNcn | string |  | No |

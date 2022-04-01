@@ -7,11 +7,17 @@
 
 ### Development
 
+1. Run argo workflow in k3d
+
+   ```
+   scripts/argo.local.sh
+   ```
+
 1. Run server
    ```
    go run main.go
    ```
-2. Update swagger
+1. Update swagger
    ```
    scripts/swagger.gen.sh
    ```
@@ -19,3 +25,5 @@
 # Reference
 
 [clean gin template](https://github.com/dipeshdulal/clean-gin)
+
+[Argo Workflow](https://argoproj.github.io/argo-workflows)

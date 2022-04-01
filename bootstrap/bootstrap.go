@@ -29,7 +29,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/api/controllers"
 	"github.com/Cray-HPE/cray-nls/api/middlewares"
 	"github.com/Cray-HPE/cray-nls/api/routes"
-	"github.com/Cray-HPE/cray-nls/services"
+	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"go.uber.org/fx"
 )
@@ -55,10 +55,6 @@ func bootstrap(
 
 	lifecycle.Append(fx.Hook{
 		OnStart: func(context.Context) error {
-			logger.Info("Starting Application")
-			logger.Info("---------------------")
-			logger.Info("------- CLEAN -------")
-			logger.Info("---------------------")
 
 			go func() {
 				middlewares.Setup()

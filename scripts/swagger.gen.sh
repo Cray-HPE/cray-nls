@@ -24,4 +24,10 @@
 #
 swag fmt
 swag init --md docs/ --outputTypes go,yaml
-swagger-markdown -i  docs/swagger.yaml
+
+if ! command -v swagger-markdown &> /dev/null
+then
+    npx swagger-markdown -i  docs/swagger.yaml 
+else 
+    swagger-markdown -i  docs/swagger.yaml 
+fi

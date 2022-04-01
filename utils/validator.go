@@ -21,26 +21,42 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package services
+package utils
 
 import (
-	"github.com/Cray-HPE/cray-nls/utils"
-	"gorm.io/gorm"
+	"fmt"
+	"regexp"
 )
 
-// K8sService service layer
-type K8sService struct {
-	logger utils.Logger
+type Validator struct {
 }
 
-// NewK8sService creates a new K8sservice
-func NewK8sService(logger utils.Logger) K8sService {
-	return K8sService{
-		logger: logger,
+// NewValidator creates a new environment
+func NewValidator() Validator {
+
+	return Validator{}
+}
+
+func (validator Validator) ValidateHostname(hostname string) error {
+	isValid, err := regexp.Match(`^ncn-[s|w|m][0-9]*$`, []byte(hostname))
+	if err != nil {
+		return err
 	}
+
+	if !isValid {
+		return fmt.Errorf("invalid hostname: %s", hostname)
+	}
+	return nil
 }
 
-// WithTrx delegates transaction to repository database
-func (s K8sService) WithTrx(trxHandle *gorm.DB) K8sService {
-	return s
+func (validator Validator) ValidateWorkerHostname(hostname string) error {
+	isValid, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+	if err != nil {
+		return err
+	}
+
+	if !isValid {
+		return fmt.Errorf("invalid worker hostname: %s", hostname)
+	}
+	return nil
 }

@@ -30,17 +30,19 @@ import (
 
 // NcnRoutes struct
 type NcnRoutes struct {
-	logger        utils.Logger
-	handler       utils.RequestHandler
-	ncnController controllers.NcnController
+	logger         utils.Logger
+	handler        utils.RequestHandler
+	ncnsController controllers.NcnController
 }
 
 // Setup Ncn routes
 func (s NcnRoutes) Setup() {
 	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/api/v1")
+	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
-		api.POST("/ncn/:hostname/backup", s.ncnController.NcnCreateBakcup)
+		api.POST("/ncns/:hostname/reboot", s.ncnsController.NcnCreateRebootWorkflow)
+		api.POST("/ncns/:hostname/rebuild", s.ncnsController.NcnCreateRebuildWorkflow)
+
 	}
 }
 
@@ -48,11 +50,11 @@ func (s NcnRoutes) Setup() {
 func NewNcnRoutes(
 	logger utils.Logger,
 	handler utils.RequestHandler,
-	ncnController controllers.NcnController,
+	ncnsController controllers.NcnController,
 ) NcnRoutes {
 	return NcnRoutes{
-		handler:       handler,
-		logger:        logger,
-		ncnController: ncnController,
+		handler:        handler,
+		logger:         logger,
+		ncnsController: ncnsController,
 	}
 }

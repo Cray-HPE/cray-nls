@@ -32,6 +32,7 @@ type Env struct {
 	ServerPort  string `mapstructure:"SERVER_PORT"`
 	Environment string `mapstructure:"ENV"`
 	LogOutput   string `mapstructure:"LOG_OUTPUT"`
+	ArgoToken   string `mapstructure:"ARGO_TOKEN"`
 }
 
 // NewEnv creates a new environment
