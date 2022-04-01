@@ -3,7 +3,7 @@ kind: Workflow
 metadata:
   generateName: ncn-lifecycle-rebuild-
   labels:
-    targetNcn: ncn-w001
+    targetNcn: {{.TargetNcn}}
 spec:
   podGC:
     # Pod GC strategy must be one of the following:
@@ -20,7 +20,9 @@ spec:
           - key: kubernetes.io/hostname
             operator: NotIn
             values:
-            - ncn-w001
+            {{ range $index,$value := .TargetNcns -}}
+            - {{ $value }}
+            {{- end }}
   entrypoint: rebuild
   volumes:
     - name: ssh
@@ -47,7 +49,7 @@ spec:
               parameters:
                 - name: message
                   value: |
-                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
+                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{.TargetNcn}} 'cat /etc/cray/xname')
           - name: ensure-nexus-can-start-on-any-node
             templateRef:
               name: ssh-with-kubeconfig
@@ -111,7 +113,7 @@ spec:
                     -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
-                    csi automate ncn kubernetes --action delete-ncn --ncn ncn-w001 --kubeconfig /etc/kubernetes/admin.conf
+                    csi automate ncn kubernetes --action delete-ncn --ncn {{.TargetNcn}} --kubeconfig /etc/kubernetes/admin.conf
           - name: update-bss
             dependencies:
               - wait-for-cfs
@@ -130,7 +132,7 @@ spec:
                     -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
-                    csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
+                    csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{.TargetNcn}} 'cat /etc/cray/xname')
           - name: wipe-and-rebuild
             dependencies:
               - update-bss
@@ -143,8 +145,8 @@ spec:
                 - name: message
                   value: |
                     set -e
-                    mv /etc/cray/upgrade/csm/ncn-w001/state /etc/cray/upgrade/csm/ncn-w001/state.bak || true
-                    NONINTERACTIVE=1 /usr/share/doc/csm/upgrade/1.2/scripts/common/ncn-rebuild-common.sh ncn-w001 --rebuild
+                    mv /etc/cray/upgrade/csm/{{.TargetNcn}}/state /etc/cray/upgrade/csm/{{.TargetNcn}}/state.bak || true
+                    NONINTERACTIVE=1 /usr/share/doc/csm/upgrade/1.2/scripts/common/ncn-rebuild-common.sh {{.TargetNcn}} --rebuild
           - name: update-bss-no-wipe
             retryStrategy:
               limit: "2"
@@ -163,7 +165,7 @@ spec:
                     -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
                     https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
 
-                    csi handoff bss-update-param --set metal.no-wipe=1 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
+                    csi handoff bss-update-param --set metal.no-wipe=1 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{.TargetNcn}} 'cat /etc/cray/xname')
           - name: wait-for-cfs-2-and-more
             dependencies:
               - wipe-and-rebuild
@@ -174,7 +176,7 @@ spec:
               parameters:
                 - name: message
                   value: |
-                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ncn-w001 'cat /etc/cray/xname')
+                    /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh --xnames $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{.TargetNcn}} 'cat /etc/cray/xname')
           - name: wait-for-key-pods
             dependencies:
               - wipe-and-rebuild
@@ -186,7 +188,7 @@ spec:
                 - name: message
                   value: |
                     while true; do
-                      output=$(kubectl get po -A -o wide | grep -e etcd -e speaker | grep ncn-w001 | awk '{print $4}')
+                      output=$(kubectl get po -A -o wide | grep -e etcd -e speaker | grep {{.TargetNcn}} | awk '{print $4}')
                       if [ ! -n "$output" ]; then
                         #
                         # No pods scheduled to start on this node, we are done
@@ -198,14 +200,14 @@ spec:
                       rc=$?
                       set -e
                       if [[ "$rc" -eq 1 ]]; then
-                        echo "All etcd and speaker pods are running on ncn-w001"
+                        echo "All etcd and speaker pods are running on {{.TargetNcn}}"
                         break
                       fi
-                      echo "Some etcd and speaker pods are not running on ncn-w001 -- sleeping for 10 seconds..."
+                      echo "Some etcd and speaker pods are not running on {{.TargetNcn}} -- sleeping for 10 seconds..."
                       sleep 10
                     done
-                    scp /root/docs-csm-latest.noarch.rpm ncn-w001:/root/docs-csm-latest.noarch.rpm
-                    ssh ncn-w001 "rpm --force -Uvh /root/docs-csm-latest.noarch.rpm"
+                    scp /root/docs-csm-latest.noarch.rpm {{.TargetNcn}}:/root/docs-csm-latest.noarch.rpm
+                    ssh {{.TargetNcn}} "rpm --force -Uvh /root/docs-csm-latest.noarch.rpm"
           - name: goss
             dependencies:
               - wait-for-cfs-2-and-more
@@ -217,4 +219,4 @@ spec:
               parameters:
                 - name: message
                   value: |
-                    ssh ncn-w001 -t "SW_ADMIN_PASSWORD='!nitial0' GOSS_BASE=/opt/cray/tests/install/ncn goss -g /opt/cray/tests/install/ncn/suites/ncn-upgrade-tests-worker.yaml --vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate"
+                    ssh {{.TargetNcn}} -t "SW_ADMIN_PASSWORD='!nitial0' GOSS_BASE=/opt/cray/tests/install/ncn goss -g /opt/cray/tests/install/ncn/suites/ncn-upgrade-tests-worker.yaml --vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate"

@@ -37,7 +37,6 @@ func NewValidator() Validator {
 	return Validator{}
 }
 
-// GetGinLogger get the gin logger
 func (validator Validator) ValidateHostname(hostname string) error {
 	isValid, err := regexp.Match(`^ncn-[s|w|m][0-9]*$`, []byte(hostname))
 	if err != nil {
@@ -46,6 +45,18 @@ func (validator Validator) ValidateHostname(hostname string) error {
 
 	if !isValid {
 		return fmt.Errorf("invalid hostname: %s", hostname)
+	}
+	return nil
+}
+
+func (validator Validator) ValidateWorkerHostname(hostname string) error {
+	isValid, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+	if err != nil {
+		return err
+	}
+
+	if !isValid {
+		return fmt.Errorf("invalid worker hostname: %s", hostname)
 	}
 	return nil
 }

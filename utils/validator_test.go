@@ -1,11 +1,10 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestValidator(t *testing.T) {
+func TestHostnameValidator(t *testing.T) {
 	var tests = []struct {
 		hostname string
 		wantErr  bool
@@ -21,9 +20,34 @@ func TestValidator(t *testing.T) {
 	}
 	validator := NewValidator()
 	for _, tt := range tests {
-		testname := fmt.Sprintf("%s", tt.hostname)
-		t.Run(testname, func(t *testing.T) {
+		t.Run(tt.hostname, func(t *testing.T) {
 			err := validator.ValidateHostname(tt.hostname)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestWorkerHostnameValidator(t *testing.T) {
+	var tests = []struct {
+		hostname string
+		wantErr  bool
+	}{
+		{"ncn-m001", true},
+		{"ncn-w001", false},
+		{"ncn-s001", true},
+		{"ncn-m011", true},
+		{"ncn-x001", true},
+		{"sccn-m001", true},
+		{"ncn-x001", true},
+		{"ncn-m001asdf", true},
+	}
+	validator := NewValidator()
+	for _, tt := range tests {
+		t.Run(tt.hostname, func(t *testing.T) {
+			err := validator.ValidateWorkerHostname(tt.hostname)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return
