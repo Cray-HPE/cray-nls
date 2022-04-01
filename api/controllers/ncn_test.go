@@ -23,75 +23,58 @@
 //
 package controllers
 
-// import (
-// 	"encoding/json"
-// 	"net/http"
-// 	"net/http/httptest"
-// 	"strings"
-// 	"testing"
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
-// 	workflowServiceMock "github.com/Cray-HPE/cray-nls/api/mocks/services"
-// 	"github.com/alecthomas/assert"
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/golang/mock/gomock"
-// )
+	mocks "github.com/Cray-HPE/cray-nls/api/mocks/services"
+	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/alecthomas/assert"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
-// func TestNcnCreateRebuildWorkflow(t *testing.T) {
-// 	var (
-// 		invitationId   = "3da465a6-be13-405e-a653-c68adf59f2be"
-// 		firstName      = "Tom"
-// 		lastName       = "Sudchai"
-// 		roleId         = uint(1)
-// 		operatorCode   = "velo"
-// 		email          = "toms@gmail.com"
-// 		password       = "P@ssw0rd"
-// 		hashedPassword = "$2y$12$S0Gbs0Qm5rJGibfFBTARa.6ap9OBuXYbYJ.deCzsOo4uQNJR1KbJO"
-// 	)
+func TestNcnCreateRebuildWorkflow(t *testing.T) {
 
-// 	gin.SetMode(gin.TestMode)
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	workflowSvcMock := workflowServiceMock.NewMockWorkflowServiceInterface(ctrl)
+	gin.SetMode(gin.TestMode)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	executeWithContext := func(
-// 		createWorkerRebuildWorkflow *workflowServiceMock.MockWorkflowServiceInterface,
-// 		jsonRequestBody []byte,
-// 		operatorCode string,
-// 	) *httptest.ResponseRecorder {
-// 		response := httptest.NewRecorder()
-// 		context, ginEngine := gin.CreateTestContext(response)
+	executeWithContext := func(
+		workflowService *mocks.MockWorkflowService,
+	) *httptest.ResponseRecorder {
+		response := httptest.NewRecorder()
+		context, ginEngine := gin.CreateTestContext(response)
 
-// 		requestUrl := "/v1/operators/staffs"
-// 		httpRequest, _ := http.NewRequest("POST", requestUrl, strings.NewReader(string(jsonRequestBody)))
+		requestUrl := "/v1/ncns/ncn-w001/rebuild"
+		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(string("")))
 
-// 		NewEndpointHTTPHandler(ginEngine, workflowSvcMock)
-// 		ginEngine.ServeHTTP(response, httpRequest)
-// 		return response
-// 	}
+		ginEngine.POST("/v1/ncns/:hostname/rebuild", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnCreateRebuildWorkflow)
+		ginEngine.ServeHTTP(response, context.Request)
+		return response
+	}
 
-// 	createdStaffEntity := entities.OperatorStaff{
-// 		ID:        roleId,
-// 		FirstName: firstName,
-// 		LastName:  lastName,
-// 		Email:     email,
-// 		Password:  hashedPassword,
-// 		Operators: []entities.StaffOperator{{
-// 			OperatorCode: operatorCode, RoleID: roleId,
-// 		}},
-// 	}
+	t.Run("Happy", func(t *testing.T) {
 
-// 	t.Run("Happy", func(t *testing.T) {
-// 		jsonRequestBody, _ := json.Marshal(createStaffFromInviteRequestJSON{
-// 			InvitationId:    invitationId,
-// 			FirstName:       firstName,
-// 			LastName:        lastName,
-// 			Password:        password,
-// 			ConfirmPassword: password,
-// 		})
+		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(
+			&v1alpha1.Workflow{
+				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
+			}, nil)
+		res := executeWithContext(workflowServiceMock)
+		assert.Equal(t, http.StatusOK, res.Code)
+	})
 
-// 		staffMock.EXPECT().CreateStaff(gomock.Any(), gomock.Any()).Return(&createdStaffEntity, nil)
+	t.Run("Error", func(t *testing.T) {
 
-// 		res := executeWithContext(staffMock, jsonRequestBody, operatorCode)
-// 		assert.Equal(t, http.StatusOK, res.Code)
-// 	})
-// }
+		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
+		res := executeWithContext(workflowServiceMock)
+		assert.Equal(t, http.StatusInternalServerError, res.Code)
+	})
+}

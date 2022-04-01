@@ -42,14 +42,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type WorkflowServiceInterface interface {
+type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
 	CreateWorkflow(hostname string) (*v1alpha1.Workflow, error)
-	initializeWorkflowTemplate(template []byte) error
+	InitializeWorkflowTemplate(template []byte) error
 }
 
 // WorkflowService service layer
-type WorkflowService struct {
+type workflowService struct {
 	logger                utils.Logger
 	ctx                   context.Context
 	workflowCient         workflow.WorkflowServiceClient
@@ -61,21 +61,21 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 
 	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
 
-	res := WorkflowService{
+	res := workflowService{
 		logger:                logger,
 		ctx:                   argoService.Context,
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
 	}
-	res.initializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
+	res.InitializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
 	return res
 }
 
-func (s WorkflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
+func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
@@ -122,7 +122,7 @@ func (s WorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, er
 	return res, nil
 }
 
-func (s WorkflowService) initializeWorkflowTemplate(template []byte) error {
+func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	s.logger.Infof("initialize workflow template")
 
 	var myWorkflowTemplate v1alpha1.WorkflowTemplate

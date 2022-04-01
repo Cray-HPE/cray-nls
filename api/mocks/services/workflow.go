@@ -12,31 +12,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockWorkflowServiceInterface is a mock of WorkflowServiceInterface interface.
-type MockWorkflowServiceInterface struct {
+// MockWorkflowService is a mock of WorkflowService interface.
+type MockWorkflowService struct {
 	ctrl     *gomock.Controller
-	recorder *MockWorkflowServiceInterfaceMockRecorder
+	recorder *MockWorkflowServiceMockRecorder
 }
 
-// MockWorkflowServiceInterfaceMockRecorder is the mock recorder for MockWorkflowServiceInterface.
-type MockWorkflowServiceInterfaceMockRecorder struct {
-	mock *MockWorkflowServiceInterface
+// MockWorkflowServiceMockRecorder is the mock recorder for MockWorkflowService.
+type MockWorkflowServiceMockRecorder struct {
+	mock *MockWorkflowService
 }
 
-// NewMockWorkflowServiceInterface creates a new mock instance.
-func NewMockWorkflowServiceInterface(ctrl *gomock.Controller) *MockWorkflowServiceInterface {
-	mock := &MockWorkflowServiceInterface{ctrl: ctrl}
-	mock.recorder = &MockWorkflowServiceInterfaceMockRecorder{mock}
+// NewMockWorkflowService creates a new mock instance.
+func NewMockWorkflowService(ctrl *gomock.Controller) *MockWorkflowService {
+	mock := &MockWorkflowService{ctrl: ctrl}
+	mock.recorder = &MockWorkflowServiceMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockWorkflowServiceInterface) EXPECT() *MockWorkflowServiceInterfaceMockRecorder {
+func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 	return m.recorder
 }
 
 // CreateWorkflow mocks base method.
-func (m *MockWorkflowServiceInterface) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+func (m *MockWorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateWorkflow", hostname)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
@@ -45,13 +45,13 @@ func (m *MockWorkflowServiceInterface) CreateWorkflow(hostname string) (*v1alpha
 }
 
 // CreateWorkflow indicates an expected call of CreateWorkflow.
-func (mr *MockWorkflowServiceInterfaceMockRecorder) CreateWorkflow(hostname interface{}) *gomock.Call {
+func (mr *MockWorkflowServiceMockRecorder) CreateWorkflow(hostname interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWorkflow", reflect.TypeOf((*MockWorkflowServiceInterface)(nil).CreateWorkflow), hostname)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateWorkflow), hostname)
 }
 
 // GetWorkflows mocks base method.
-func (m *MockWorkflowServiceInterface) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
+func (m *MockWorkflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetWorkflows", ctx)
 	ret0, _ := ret[0].(*v1alpha1.WorkflowList)
@@ -60,21 +60,21 @@ func (m *MockWorkflowServiceInterface) GetWorkflows(ctx *gin.Context) (*v1alpha1
 }
 
 // GetWorkflows indicates an expected call of GetWorkflows.
-func (mr *MockWorkflowServiceInterfaceMockRecorder) GetWorkflows(ctx interface{}) *gomock.Call {
+func (mr *MockWorkflowServiceMockRecorder) GetWorkflows(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflows", reflect.TypeOf((*MockWorkflowServiceInterface)(nil).GetWorkflows), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflows", reflect.TypeOf((*MockWorkflowService)(nil).GetWorkflows), ctx)
 }
 
-// initializeWorkflowTemplate mocks base method.
-func (m *MockWorkflowServiceInterface) initializeWorkflowTemplate(template []byte) error {
+// InitializeWorkflowTemplate mocks base method.
+func (m *MockWorkflowService) InitializeWorkflowTemplate(template []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "initializeWorkflowTemplate", template)
+	ret := m.ctrl.Call(m, "InitializeWorkflowTemplate", template)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// initializeWorkflowTemplate indicates an expected call of initializeWorkflowTemplate.
-func (mr *MockWorkflowServiceInterfaceMockRecorder) initializeWorkflowTemplate(template interface{}) *gomock.Call {
+// InitializeWorkflowTemplate indicates an expected call of InitializeWorkflowTemplate.
+func (mr *MockWorkflowServiceMockRecorder) InitializeWorkflowTemplate(template interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "initializeWorkflowTemplate", reflect.TypeOf((*MockWorkflowServiceInterface)(nil).initializeWorkflowTemplate), template)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitializeWorkflowTemplate", reflect.TypeOf((*MockWorkflowService)(nil).InitializeWorkflowTemplate), template)
 }
