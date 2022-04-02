@@ -24,6 +24,12 @@
 
 # Reference
 
-[clean gin template](https://github.com/dipeshdulal/clean-gin)
+[Dependency Injection](https://medium.com/swlh/dependency-injection-in-go-using-fx-6a623c5c5e01)
+
+- [uber fx](https://github.com/uber-go/fx)
+
+[Clean gin template](https://github.com/dipeshdulal/clean-gin)
 
 [Argo Workflow](https://argoproj.github.io/argo-workflows)
+
+[K3D](https://k3d.io/)
