@@ -47,11 +47,16 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 
 	executeWithContext := func(
 		workflowService *mocks.MockWorkflowService,
+		url ...string,
 	) *httptest.ResponseRecorder {
 		response := httptest.NewRecorder()
 		context, ginEngine := gin.CreateTestContext(response)
 
 		requestUrl := "/v1/ncns/ncn-w001/rebuild"
+		if url != nil {
+			requestUrl = url[0]
+		}
+
 		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(string("")))
 
 		ginEngine.POST("/v1/ncns/:hostname/rebuild", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnCreateRebuildWorkflow)
@@ -76,5 +81,12 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
 		res := executeWithContext(workflowServiceMock)
 		assert.Equal(t, http.StatusInternalServerError, res.Code)
+	})
+
+	t.Run("wrong hostname - invalid", func(t *testing.T) {
+
+		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		res := executeWithContext(workflowServiceMock, "/v1/ncns/ncn-w001asdf/rebuild")
+		assert.Equal(t, http.StatusBadRequest, res.Code)
 	})
 }
