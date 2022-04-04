@@ -31,7 +31,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/utils"
 )
 
-//go:embed worker.rebuild.argo.yaml
+//go:embed ncn/worker.rebuild.argo.yaml
 var argoWorkflow []byte
 
 //go:embed base/template.argo.yaml
