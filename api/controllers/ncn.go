@@ -94,7 +94,7 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 // @Router    /v1/ncns/{hostname}/reboot [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsCreateRebootsWorkflow

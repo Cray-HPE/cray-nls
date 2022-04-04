@@ -39,7 +39,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestNcnCreateRebuildWorkflow(t *testing.T) {
+func TestGetWorkflows(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	ctrl := gomock.NewController(t)
@@ -52,14 +52,14 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 		response := httptest.NewRecorder()
 		context, ginEngine := gin.CreateTestContext(response)
 
-		requestUrl := "/v1/ncns/ncn-w001/rebuild"
+		requestUrl := "/v1/workflows"
 		if url != nil {
 			requestUrl = url[0]
 		}
 
-		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(string("")))
+		context.Request, _ = http.NewRequest("GET", requestUrl, strings.NewReader(string("")))
 
-		ginEngine.POST("/v1/ncns/:hostname/rebuild", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnCreateRebuildWorkflow)
+		ginEngine.GET("/v1/workflows", NewWorkflowController(workflowService, *utils.GetLogger().GetGinLogger().Logger).GetWorkflows)
 		ginEngine.ServeHTTP(response, context.Request)
 		return response
 	}
@@ -67,9 +67,13 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 	t.Run("Happy", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(
-			&v1alpha1.Workflow{
-				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
+		workflowServiceMock.EXPECT().GetWorkflows(gomock.Any()).Return(
+			&v1alpha1.WorkflowList{
+				Items: v1alpha1.Workflows{
+					v1alpha1.Workflow{
+						ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
+					},
+				},
 			}, nil)
 		res := executeWithContext(workflowServiceMock)
 		assert.Equal(t, http.StatusOK, res.Code)
@@ -78,49 +82,9 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 	t.Run("Error", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
+		workflowServiceMock.EXPECT().GetWorkflows(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
 		res := executeWithContext(workflowServiceMock)
 		assert.Equal(t, http.StatusInternalServerError, res.Code)
-	})
-
-	t.Run("wrong hostname - invalid", func(t *testing.T) {
-
-		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		res := executeWithContext(workflowServiceMock, "/v1/ncns/ncn-w001asdf/rebuild")
-		assert.Equal(t, http.StatusBadRequest, res.Code)
-	})
-}
-
-func TestNcnCreateRebootWorkflow(t *testing.T) {
-
-	gin.SetMode(gin.TestMode)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	executeWithContext := func(
-		workflowService *mocks.MockWorkflowService,
-		url ...string,
-	) *httptest.ResponseRecorder {
-		response := httptest.NewRecorder()
-		context, ginEngine := gin.CreateTestContext(response)
-
-		requestUrl := "/v1/ncns/ncn-w001/reboot"
-		if url != nil {
-			requestUrl = url[0]
-		}
-
-		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(string("")))
-
-		ginEngine.POST("/v1/ncns/:hostname/reboot", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnCreateRebootWorkflow)
-		ginEngine.ServeHTTP(response, context.Request)
-		return response
-	}
-
-	t.Run("Happy", func(t *testing.T) {
-
-		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		res := executeWithContext(workflowServiceMock)
-		assert.Equal(t, http.StatusNotImplemented, res.Code)
 	})
 
 }

@@ -24,6 +24,8 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
@@ -54,7 +56,9 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	workflowList, err := u.service.GetWorkflows(c)
 	if err != nil {
-		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(500, errResponse)
+		return
 	}
 	var workflows []interface{}
 	for _, workflow := range workflowList.Items {
