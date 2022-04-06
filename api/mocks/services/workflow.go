@@ -58,19 +58,19 @@ func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 	return m.recorder
 }
 
-// CreateWorkflow mocks base method.
-func (m *MockWorkflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+// CreateRebuildWorkflow mocks base method.
+func (m *MockWorkflowService) CreateRebuildWorkflow(hostname string) (*v1alpha1.Workflow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateWorkflow", hostname)
+	ret := m.ctrl.Call(m, "CreateRebuildWorkflow", hostname)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateWorkflow indicates an expected call of CreateWorkflow.
-func (mr *MockWorkflowServiceMockRecorder) CreateWorkflow(hostname interface{}) *gomock.Call {
+// CreateRebuildWorkflow indicates an expected call of CreateRebuildWorkflow.
+func (mr *MockWorkflowServiceMockRecorder) CreateRebuildWorkflow(hostname interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateWorkflow), hostname)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRebuildWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateRebuildWorkflow), hostname)
 }
 
 // GetWorkflows mocks base method.

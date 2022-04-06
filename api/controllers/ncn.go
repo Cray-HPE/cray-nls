@@ -68,7 +68,7 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 		return
 	}
 	u.logger.Infof("Hostname: %s", hostname)
-	workflow, err := u.workflowService.CreateWorkflow(hostname)
+	workflow, err := u.workflowService.CreateRebuildWorkflow(hostname)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -107,7 +107,7 @@ func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 // @Router    /v2/ncns/reboot [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsCreateRebuildWorkflow
@@ -120,7 +120,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 // @Router    /v2/ncns/rebuild [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsBeforeK8sDrainHook
@@ -132,7 +132,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 // @Router    /v2/ncns/hooks/before-k8s-drain [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsBeforeK8sDrainHook(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsBeforeWipeHook
@@ -144,7 +144,7 @@ func (u NcnController) NcnsBeforeK8sDrainHook(c *gin.Context) {
 // @Router    /v2/ncns/hooks/before-wipe [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsBeforeWipeHook(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsPostBootHook
@@ -156,7 +156,7 @@ func (u NcnController) NcnsBeforeWipeHook(c *gin.Context) {
 // @Router    /v2/ncns/hooks/post-boot [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsPostBootHook(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsGetHooks
@@ -169,7 +169,7 @@ func (u NcnController) NcnsPostBootHook(c *gin.Context) {
 // @Router    /v2/ncns/hooks [get]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsGetHooks(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnsRemoveHook
@@ -182,7 +182,7 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Router    /v2/ncns/hooks/{hook_name} [delete]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnsRemoveHook(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnAdd
@@ -194,7 +194,7 @@ func (u NcnController) NcnsRemoveHook(c *gin.Context) {
 // @Router    /v2/ncn [post]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnAdd(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }
 
 // NcnRemove
@@ -207,5 +207,5 @@ func (u NcnController) NcnAdd(c *gin.Context) {
 // @Router    /v2/ncns/{hostname} [delete]
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnRemove(c *gin.Context) {
-	c.JSON(200, gin.H{"data": "Ncn updated"})
+	c.JSON(501, "not implemented")
 }

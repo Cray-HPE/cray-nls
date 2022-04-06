@@ -29,6 +29,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"regexp"
 
 	"github.com/argoproj/pkg/json"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,7 +45,7 @@ import (
 
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
-	CreateWorkflow(hostname string) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(hostname string) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -75,7 +76,19 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s workflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateRebuildWorkflow(hostname string) (*v1alpha1.Workflow, error) {
+	// only support worker rebuild for now
+	isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+	if !isWorker {
+		err := fmt.Errorf("only worker nodes rebuild is supported")
+		s.logger.Error(err)
+		return nil, err
+	}
+
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
@@ -95,7 +108,6 @@ func (s workflowService) CreateWorkflow(hostname string) (*v1alpha1.Workflow, er
 
 	s.logger.Infof("Creating workflow for: %s", hostname)
 
-	// TODO: we didn't check type but blindly assume this is a worker
 	workerRebuildWorkflow, err := argo_templates.GetWrokerRebuildWorkflow(hostname, "")
 	if err != nil {
 		s.logger.Error(err)

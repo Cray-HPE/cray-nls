@@ -67,7 +67,7 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 	t.Run("Happy", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(
+		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(
 			&v1alpha1.Workflow{
 				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
 			}, nil)
@@ -78,7 +78,7 @@ func TestNcnCreateRebuildWorkflow(t *testing.T) {
 	t.Run("Error", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
+		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
 		res := executeWithContext(workflowServiceMock)
 		assert.Equal(t, http.StatusInternalServerError, res.Code)
 	})
