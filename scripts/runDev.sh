@@ -22,4 +22,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+go mod tidy || go mod tidy -compat=1.17
+go mod vendor
 fresh -c runner.conf
