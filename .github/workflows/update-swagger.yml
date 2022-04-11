@@ -24,8 +24,9 @@
 name: Update Swagger UI
 on:
   push:
-    - main
-    - master
+    branches:
+      - main
+      - master
 jobs:
   updateSwagger:
     runs-on: ubuntu-latest
