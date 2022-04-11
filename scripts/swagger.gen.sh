@@ -27,7 +27,7 @@ swag init --md docs/ --outputTypes go,yaml
 
 if ! command -v swagger-markdown &> /dev/null
 then
-    npx swagger-markdown -i  docs/swagger.yaml 
+    npx swagger-markdown -i  docs/swagger.yaml || true
 else 
-    swagger-markdown -i  docs/swagger.yaml 
+    swagger-markdown -i  docs/swagger.yaml || true
 fi
