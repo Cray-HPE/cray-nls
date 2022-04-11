@@ -23,6 +23,8 @@
 #
 name: Update Swagger UI
 on:
+  repository_dispatch:
+    types: [update-swagger-ui]
   push:
     branches:
       - main
