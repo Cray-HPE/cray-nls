@@ -44,7 +44,7 @@ jobs:
       - name: Update Swagger UI
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
-          RELEASE_TAG: "v4.8.10"
+          RELEASE_TAG: "v4.8.0"
           SWAGGER_YAML: "docs/swagger.yaml"
         run: |
           # Delete the dist directory and index.html
