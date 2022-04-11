@@ -37,14 +37,14 @@ jobs:
       - name: Get Latest Swagger UI Release
         id: swagger-ui
         run: |
-          echo ::set-output name=release_tag::$(echo "v4.8.10")
+          echo ::set-output name=release_tag::$(curl -sL https://api.github.com/repos/swagger-api/swagger-ui/releases/latest | jq -r ".tag_name")
           echo ::set-output name=current_tag::$(<swagger-ui.version)
           # remove vendor
           rm -rf vendor
       - name: Update Swagger UI
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
-          RELEASE_TAG: ${{ steps.swagger-ui.outputs.release_tag }}
+          RELEASE_TAG: "v4.8.10"
           SWAGGER_YAML: "docs/swagger.yaml"
         run: |
           # Delete the dist directory and index.html
