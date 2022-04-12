@@ -109,8 +109,8 @@ info:
 
     [API Doc](swagger.md)
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    name: MIT
+    url: https://github.com/Cray-HPE/cray-nls/blob/master/License
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:

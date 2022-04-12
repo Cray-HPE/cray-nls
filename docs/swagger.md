@@ -72,7 +72,7 @@ The jwt token will be passed down to each microservices and individual microserv
 
 ## Version: 1.0
 
-**License:** [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
+**License:** [MIT](https://github.com/Cray-HPE/cray-nls/blob/master/License)
 
 ### Security
 **OAuth2Application**  
