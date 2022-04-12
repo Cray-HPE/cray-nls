@@ -29,4 +29,5 @@ import "go.uber.org/fx"
 var Module = fx.Options(
 	fx.Provide(NewNcnController),
 	fx.Provide(NewWorkflowController),
+	fx.Provide(NewMiscController),
 )

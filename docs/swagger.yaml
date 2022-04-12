@@ -1,29 +1,11 @@
-#
-# MIT License
-#
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
-#
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included
-# in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-# OTHER DEALINGS IN THE SOFTWARE.
-#
 basePath: /apis/nls
 definitions:
   ResponseError:
+    properties:
+      message:
+        type: string
+    type: object
+  ResponseOk:
     properties:
       message:
         type: string
@@ -107,13 +89,25 @@ info:
 
     ---
 
-    [API Doc](swagger.md)
+    [API Docs](https://cray-hpe.github.io/cray-nls/)
   license:
     name: MIT
     url: https://github.com/Cray-HPE/cray-nls/blob/master/License
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
+  /v1/liveness:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+      summary: Get version of cray-nls service
+      tags:
+      - Misc
   /v1/ncns/{hostname}/reboot:
     post:
       consumes:
@@ -170,6 +164,44 @@ paths:
       summary: End to end rebuild of a single ncn
       tags:
       - NCNs
+  /v1/readiness:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: ""
+      summary: Get version of cray-nls service
+      tags:
+      - Misc
+  /v1/version:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseOk'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: Get version of cray-nls service
+      tags:
+      - Misc
   /v1/workflows:
     get:
       consumes:

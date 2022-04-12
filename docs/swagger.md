@@ -68,7 +68,7 @@ The jwt token will be passed down to each microservices and individual microserv
 
 ---
 
-[API Doc](swagger.md)
+[API Docs](https://cray-hpe.github.io/cray-nls/)
 
 ## Version: 1.0
 
@@ -84,6 +84,19 @@ The jwt token will be passed down to each microservices and individual microserv
 |admin|                             Grants read and write access to administrative information|
 |read|                              Grants read access|
 |Token URL|<https://example.com/oauth/token>|
+
+### /v1/liveness
+
+#### GET
+##### Summary
+
+Get version of cray-nls service
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 204 |  |
 
 ### /v1/ncns/{hostname}/reboot
 
@@ -137,6 +150,35 @@ End to end rebuild of a single ncn
 | Security Schema | Scopes |
 | --- | --- |
 | OAuth2Application | admin |
+
+### /v1/readiness
+
+#### GET
+##### Summary
+
+Get version of cray-nls service
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 204 |  |
+
+### /v1/version
+
+#### GET
+##### Summary
+
+Get version of cray-nls service
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows
 
@@ -436,6 +478,12 @@ End to end rolling rebuild ncns
 ### Models
 
 #### ResponseError
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| message | string |  | No |
+
+#### ResponseOk
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
