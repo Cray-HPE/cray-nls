@@ -22,9 +22,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+
+# format swagger doc
 swag fmt
+
+# update swagger doc yaml
 swag init --md docs/ --outputTypes go,yaml
 
+# fix copyright headers
+docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs
+
+# update swagger.md
 if ! command -v swagger-markdown &> /dev/null
 then
     npx swagger-markdown -i  docs/swagger.yaml || true

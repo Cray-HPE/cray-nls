@@ -160,9 +160,10 @@ Get version of cray-nls service
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 204 |  |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 204 |  |  |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/version
 
@@ -176,8 +177,6 @@ Get version of cray-nls service
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | OK | [ResponseOk](#responseok) |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows
