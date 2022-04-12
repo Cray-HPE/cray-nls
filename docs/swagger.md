@@ -90,7 +90,7 @@ The jwt token will be passed down to each microservices and individual microserv
 #### GET
 ##### Summary
 
-Get version of cray-nls service
+K8s Liveness endpoint
 
 ##### Responses
 
@@ -98,37 +98,12 @@ Get version of cray-nls service
 | ---- | ----------- |
 | 204 |  |
 
-### /v1/ncns/{hostname}/reboot
-
-#### POST
-##### Summary
-
-End to end reboot of a single ncn
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | hostname | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
 ### /v1/ncns/{hostname}/rebuild
 
 #### POST
 ##### Summary
 
-End to end rebuild of a single ncn
+End to end rebuild of a single ncn (worker only)
 
 ##### Parameters
 
@@ -151,12 +126,37 @@ End to end rebuild of a single ncn
 | --- | --- |
 | OAuth2Application | admin |
 
+### /v1/ncns/rebuild
+
+#### POST
+##### Summary
+
+End to end rolling rebuild ncns (workers only)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
 ### /v1/readiness
 
 #### GET
 ##### Summary
 
-Get version of cray-nls service
+K8s Readiness endpoint
 
 ##### Responses
 
@@ -317,6 +317,31 @@ Remove a ncn
 | --- | --- |
 | OAuth2Application | admin |
 
+### /v2/ncns/{hostname}/reboot
+
+#### POST
+##### Summary
+
+End to end reboot of a single ncn
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | hostname | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
 ### /v2/ncns/hooks
 
 #### GET
@@ -430,31 +455,6 @@ Add additional steps after a ncn boot(reboot)
 ##### Summary
 
 End to end rolling reboot ncns
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| include | body | hostnames to include | No | [ string ] |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/rebuild
-
-#### POST
-##### Summary
-
-End to end rolling rebuild ncns
 
 ##### Parameters
 

@@ -54,7 +54,7 @@ const docTemplate = `{
                 "tags": [
                     "Misc"
                 ],
-                "summary": "Get version of cray-nls service",
+                "summary": "K8s Liveness endpoint",
                 "responses": {
                     "204": {
                         "description": ""
@@ -62,7 +62,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncns/{hostname}/reboot": {
+        "/v1/ncns/rebuild": {
             "post": {
                 "security": [
                     {
@@ -80,14 +80,18 @@ const docTemplate = `{
                 "tags": [
                     "NCNs"
                 ],
-                "summary": "End to end reboot of a single ncn",
+                "summary": "End to end rolling rebuild ncns (workers only)",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "hostname",
-                        "in": "path",
-                        "required": true
+                        "description": "hostnames to include",
+                        "name": "include",
+                        "in": "body",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
                     }
                 ],
                 "responses": {
@@ -115,7 +119,7 @@ const docTemplate = `{
                 "tags": [
                     "NCNs"
                 ],
-                "summary": "End to end rebuild of a single ncn",
+                "summary": "End to end rebuild of a single ncn (worker only)",
                 "parameters": [
                     {
                         "type": "string",
@@ -164,7 +168,7 @@ const docTemplate = `{
                 "tags": [
                     "Misc"
                 ],
-                "summary": "Get version of cray-nls service",
+                "summary": "K8s Readiness endpoint",
                 "responses": {
                     "204": {
                         "description": ""
@@ -354,7 +358,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "V2 NCN"
+                    "V2 NCNs"
                 ],
                 "summary": "Add a ncn",
                 "responses": {
@@ -550,7 +554,42 @@ const docTemplate = `{
                 }
             }
         },
-        "/v2/ncns/rebuild": {
+        "/v2/ncns/{hostname}": {
+            "delete": {
+                "security": [
+                    {
+                        "OAuth2Application": [
+                            "admin"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "V2 NCNs"
+                ],
+                "summary": "Remove a ncn",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "hostname",
+                        "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v2/ncns/{hostname}/reboot": {
             "post": {
                 "security": [
                     {
@@ -568,46 +607,7 @@ const docTemplate = `{
                 "tags": [
                     "V2 NCNs"
                 ],
-                "summary": "End to end rolling rebuild ncns",
-                "parameters": [
-                    {
-                        "description": "hostnames to include",
-                        "name": "include",
-                        "in": "body",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/v2/ncns/{hostname}": {
-            "delete": {
-                "security": [
-                    {
-                        "OAuth2Application": [
-                            "admin"
-                        ]
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "V2 NCN"
-                ],
-                "summary": "Remove a ncn",
+                "summary": "End to end reboot of a single ncn",
                 "parameters": [
                     {
                         "type": "string",

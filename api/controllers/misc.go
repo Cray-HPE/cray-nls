@@ -62,7 +62,7 @@ func (u MiscController) GetVersion(c *gin.Context) {
 }
 
 // GetReadiness
-// @Summary  Get version of cray-nls service
+// @Summary  K8s Readiness endpoint
 // @Tags     Misc
 // @Accept   json
 // @Produce  json
@@ -80,7 +80,7 @@ func (u MiscController) GetReadiness(c *gin.Context) {
 }
 
 // GetLiveness
-// @Summary  Get version of cray-nls service
+// @Summary  K8s Liveness endpoint
 // @Tags     Misc
 // @Accept   json
 // @Produce  json

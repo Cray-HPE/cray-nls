@@ -128,30 +128,9 @@ paths:
       responses:
         "204":
           description: ""
-      summary: Get version of cray-nls service
+      summary: K8s Liveness endpoint
       tags:
       - Misc
-  /v1/ncns/{hostname}/reboot:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: hostname
-        in: path
-        name: hostname
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      security:
-      - OAuth2Application:
-        - admin
-      summary: End to end reboot of a single ncn
-      tags:
-      - NCNs
   /v1/ncns/{hostname}/rebuild:
     post:
       consumes:
@@ -184,7 +163,30 @@ paths:
       security:
       - OAuth2Application:
         - admin
-      summary: End to end rebuild of a single ncn
+      summary: End to end rebuild of a single ncn (worker only)
+      tags:
+      - NCNs
+  /v1/ncns/rebuild:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostnames to include
+        in: body
+        name: include
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end rolling rebuild ncns (workers only)
       tags:
       - NCNs
   /v1/readiness:
@@ -200,7 +202,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ResponseError'
-      summary: Get version of cray-nls service
+      summary: K8s Readiness endpoint
       tags:
       - Misc
   /v1/version:
@@ -314,7 +316,7 @@ paths:
         - admin
       summary: Add a ncn
       tags:
-      - V2 NCN
+      - V2 NCNs
   /v2/ncns/{hostname}:
     delete:
       consumes:
@@ -335,7 +337,28 @@ paths:
         - admin
       summary: Remove a ncn
       tags:
-      - V2 NCN
+      - V2 NCNs
+  /v2/ncns/{hostname}/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end reboot of a single ncn
+      tags:
+      - V2 NCNs
   /v2/ncns/hooks:
     get:
       consumes:
@@ -443,29 +466,6 @@ paths:
       - OAuth2Application:
         - admin
       summary: End to end rolling reboot ncns
-      tags:
-      - V2 NCNs
-  /v2/ncns/rebuild:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: hostnames to include
-        in: body
-        name: include
-        schema:
-          items:
-            type: string
-          type: array
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      security:
-      - OAuth2Application:
-        - admin
-      summary: End to end rolling rebuild ncns
       tags:
       - V2 NCNs
 securityDefinitions:
