@@ -67,4 +67,4 @@ The jwt token will be passed down to each microservices and individual microserv
 
 ---
 
-[API Doc](swagger.md)
+[API Docs](https://cray-hpe.github.io/cray-nls/)

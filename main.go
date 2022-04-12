@@ -35,8 +35,8 @@ import (
 // @version  1.0
 // @description.markdown
 
-// @license.name  Apache 2.0
-// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name  MIT
+// @license.url   https://github.com/Cray-HPE/cray-nls/blob/master/License
 
 // @BasePath  /apis/nls
 

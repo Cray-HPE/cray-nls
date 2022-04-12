@@ -35,8 +35,8 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {},
         "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "name": "MIT",
+            "url": "https://github.com/Cray-HPE/cray-nls/blob/master/License"
         },
         "version": "{{.Version}}"
     },
