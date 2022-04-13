@@ -33,7 +33,7 @@ import (
 )
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
-	t.Run("It should render a workflow template for a worker node", func(t *testing.T) {
+	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
 		targetNcns := []string{"ncn-w006", "ncn-w005"}
 		_, err := GetWorkerRebuildWorkflow(targetNcns)
 		assert.Equal(t, true, err == nil)
@@ -51,6 +51,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			{[]string{"sccn-m001"}, true},
 			{[]string{"ncn-x001"}, true},
 			{[]string{"ncn-m001asdf"}, true},
+			{[]string{"ncn-w001", "ncn-m001asdf"}, true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
