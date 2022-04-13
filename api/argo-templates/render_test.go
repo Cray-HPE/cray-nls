@@ -35,9 +35,10 @@ import (
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a worker node", func(t *testing.T) {
-		targetNcn := "ncn-w99999"
-		a, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
-		assert.Equal(t, true, strings.Contains(string(a), targetNcn))
+		targetNcns := []string{"ncn-w006", "ncn-w005"}
+		a, _ := GetWorkerRebuildWorkflow(targetNcns)
+		t.Errorf("%s", string(a))
+		assert.Equal(t, true, strings.Contains(string(a), "targetNcn"))
 	})
 	t.Run("It should fail when host is not a worker node", func(t *testing.T) {
 		var tests = []struct {
@@ -55,7 +56,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				_, err := GetWrokerRebuildWorkflow(tt.hostnames, "")
+				_, err := GetWorkerRebuildWorkflow(tt.hostnames)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -66,7 +67,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow([]string{targetNcn})
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)

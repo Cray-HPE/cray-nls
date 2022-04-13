@@ -110,7 +110,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
 
-	workerRebuildWorkflow, err := argo_templates.GetWrokerRebuildWorkflow(hostnames, "")
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
