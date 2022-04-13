@@ -480,7 +480,7 @@ securityDefinitions:
 swagger: "2.0"
 tags:
 - description: |
-    > > > > #### End to end rebuild/reboot of a single ncn node
+    > > > > #### End to end rebuild of worker nodes
   name: NCNs
 - description: |
     > > > #### Workflow management

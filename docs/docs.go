@@ -667,7 +667,7 @@ const docTemplate = `{
     },
     "tags": [
         {
-            "description": "\u003e \u003e \u003e \u003e #### End to end rebuild/reboot of a single ncn node\n",
+            "description": "\u003e \u003e \u003e \u003e #### End to end rebuild of worker nodes\n",
             "name": "NCNs"
         },
         {
