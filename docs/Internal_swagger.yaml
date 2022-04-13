@@ -302,6 +302,172 @@ paths:
       summary: Retry a failed ncn workflow, skip passed steps
       tags:
       - Workflow
+  /v2/ncn:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Add a ncn
+      tags:
+      - V2 NCNs
+  /v2/ncns/{hostname}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Remove a ncn
+      tags:
+      - V2 NCNs
+  /v2/ncns/{hostname}/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end reboot of a single ncn
+      tags:
+      - V2 NCNs
+  /v2/ncns/hooks:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: filter
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Get ncn lifecycle hooks
+      tags:
+      - V2 NCN Hooks
+  /v2/ncns/hooks/{hook_name}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: hook_name
+        in: path
+        name: hook_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Remove a ncn lifecycle hook
+      tags:
+      - V2 NCN Hooks
+  /v2/ncns/hooks/before-k8s-drain:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Add additional steps before k8s drain
+      tags:
+      - V2 NCN Hooks
+  /v2/ncns/hooks/before-wipe:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Add additional steps before wipe a ncn
+      tags:
+      - V2 NCN Hooks
+  /v2/ncns/hooks/post-boot:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: Add additional steps after a ncn boot(reboot)
+      tags:
+      - V2 NCN Hooks
+  /v2/ncns/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostnames to include
+        in: body
+        name: include
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      security:
+      - OAuth2Application:
+        - admin
+      summary: End to end rolling reboot ncns
+      tags:
+      - V2 NCNs
 securityDefinitions:
   OAuth2Application:
     flow: application

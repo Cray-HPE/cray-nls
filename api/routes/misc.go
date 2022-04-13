@@ -24,7 +24,7 @@
 package routes
 
 import (
-	"github.com/Cray-HPE/cray-nls/api/controllers"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
 	"github.com/Cray-HPE/cray-nls/utils"
 )
 
@@ -32,7 +32,7 @@ import (
 type MiscRoutes struct {
 	logger         utils.Logger
 	handler        utils.RequestHandler
-	miscController controllers.MiscController
+	miscController controllers_v1.MiscController
 }
 
 // Setup Misc routes
@@ -51,7 +51,7 @@ func (s MiscRoutes) Setup() {
 func NewMiscRoutes(
 	logger utils.Logger,
 	handler utils.RequestHandler,
-	miscController controllers.MiscController,
+	miscController controllers_v1.MiscController,
 ) MiscRoutes {
 	return MiscRoutes{
 		handler:        handler,

@@ -43,15 +43,21 @@ type ResponseOk struct {
 } //@name ResponseOk
 
 // NewRequestHandler creates a new request handler
-func NewRequestHandler(logger Logger) RequestHandler {
+func NewRequestHandler(logger Logger, env Env) RequestHandler {
 	gin.DefaultWriter = logger.GetGinLogger()
 	engine := gin.New()
+
+	instanceName := "swagger"
+	if env.Environment == "development" {
+		instanceName = "Internal"
+	}
 
 	engine.GET(
 		"/swagger/*any",
 		ginSwagger.WrapHandler(
 			swaggerFiles.Handler,
 			ginSwagger.DocExpansion("none"),
+			ginSwagger.InstanceName(instanceName),
 		),
 	)
 
