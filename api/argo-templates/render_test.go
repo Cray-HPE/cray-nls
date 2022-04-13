@@ -25,7 +25,6 @@ package argo_templates
 
 import (
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -34,12 +33,12 @@ import (
 )
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
-	t.Run("It should render a workflow template for a worker node", func(t *testing.T) {
-		targetNcn := "ncn-w99999"
-		a, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
-		assert.Equal(t, true, strings.Contains(string(a), targetNcn))
+	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
+		targetNcns := []string{"ncn-w006", "ncn-w005"}
+		_, err := GetWorkerRebuildWorkflow(targetNcns)
+		assert.Equal(t, true, err == nil)
 	})
-	t.Run("It should fail when host is not a worker node", func(t *testing.T) {
+	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
 		var tests = []struct {
 			hostnames []string
 			wantErr   bool
@@ -52,10 +51,11 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			{[]string{"sccn-m001"}, true},
 			{[]string{"ncn-x001"}, true},
 			{[]string{"ncn-m001asdf"}, true},
+			{[]string{"ncn-w001", "ncn-m001asdf"}, true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				_, err := GetWrokerRebuildWorkflow(tt.hostnames, "")
+				_, err := GetWorkerRebuildWorkflow(tt.hostnames)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -66,44 +66,10 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow([]string{targetNcn})
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
 		assert.Equal(t, targetNcn, myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
-	})
-}
-
-func TestRenderStorageRebuildTemplate(t *testing.T) {
-	t.Skip("skip: future feature")
-	t.Run("It should render a workflow template for a storage node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-	t.Run("It should fail when host is not a storage node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-}
-
-func TestRenderMasterRebuildTemplate(t *testing.T) {
-	t.Skip("skip: future feature")
-	t.Run("It should render a workflow template for a master node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-
-	t.Run("It should fail when host is not a master node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-}
-
-func TestRenderRebuildTemplate(t *testing.T) {
-	t.Skip("skip: future feature")
-	t.Run("It should render a workflow template for a node", func(t *testing.T) {
-		// loop test 3 types: master/worker/storage
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-
-	t.Run("It should fail when parameters are invalid", func(t *testing.T) {
-		// loop test: hostname, xname, image version
-		assert.Fail(t, "NOT IMPLEMENTED")
 	})
 }

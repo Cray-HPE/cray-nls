@@ -36,7 +36,8 @@ spec:
     - name: bash-script-example
       inputs:
         parameters:
-          - name: message
+          - name: scriptContent
+          - name: dryRun
       retryStrategy:
         limit: "2"
         retryPolicy: "Always"
@@ -48,11 +49,19 @@ spec:
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF' > "${ts}.sh"
               set -e
-              {{inputs.parameters.message}}
+              {{inputs.parameters.scriptContent}}
           EOF
           chmod +x ${ts}.sh
-          scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
-          ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
+          DRY_RUN={{inputs.parameters.dryRun}}
+          if [[ "$DRY_RUN" == "true" ]];then
+            echo "====================="
+            echo "=======DRY RUN======="
+            echo "====================="
+            cat ${ts}.sh
+          else
+            scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
+            ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
+          fi
         volumeMounts:
           - name: ssh
             mountPath: /myssh
