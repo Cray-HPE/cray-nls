@@ -43,8 +43,9 @@ func GetWorkflowTemplate() []byte {
 	return argoWorkflowTemplate
 }
 
-func GetWrokerRebuildWorkflow(hostname string, xName string) ([]byte, error) {
-	err := validator.ValidateWorkerHostname(hostname)
+func GetWrokerRebuildWorkflow(hostnames []string, xName string) ([]byte, error) {
+	//TODO: this is hard coded for now
+	err := validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +54,8 @@ func GetWrokerRebuildWorkflow(hostname string, xName string) ([]byte, error) {
 	tmpl, _ = tmpl.Parse(string(argoWorkflow))
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcn":  hostname,
-		"TargetNcns": []string{hostname}})
+		"TargetNcn":  hostnames[0],
+		"TargetNcns": hostnames})
 	if err != nil {
 		return nil, err
 	}

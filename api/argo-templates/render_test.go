@@ -34,6 +34,7 @@ import (
 )
 
 func TestRenderRebuildTemplate(t *testing.T) {
+	t.Skip("skip: future feature")
 	t.Run("It should render a workflow template for a node", func(t *testing.T) {
 		// loop test 3 types: master/worker/storage
 		assert.Fail(t, "NOT IMPLEMENTED")
@@ -46,6 +47,7 @@ func TestRenderRebuildTemplate(t *testing.T) {
 }
 
 func TestRenderMasterRebuildTemplate(t *testing.T) {
+	t.Skip("skip: future feature")
 	t.Run("It should render a workflow template for a master node", func(t *testing.T) {
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
@@ -58,26 +60,26 @@ func TestRenderMasterRebuildTemplate(t *testing.T) {
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a worker node", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		a, _ := GetWrokerRebuildWorkflow(targetNcn, "")
+		a, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
 		assert.Equal(t, true, strings.Contains(string(a), targetNcn))
 	})
 	t.Run("It should fail when host is not a worker node", func(t *testing.T) {
 		var tests = []struct {
-			hostname string
-			wantErr  bool
+			hostnames []string
+			wantErr   bool
 		}{
-			{"ncn-m001", true},
-			{"ncn-w001", false},
-			{"ncn-s001", true},
-			{"ncn-m011", true},
-			{"ncn-x001", true},
-			{"sccn-m001", true},
-			{"ncn-x001", true},
-			{"ncn-m001asdf", true},
+			{[]string{"ncn-m001"}, true},
+			{[]string{"ncn-w001"}, false},
+			{[]string{"ncn-s001"}, true},
+			{[]string{"ncn-m011"}, true},
+			{[]string{"ncn-x001"}, true},
+			{[]string{"sccn-m001"}, true},
+			{[]string{"ncn-x001"}, true},
+			{[]string{"ncn-m001asdf"}, true},
 		}
 		for _, tt := range tests {
-			t.Run(tt.hostname, func(t *testing.T) {
-				_, err := GetWrokerRebuildWorkflow(tt.hostname, "")
+			t.Run(tt.hostnames[0], func(t *testing.T) {
+				_, err := GetWrokerRebuildWorkflow(tt.hostnames, "")
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -88,7 +90,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWrokerRebuildWorkflow(targetNcn, "")
+		workerRebuildWorkflow, _ := GetWrokerRebuildWorkflow([]string{targetNcn}, "")
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
@@ -97,6 +99,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 }
 
 func TestRenderStorageRebuildTemplate(t *testing.T) {
+	t.Skip("skip: future feature")
 	t.Run("It should render a workflow template for a storage node", func(t *testing.T) {
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
