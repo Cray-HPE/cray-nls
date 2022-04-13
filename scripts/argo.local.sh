@@ -46,6 +46,6 @@ kubectl wait --for=condition=ready nodes -l node.kubernetes.io/instance-type=k3s
 kubectl get nodes
 
 kubectl create ns argo
-kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-minimal.yaml
+kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
 kubectl wait --for=condition=ready pod -l app=argo-server -n argo
 kubectl -n argo port-forward svc/argo-server 2746:2746
