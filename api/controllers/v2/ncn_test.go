@@ -37,7 +37,7 @@ import (
 )
 
 func TestNcnCreateRebootWorkflow(t *testing.T) {
-
+	t.Skip("skip: future feature")
 	gin.SetMode(gin.TestMode)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

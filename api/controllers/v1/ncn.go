@@ -61,14 +61,43 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
-	err := u.validator.ValidateHostname(hostname)
+	u.createRebuildWorkflow([]string{hostname}, c)
+}
+
+// NcnsCreateRebuildWorkflow
+// @Summary   End to end rolling rebuild ncns (workers only)
+// @Param     include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
+// @Tags      NCNs
+// @Accept    json
+// @Produce   json
+// @Success   200  {object}  models.Workflow
+// @Failure   400  {object}  utils.ResponseError
+// @Failure   404  {object}  utils.ResponseError
+// @Failure   500  {object}  utils.ResponseError
+// @Router    /v1/ncns/rebuild [post]
+// @Security  OAuth2Application[admin]
+func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
+	var requestBody models.CreateRebuildWorkflowRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(400, errResponse)
+		return
+	}
+	u.createRebuildWorkflow(requestBody.Hosts, c)
+}
+
+func (u NcnController) createRebuildWorkflow(hostnames []string, c *gin.Context) {
+	hostnames = removeDuplicateHostnames(hostnames)
+
+	err := u.validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
 	}
-	u.logger.Infof("Hostname: %s", hostname)
-	workflow, err := u.workflowService.CreateRebuildWorkflow(hostname)
+	u.logger.Infof("Hostnames: %v", hostnames)
+
+	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -76,23 +105,23 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 		return
 	} else {
 		myWorkflow := models.Workflow{
-			Name:      workflow.Name,
-			TargetNcn: workflow.Labels["targetNcn"],
+			Name:       workflow.Name,
+			TargetNcns: []string{workflow.Labels["targetNcn"]}, //todo
 		}
 		c.JSON(200, myWorkflow)
 		return
 	}
 }
 
-// NcnsCreateRebuildWorkflow
-// @Summary   End to end rolling rebuild ncns (workers only)
-// @Param     include  body  []string  false  "hostnames to include"
-// @Tags      NCNs
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v1/ncns/rebuild [post]
-// @Security  OAuth2Application[admin]
-func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
-	c.JSON(501, "not implemented")
+func removeDuplicateHostnames(intSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }

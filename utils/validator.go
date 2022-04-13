@@ -37,19 +37,17 @@ func NewValidator() Validator {
 	return Validator{}
 }
 
-func (validator Validator) ValidateHostname(hostname string) error {
-	isValid, err := regexp.Match(`^ncn-[s|w|m][0-9]*$`, []byte(hostname))
-	if err != nil {
-		return err
-	}
-
-	if !isValid {
-		return fmt.Errorf("invalid hostname: %s", hostname)
+func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
+	for _, hostname := range hostnames {
+		err := validator.validateWorkerHostname(hostname)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (validator Validator) ValidateWorkerHostname(hostname string) error {
+func (validator Validator) validateWorkerHostname(hostname string) error {
 	isValid, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
 	if err != nil {
 		return err

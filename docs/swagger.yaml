@@ -37,8 +37,17 @@ definitions:
     properties:
       name:
         type: string
-      targetNcn:
-        type: string
+      targetNcns:
+        items:
+          type: string
+        type: array
+    type: object
+  models.CreateRebuildWorkflowRequest:
+    properties:
+      hosts:
+        items:
+          type: string
+        type: array
     type: object
 info:
   contact: {}
@@ -174,15 +183,28 @@ paths:
       - description: hostnames to include
         in: body
         name: include
+        required: true
         schema:
-          items:
-            type: string
-          type: array
+          $ref: '#/definitions/models.CreateRebuildWorkflowRequest'
       produces:
       - application/json
       responses:
-        "501":
-          description: Not Implemented
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Workflow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       security:
       - OAuth2Application:
         - admin

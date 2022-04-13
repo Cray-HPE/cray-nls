@@ -137,13 +137,16 @@ End to end rolling rebuild ncns (workers only)
 
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
-| include | body | hostnames to include | No | [ string ] |
+| include | body | hostnames to include | Yes | [models.CreateRebuildWorkflowRequest](#modelscreaterebuildworkflowrequest) |
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [Workflow](#workflow) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -292,4 +295,10 @@ Retry a failed ncn workflow, skip passed steps
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | name | string |  | No |
-| targetNcn | string |  | No |
+| targetNcns | [ string ] |  | No |
+
+#### models.CreateRebuildWorkflowRequest
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| hosts | [ string ] |  | No |

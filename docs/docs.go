@@ -86,17 +86,36 @@ const docTemplate = `{
                         "description": "hostnames to include",
                         "name": "include",
                         "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.CreateRebuildWorkflowRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "501": {
-                        "description": "Not Implemented"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Workflow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -366,8 +385,22 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "targetNcn": {
-                    "type": "string"
+                "targetNcns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.CreateRebuildWorkflowRequest": {
+            "type": "object",
+            "properties": {
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }

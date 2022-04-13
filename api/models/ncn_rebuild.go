@@ -23,8 +23,6 @@
 //
 package models
 
-// User model
-type Workflow struct {
-	Name       string   `json:"name"`
-	TargetNcns []string `json:"targetNcns"`
-} //@name Workflow
+type CreateRebuildWorkflowRequest struct {
+	Hosts []string `json:"hosts"`
+}

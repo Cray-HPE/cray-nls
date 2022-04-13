@@ -45,7 +45,7 @@ import (
 
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
-	CreateRebuildWorkflow(hostname string) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -76,17 +76,19 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s workflowService) CreateRebuildWorkflow(hostname string) (*v1alpha1.Workflow, error) {
-	// only support worker rebuild for now
-	isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-	if !isWorker {
-		err := fmt.Errorf("only worker nodes rebuild is supported")
-		s.logger.Error(err)
-		return nil, err
+func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error) {
+	for _, hostname := range hostnames {
+		// only support worker rebuild for now
+		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+		if err != nil {
+			s.logger.Error(err)
+			return nil, err
+		}
+		if !isWorker {
+			err := fmt.Errorf("only worker nodes rebuild is supported")
+			s.logger.Error(err)
+			return nil, err
+		}
 	}
 
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
@@ -106,9 +108,9 @@ func (s workflowService) CreateRebuildWorkflow(hostname string) (*v1alpha1.Workf
 		return nil, err
 	}
 
-	s.logger.Infof("Creating workflow for: %s", hostname)
+	s.logger.Infof("Creating workflow for: %v", hostnames)
 
-	workerRebuildWorkflow, err := argo_templates.GetWrokerRebuildWorkflow(hostname, "")
+	workerRebuildWorkflow, err := argo_templates.GetWrokerRebuildWorkflow(hostnames, "")
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
@@ -127,7 +129,7 @@ func (s workflowService) CreateRebuildWorkflow(hostname string) (*v1alpha1.Workf
 		Workflow:  &myWorkflow,
 	})
 	if err != nil {
-		s.logger.Infof("Creating workflow for: %s FAILED", hostname)
+		s.logger.Infof("Creating workflow for: %v FAILED", hostnames)
 		s.logger.Error(err)
 		return nil, err
 	}
