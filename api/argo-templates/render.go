@@ -44,7 +44,6 @@ func GetWorkflowTemplate() []byte {
 }
 
 func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
-	//TODO: this is hard coded for now
 	err := validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		return nil, err
@@ -59,12 +58,4 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 		return nil, err
 	}
 	return tmpRes.Bytes(), nil
-}
-
-func GetMasterRebuildWorkflow(hostname string, xName string) []byte {
-	return nil
-}
-
-func GetStorageRebuildWorkflow(hostname string, xName string) []byte {
-	return nil
 }
