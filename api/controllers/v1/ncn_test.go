@@ -120,11 +120,17 @@ func TestNcnsCreateRebuildWorkflow(t *testing.T) {
 			&v1alpha1.Workflow{
 				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
 			}, nil)
-		res := executeWithContext(workflowServiceMock, `{
-			"hosts": [
-			  "ncn-w003",    "ncn-w003",    "ncn-w003",    "ncn-w003"
-			]
-		  }`)
+		res := executeWithContext(
+			workflowServiceMock,
+			`{
+				"hosts": [
+					"ncn-w003",
+					"ncn-w003",
+					"ncn-w003",
+					"ncn-w003"
+				]
+			}`,
+		)
 		assert.Equal(t, http.StatusOK, res.Code)
 	})
 
@@ -132,33 +138,46 @@ func TestNcnsCreateRebuildWorkflow(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
 		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
-		res := executeWithContext(workflowServiceMock, `{
-			"hosts": [
-			  "ncn-w003",    "ncn-w003",    "ncn-w003",    "ncn-w003"
-			]
-		  }`)
+		res := executeWithContext(
+			workflowServiceMock,
+			`{
+				"hosts": [
+					"ncn-w003",
+					"ncn-w003",
+					"ncn-w003",
+					"ncn-w003"
+				]
+			}`,
+		)
 		assert.Equal(t, http.StatusInternalServerError, res.Code)
 	})
 
 	t.Run("wrong hostname - invalid", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		res := executeWithContext(workflowServiceMock, `{
-			"hosts": [
-			  "ncn-s003",    "ncn-m003",    "ncn-w003",    "ncn-w003"
-			]
-		  }`)
+		res := executeWithContext(
+			workflowServiceMock,
+			`{
+				"hosts": [
+					"ncn-s003",
+					"ncn-m003",
+					"ncn-w003",
+					"ncn-w003"
+				]
+			}`,
+		)
 		assert.Equal(t, http.StatusBadRequest, res.Code)
 	})
 
 	t.Run("invalid request", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		res := executeWithContext(workflowServiceMock, `{
-			"hosts": [
-			  "ncn-s003
-			]
-		  }`)
+		res := executeWithContext(
+			workflowServiceMock,
+			`{
+				"hosts": ["ncn-s003]
+		  	}`,
+		)
 		assert.Equal(t, http.StatusBadRequest, res.Code)
 	})
 }

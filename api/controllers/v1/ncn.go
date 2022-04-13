@@ -84,7 +84,6 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 		return
 	}
 	u.createRebuildWorkflow(requestBody.Hosts, c)
-
 }
 
 func (u NcnController) createRebuildWorkflow(hostnames []string, c *gin.Context) {
@@ -118,9 +117,6 @@ func removeDuplicateHostnames(intSlice []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}
 
-	// If the key(values of the slice) is not equal
-	// to the already present value in new slice (list)
-	// then we append it. else we jump on another element.
 	for _, entry := range intSlice {
 		if _, value := keys[entry]; !value {
 			keys[entry] = true
