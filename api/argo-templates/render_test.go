@@ -33,30 +33,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func TestRenderRebuildTemplate(t *testing.T) {
-	t.Skip("skip: future feature")
-	t.Run("It should render a workflow template for a node", func(t *testing.T) {
-		// loop test 3 types: master/worker/storage
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-
-	t.Run("It should fail when parameters are invalid", func(t *testing.T) {
-		// loop test: hostname, xname, image version
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-}
-
-func TestRenderMasterRebuildTemplate(t *testing.T) {
-	t.Skip("skip: future feature")
-	t.Run("It should render a workflow template for a master node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-
-	t.Run("It should fail when host is not a master node", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-}
-
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a worker node", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
@@ -104,6 +80,30 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
 	t.Run("It should fail when host is not a storage node", func(t *testing.T) {
+		assert.Fail(t, "NOT IMPLEMENTED")
+	})
+}
+
+func TestRenderMasterRebuildTemplate(t *testing.T) {
+	t.Skip("skip: future feature")
+	t.Run("It should render a workflow template for a master node", func(t *testing.T) {
+		assert.Fail(t, "NOT IMPLEMENTED")
+	})
+
+	t.Run("It should fail when host is not a master node", func(t *testing.T) {
+		assert.Fail(t, "NOT IMPLEMENTED")
+	})
+}
+
+func TestRenderRebuildTemplate(t *testing.T) {
+	t.Skip("skip: future feature")
+	t.Run("It should render a workflow template for a node", func(t *testing.T) {
+		// loop test 3 types: master/worker/storage
+		assert.Fail(t, "NOT IMPLEMENTED")
+	})
+
+	t.Run("It should fail when parameters are invalid", func(t *testing.T) {
+		// loop test: hostname, xname, image version
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
 }
