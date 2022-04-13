@@ -68,7 +68,7 @@ The jwt token will be passed down to each microservices and individual microserv
 
 ---
 
-[API Doc](swagger.md)
+[API Docs](https://cray-hpe.github.io/cray-nls/)
 
 ## Version: 1.0
 
@@ -85,37 +85,25 @@ The jwt token will be passed down to each microservices and individual microserv
 |read|                              Grants read access|
 |Token URL|<https://example.com/oauth/token>|
 
-### /v1/ncns/{hostname}/reboot
+### /v1/liveness
 
-#### POST
+#### GET
 ##### Summary
 
-End to end reboot of a single ncn
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | hostname | Yes | string |
+K8s Liveness endpoint
 
 ##### Responses
 
 | Code | Description |
 | ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
+| 204 |  |
 
 ### /v1/ncns/{hostname}/rebuild
 
 #### POST
 ##### Summary
 
-End to end rebuild of a single ncn
+End to end rebuild of a single ncn (worker only)
 
 ##### Parameters
 
@@ -137,6 +125,59 @@ End to end rebuild of a single ncn
 | Security Schema | Scopes |
 | --- | --- |
 | OAuth2Application | admin |
+
+### /v1/ncns/rebuild
+
+#### POST
+##### Summary
+
+End to end rolling rebuild ncns (workers only)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | No | [ string ] |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+##### Security
+
+| Security Schema | Scopes |
+| --- | --- |
+| OAuth2Application | admin |
+
+### /v1/readiness
+
+#### GET
+##### Summary
+
+K8s Readiness endpoint
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 204 |  |  |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
+### /v1/version
+
+#### GET
+##### Summary
+
+Get version of cray-nls service
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows
 
@@ -232,210 +273,15 @@ Retry a failed ncn workflow, skip passed steps
 | --- | --- |
 | OAuth2Application | admin |
 
-### /v2/ncn
-
-#### POST
-##### Summary
-
-Add a ncn
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/{hostname}
-
-#### DELETE
-##### Summary
-
-Remove a ncn
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | hostname | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/hooks
-
-#### GET
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| filter | query | filter | No | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/hooks/{hook_name}
-
-#### DELETE
-##### Summary
-
-Remove a ncn lifecycle hook
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_name | path | hook_name | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/hooks/before-k8s-drain
-
-#### POST
-##### Summary
-
-Add additional steps before k8s drain
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/hooks/before-wipe
-
-#### POST
-##### Summary
-
-Add additional steps before wipe a ncn
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/hooks/post-boot
-
-#### POST
-##### Summary
-
-Add additional steps after a ncn boot(reboot)
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/reboot
-
-#### POST
-##### Summary
-
-End to end rolling reboot ncns
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| include | body | hostnames to include | No | [ string ] |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v2/ncns/rebuild
-
-#### POST
-##### Summary
-
-End to end rolling rebuild ncns
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| include | body | hostnames to include | No | [ string ] |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
 ### Models
 
 #### ResponseError
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| message | string |  | No |
+
+#### ResponseOk
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |

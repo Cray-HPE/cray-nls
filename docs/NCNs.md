@@ -1,1 +1,1 @@
-> > > > #### End to end rebuild/reboot of a single ncn node
+> > > > #### End to end rebuild of worker nodes

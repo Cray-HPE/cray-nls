@@ -23,40 +23,39 @@
 //
 package routes
 
-import "go.uber.org/fx"
-
-// Module exports dependency to container
-var Module = fx.Options(
-	fx.Provide(NewNcnRoutes),
-	fx.Provide(NewWorkflowRoutes),
-	fx.Provide(NewRoutes),
-	fx.Provide(NewMiscRoutes),
+import (
+	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
+	"github.com/Cray-HPE/cray-nls/utils"
 )
 
-// Routes contains multiple routes
-type Routes []Route
-
-// Route interface
-type Route interface {
-	Setup()
+// MiscRoutes struct
+type MiscRoutes struct {
+	logger         utils.Logger
+	handler        utils.RequestHandler
+	miscController controllers_v1.MiscController
 }
 
-// NewRoutes sets up routes
-func NewRoutes(
-	ncnRoutes NcnRoutes,
-	workflowRoutes WorkflowRoutes,
-	miscRoutes MiscRoutes,
-) Routes {
-	return Routes{
-		ncnRoutes,
-		workflowRoutes,
-		miscRoutes,
+// Setup Misc routes
+func (s MiscRoutes) Setup() {
+	s.logger.Info("Setting up routes")
+	api := s.handler.Gin.Group("/apis/nls/v1")
+	{
+		api.GET("/liveness", s.miscController.GetLiveness)
+		api.GET("/readiness", s.miscController.GetReadiness)
+		api.GET("/version", s.miscController.GetVersion)
+
 	}
 }
 
-// Setup all the route
-func (r Routes) Setup() {
-	for _, route := range r {
-		route.Setup()
+// NewMiscRoutes creates new Misc controller
+func NewMiscRoutes(
+	logger utils.Logger,
+	handler utils.RequestHandler,
+	miscController controllers_v1.MiscController,
+) MiscRoutes {
+	return MiscRoutes{
+		handler:        handler,
+		logger:         logger,
+		miscController: miscController,
 	}
 }

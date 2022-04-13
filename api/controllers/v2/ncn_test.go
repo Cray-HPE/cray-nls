@@ -21,10 +21,9 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package controllers
+package controllers_v2
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -33,63 +32,9 @@ import (
 	mocks "github.com/Cray-HPE/cray-nls/api/mocks/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/alecthomas/assert"
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func TestNcnCreateRebuildWorkflow(t *testing.T) {
-
-	gin.SetMode(gin.TestMode)
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	executeWithContext := func(
-		workflowService *mocks.MockWorkflowService,
-		url ...string,
-	) *httptest.ResponseRecorder {
-		response := httptest.NewRecorder()
-		context, ginEngine := gin.CreateTestContext(response)
-
-		requestUrl := "/v1/ncns/ncn-w001/rebuild"
-		if url != nil {
-			requestUrl = url[0]
-		}
-
-		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(string("")))
-
-		ginEngine.POST("/v1/ncns/:hostname/rebuild", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnCreateRebuildWorkflow)
-		ginEngine.ServeHTTP(response, context.Request)
-		return response
-	}
-
-	t.Run("Happy", func(t *testing.T) {
-
-		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(
-			&v1alpha1.Workflow{
-				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
-			}, nil)
-		res := executeWithContext(workflowServiceMock)
-		assert.Equal(t, http.StatusOK, res.Code)
-	})
-
-	t.Run("Error", func(t *testing.T) {
-
-		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(nil, fmt.Errorf("mocked error"))
-		res := executeWithContext(workflowServiceMock)
-		assert.Equal(t, http.StatusInternalServerError, res.Code)
-	})
-
-	t.Run("wrong hostname - invalid", func(t *testing.T) {
-
-		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
-		res := executeWithContext(workflowServiceMock, "/v1/ncns/ncn-w001asdf/rebuild")
-		assert.Equal(t, http.StatusBadRequest, res.Code)
-	})
-}
 
 func TestNcnCreateRebootWorkflow(t *testing.T) {
 

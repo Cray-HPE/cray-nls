@@ -24,7 +24,7 @@
 package routes
 
 import (
-	"github.com/Cray-HPE/cray-nls/api/controllers"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
 	"github.com/Cray-HPE/cray-nls/utils"
 )
 
@@ -32,7 +32,7 @@ import (
 type NcnRoutes struct {
 	logger         utils.Logger
 	handler        utils.RequestHandler
-	ncnsController controllers.NcnController
+	ncnsController controllers_v1.NcnController
 }
 
 // Setup Ncn routes
@@ -40,7 +40,7 @@ func (s NcnRoutes) Setup() {
 	s.logger.Info("Setting up routes")
 	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
-		api.POST("/ncns/:hostname/reboot", s.ncnsController.NcnCreateRebootWorkflow)
+		api.POST("/ncns/rebuild", s.ncnsController.NcnsCreateRebuildWorkflow)
 		api.POST("/ncns/:hostname/rebuild", s.ncnsController.NcnCreateRebuildWorkflow)
 
 	}
@@ -50,7 +50,7 @@ func (s NcnRoutes) Setup() {
 func NewNcnRoutes(
 	logger utils.Logger,
 	handler utils.RequestHandler,
-	ncnsController controllers.NcnController,
+	ncnsController controllers_v1.NcnController,
 ) NcnRoutes {
 	return NcnRoutes{
 		handler:        handler,

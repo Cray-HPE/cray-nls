@@ -24,7 +24,7 @@
 package routes
 
 import (
-	"github.com/Cray-HPE/cray-nls/api/controllers"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
 	"github.com/Cray-HPE/cray-nls/utils"
 )
 
@@ -32,7 +32,7 @@ import (
 type WorkflowRoutes struct {
 	logger             utils.Logger
 	handler            utils.RequestHandler
-	workflowController controllers.WorkflowController
+	workflowController controllers_v1.WorkflowController
 }
 
 // Setup Workflow routes
@@ -48,7 +48,7 @@ func (s WorkflowRoutes) Setup() {
 func NewWorkflowRoutes(
 	logger utils.Logger,
 	handler utils.RequestHandler,
-	workflowController controllers.WorkflowController,
+	workflowController controllers_v1.WorkflowController,
 ) WorkflowRoutes {
 	return WorkflowRoutes{
 		handler:            handler,
