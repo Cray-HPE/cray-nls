@@ -66,7 +66,6 @@ require (
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
-	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/alecthomas/colour v0.1.0 // indirect
 	github.com/alecthomas/repr v0.0.0-20210801044451-80ca428c5142 // indirect
 	github.com/antonmedv/expr v1.9.0 // indirect
@@ -145,6 +144,7 @@ require (
 )
 
 require (
+	github.com/Masterminds/sprig/v3 v3.2.2
 	github.com/alecthomas/assert v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect

@@ -1,0 +1,34 @@
+{{define "worker.reboot"}}
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: sub-workflow-reboot-{{"{{inputs.parameters.targetNcn}}"}}-
+spec:
+  podGC:
+    # Pod GC strategy must be one of the following:
+    # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
+    # * OnPodSuccess - delete pods immediately when pod is successful
+    # * OnWorkflowCompletion - delete pods when workflow is completed
+    # * OnWorkflowSuccess - delete pods when workflow is successful
+    strategy: OnPodCompletion
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: NotIn
+            values:
+            {{- range $index,$value := .TargetNcns }}
+            - {{$value -}}
+            {{- end }}
+  arguments:
+    parameters:
+    - name: scriptContent
+      value: |
+        sleep $((RANDOM % 20))
+    - name: dryRun
+      value: {{"{{inputs.parameters.dryRun}}"}}
+  workflowTemplateRef:
+    name: {{"{{inputs.parameters.workflowtemplate}}"}}
+{{end}}

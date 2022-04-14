@@ -45,6 +45,9 @@ k3d kubeconfig merge mycluster --kubeconfig-switch-context
 kubectl wait --for=condition=ready nodes -l node.kubernetes.io/instance-type=k3s
 kubectl get nodes
 
+# create ssh folders for local dev
+docker ps | grep agent | awk '{print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh"
+
 kubectl create ns argo
 kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
 kubectl wait --for=condition=ready pod -l app=argo-server -n argo

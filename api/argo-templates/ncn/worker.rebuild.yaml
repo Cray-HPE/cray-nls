@@ -59,9 +59,6 @@ spec:
               parameters:
               - name: workflowtemplate
                 value: "ssh-with-kubeconfig"
-              - name: scriptContent
-                value: |
-                  sleep $((RANDOM % 10))
               - name: targetNcn
                 value: {{$value}}
               - name: dryRun
@@ -75,9 +72,6 @@ spec:
               parameters:
               - name: workflowtemplate
                 value: "ssh-with-kubeconfig"
-              - name: scriptContent
-                value:  |
-                  sleep $((RANDOM % 30))
               - name: targetNcn
                 value: {{$value}}
               - name: dryRun
@@ -88,87 +82,19 @@ spec:
         mutex:
           name: drain
       inputs:
-        parameters:
-          - name: workflowtemplate
-          - name: scriptContent
-          - name: targetNcn
-          - name: dryRun
+        {{- include "worker.common.parameters" . | indent 8 }}
       resource:
         action: create
         manifest: |
-          apiVersion: argoproj.io/v1alpha1
-          kind: Workflow
-          metadata:
-            generateName: sub-workflow-drain-{{"{{inputs.parameters.targetNcn}}"}}-
-          spec:
-            podGC:
-              # Pod GC strategy must be one of the following:
-              # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
-              # * OnPodSuccess - delete pods immediately when pod is successful
-              # * OnWorkflowCompletion - delete pods when workflow is completed
-              # * OnWorkflowSuccess - delete pods when workflow is successful
-              strategy: OnPodCompletion
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                  - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                      {{- range $index,$value := .TargetNcns }}
-                      - {{$value -}}
-                      {{- end }}
-            arguments:
-              parameters:
-              - name: scriptContent
-                value: {{"{{inputs.parameters.scriptContent}}"}}
-              - name: dryRun
-                value: {{"{{inputs.parameters.dryRun}}"}}
-            workflowTemplateRef:
-              name: {{"{{inputs.parameters.workflowtemplate}}"}}
+          {{- include "worker.drain" . | indent 10 }}
         successCondition: status.phase == Succeeded
         failureCondition: status.phase in (Failed, Error)
     - name: reboot
       inputs:
-        parameters:
-          - name: workflowtemplate
-          - name: scriptContent
-          - name: targetNcn
-          - name: dryRun
+        {{- include "worker.common.parameters" . | indent 8 }}
       resource:
         action: create
         manifest: |
-          apiVersion: argoproj.io/v1alpha1
-          kind: Workflow
-          metadata:
-            generateName: sub-workflow-reboot-{{"{{inputs.parameters.targetNcn}}"}}-
-          spec:
-            podGC:
-              # Pod GC strategy must be one of the following:
-              # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
-              # * OnPodSuccess - delete pods immediately when pod is successful
-              # * OnWorkflowCompletion - delete pods when workflow is completed
-              # * OnWorkflowSuccess - delete pods when workflow is successful
-              strategy: OnPodCompletion
-            affinity:
-              nodeAffinity:
-                requiredDuringSchedulingIgnoredDuringExecution:
-                  nodeSelectorTerms:
-                  - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: NotIn
-                      values:
-                      {{- range $index,$value := .TargetNcns }}
-                      - {{$value -}}
-                      {{- end }}
-            arguments:
-              parameters:
-              - name: scriptContent
-                value: {{"{{inputs.parameters.scriptContent}}"}}
-              - name: dryRun
-                value: {{"{{inputs.parameters.dryRun}}"}}
-            workflowTemplateRef:
-              name: {{"{{inputs.parameters.workflowtemplate}}"}}
+          {{- include "worker.reboot" . | indent 10 }}
         successCondition: status.phase == Succeeded
         failureCondition: status.phase in (Failed, Error)

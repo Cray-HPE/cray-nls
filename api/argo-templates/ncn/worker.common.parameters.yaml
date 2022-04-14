@@ -1,0 +1,6 @@
+{{define "worker.common.parameters"}}
+parameters:
+  - name: workflowtemplate
+  - name: targetNcn
+  - name: dryRun
+{{end}}
