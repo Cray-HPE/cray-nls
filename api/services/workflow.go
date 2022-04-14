@@ -40,6 +40,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	argo_workflow_common "github.com/argoproj/argo-workflows/v3/workflow/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -116,9 +117,8 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 		return nil, err
 	}
 
-	workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
-	var myWorkflow v1alpha1.Workflow
-	err = json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
+	var myWorkflow []v1alpha1.Workflow
+	myWorkflow, err = argo_workflow_common.SplitWorkflowYAMLFile(workerRebuildWorkflow, false)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
@@ -126,7 +126,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 
 	res, err := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
-		Workflow:  &myWorkflow,
+		Workflow:  &myWorkflow[0],
 	})
 	if err != nil {
 		s.logger.Infof("Creating workflow for: %v FAILED", hostnames)
