@@ -27,7 +27,6 @@ import (
 	"bytes"
 	"embed"
 	_ "embed"
-	"fmt"
 	"text/template"
 
 	"github.com/Cray-HPE/cray-nls/utils"
@@ -76,6 +75,5 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(tmpRes.String())
 	return tmpRes.Bytes(), nil
 }
