@@ -25,14 +25,17 @@ package argo_templates
 
 import (
 	"bytes"
+	"embed"
 	_ "embed"
+	"fmt"
 	"text/template"
 
 	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Masterminds/sprig/v3"
 )
 
-//go:embed ncn/worker.rebuild.argo.yaml
-var argoWorkflow []byte
+//go:embed ncn/*
+var workerRebuildWorkflowFS embed.FS
 
 //go:embed base/template.argo.yaml
 var argoWorkflowTemplate []byte
@@ -49,13 +52,30 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 		return nil, err
 	}
 
-	tmpl := template.New("render")
-	tmpl, _ = tmpl.Parse(string(argoWorkflow))
+	tmpl := template.New("worker.rebuild.yaml")
+
+	// add useful helm templating func: include
+	var funcMap template.FuncMap = map[string]interface{}{}
+	funcMap["include"] = func(name string, data interface{}) (string, error) {
+		buf := bytes.NewBuffer(nil)
+		if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	}
+
+	// add sprig templating func
+	tmpl, err = tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workerRebuildWorkflowFS, "ncn/*.yaml")
+	if err != nil {
+		return nil, err
+	}
+
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
 		"TargetNcns": hostnames})
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(tmpRes.String())
 	return tmpRes.Bytes(), nil
 }
