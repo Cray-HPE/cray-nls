@@ -35,7 +35,7 @@ import (
 )
 
 //go:embed ncn/*
-var workerRebuildWorkflow embed.FS
+var workerRebuildWorkflowFS embed.FS
 
 //go:embed base/template.argo.yaml
 var argoWorkflowTemplate []byte
@@ -54,7 +54,7 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 
 	tmpl := template.New("worker.rebuild.yaml")
 
-	// introduce useful helm-like templating func
+	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
 		buf := bytes.NewBuffer(nil)
@@ -65,7 +65,7 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 	}
 
 	// add sprig templating func
-	tmpl, err = tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workerRebuildWorkflow, "ncn/*.yaml")
+	tmpl, err = tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workerRebuildWorkflowFS, "ncn/*.yaml")
 	if err != nil {
 		return nil, err
 	}
