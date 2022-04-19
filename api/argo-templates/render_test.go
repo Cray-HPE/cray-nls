@@ -32,10 +32,12 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const doDryRun bool = true
+
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
 		targetNcns := []string{"ncn-w006", "ncn-w005"}
-		_, err := GetWorkerRebuildWorkflow(targetNcns, true)
+		_, err := GetWorkerRebuildWorkflow(targetNcns, doDryRun)
 		assert.Equal(t, true, err == nil)
 	})
 	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
@@ -55,7 +57,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				_, err := GetWorkerRebuildWorkflow(tt.hostnames, true)
+				_, err := GetWorkerRebuildWorkflow(tt.hostnames, doDryRun)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -66,7 +68,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow([]string{targetNcn}, true)
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow([]string{targetNcn}, doDryRun)
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
