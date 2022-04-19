@@ -28,12 +28,12 @@ metadata:
   # labels:
   #   targetNcn: {{.TargetNcn}}
 spec:
+  volumes:
+    - name: ssh
+      hostPath:
+        path: /root/.ssh
+        type: Directory
   podGC:
-    # Pod GC strategy must be one of the following:
-    # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
-    # * OnPodSuccess - delete pods immediately when pod is successful
-    # * OnWorkflowCompletion - delete pods when workflow is completed
-    # * OnWorkflowSuccess - delete pods when workflow is successful
     strategy: OnPodCompletion
   affinity:
     nodeAffinity:
@@ -53,48 +53,58 @@ spec:
         tasks:
           {{- range $index,$value := .TargetNcns }}
           # drain: sync
+          #     Only one worker can be drained at a time
           - name: drain-{{$value}}
             template: drain
             arguments:
               parameters:
-              - name: workflowtemplate
-                value: "ssh-with-kubeconfig"
               - name: targetNcn
                 value: {{$value}}
               - name: dryRun
-                value: true
-          # reboot: parallel
-          - name: reboot-{{$value}}
-            dependencies:
-              - "drain-{{$value}}"
-            template: reboot
+                value: "{{$.DryRun}}"
+          # wipe and reboot: parallel
+          #     once a worker node is drained from k8s
+          #     we can safely wipe and reboot this node
+          #     regardless of what state other nodes are
+          - name: wipe-and-reboot-{{$value}}
+            dependencies: 
+              - drain-{{$value}}
+            template: wipe-and-reboot
             arguments:
               parameters:
-              - name: workflowtemplate
-                value: "ssh-with-kubeconfig"
               - name: targetNcn
                 value: {{$value}}
               - name: dryRun
-                value: true
+                value: "{{$.DryRun}}"
+          # post rebuild: parallel
+          #     Post rebuild validation can be run in parallel
+          - name: post-rebuild-{{$value}}
+            dependencies: 
+              - wipe-and-reboot-{{$value}}
+            template: post-rebuild
+            arguments:
+              parameters:
+              - name: targetNcn
+                value: {{$value}}
+              - name: dryRun
+                value: "{{$.DryRun}}"
           {{- end }}
+    # reference to individual tasks
     - name: drain
       synchronization:
         mutex:
           name: drain
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
-      resource:
-        action: create
-        manifest: |
-          {{- include "worker.drain" . | indent 10 }}
-        successCondition: status.phase == Succeeded
-        failureCondition: status.phase in (Failed, Error)
-    - name: reboot
+      dag:
+        {{- include "worker.drain" . | indent 8 }}
+    - name: wipe-and-reboot
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
-      resource:
-        action: create
-        manifest: |
-          {{- include "worker.reboot" . | indent 10 }}
-        successCondition: status.phase == Succeeded
-        failureCondition: status.phase in (Failed, Error)
+      dag:
+        {{- include "worker.wipe-and-reboot" . | indent 8 }}
+    - name: post-rebuild
+      inputs:
+        {{- include "worker.common.parameters" . | indent 8 }}
+      dag:
+        {{- include "worker.post-rebuild" . | indent 8 }}

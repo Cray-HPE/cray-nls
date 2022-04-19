@@ -301,4 +301,5 @@ Retry a failed ncn workflow, skip passed steps
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
+| dryRun | boolean |  | No |
 | hosts | [ string ] |  | No |

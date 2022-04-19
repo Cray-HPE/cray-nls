@@ -61,7 +61,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Security  OAuth2Application[admin]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
-	u.createRebuildWorkflow([]string{hostname}, c)
+	u.createRebuildWorkflow([]string{hostname}, false, c)
 }
 
 // NcnsCreateRebuildWorkflow
@@ -83,10 +83,10 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 		c.JSON(400, errResponse)
 		return
 	}
-	u.createRebuildWorkflow(requestBody.Hosts, c)
+	u.createRebuildWorkflow(requestBody.Hosts, requestBody.DryRun, c)
 }
 
-func (u NcnController) createRebuildWorkflow(hostnames []string, c *gin.Context) {
+func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, c *gin.Context) {
 	hostnames = removeDuplicateHostnames(hostnames)
 
 	err := u.validator.ValidateWorkerHostnames(hostnames)
@@ -95,9 +95,9 @@ func (u NcnController) createRebuildWorkflow(hostnames []string, c *gin.Context)
 		c.JSON(400, errResponse)
 		return
 	}
-	u.logger.Infof("Hostnames: %v", hostnames)
+	u.logger.Infof("Hostnames: %v, dryRun: %v", hostnames, dryRun)
 
-	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames)
+	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames, dryRun)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}

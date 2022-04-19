@@ -26,11 +26,6 @@ kind: WorkflowTemplate
 metadata:
   name: ssh-with-kubeconfig
 spec:
-  volumes:
-    - name: ssh
-      hostPath:
-        path: /root/.ssh
-        type: Directory
   entrypoint: bash-script-example
   templates:
     - name: bash-script-example

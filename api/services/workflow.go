@@ -40,13 +40,12 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	argo_workflow_common "github.com/argoproj/argo-workflows/v3/workflow/common"
 	"github.com/gin-gonic/gin"
 )
 
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
-	CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -77,7 +76,7 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error) {
 	for _, hostname := range hostnames {
 		// only support worker rebuild for now
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
@@ -111,14 +110,20 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
 
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames)
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames, dryRun)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	var myWorkflow []v1alpha1.Workflow
-	myWorkflow, err = argo_workflow_common.SplitWorkflowYAMLFile(workerRebuildWorkflow, false)
+	jsonTmp, err := yaml.YAMLToJSONStrict(workerRebuildWorkflow)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+
+	var myWorkflow v1alpha1.Workflow
+	err = json.Unmarshal(jsonTmp, &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
@@ -126,7 +131,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 
 	res, err := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
-		Workflow:  &myWorkflow[0],
+		Workflow:  &myWorkflow,
 	})
 	if err != nil {
 		s.logger.Infof("Creating workflow for: %v FAILED", hostnames)

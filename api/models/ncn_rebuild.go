@@ -24,5 +24,6 @@
 package models
 
 type CreateRebuildWorkflowRequest struct {
-	Hosts []string `json:"hosts"`
+	Hosts  []string `json:"hosts"`
+	DryRun bool     `json:"dryRun"`
 }
