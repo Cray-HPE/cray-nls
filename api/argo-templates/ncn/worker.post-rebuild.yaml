@@ -21,8 +21,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-{{define "worker.common.parameters"}}
-parameters:
-  - name: targetNcn
-  - name: dryRun
+{{define "worker.post-rebuild"}}
+tasks:
+  - name: "todo-post-rebuild"
+    templateRef:
+      name: ssh-with-kubeconfig
+      template: bash-script-example
+    arguments:
+      parameters:
+        - name: dryRun
+          value: "{{ `{{inputs.parameters.dryRun}}` }}"
+        - name: scriptContent
+          value: |
+            TODO
 {{end}}

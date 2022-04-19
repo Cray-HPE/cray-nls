@@ -27,7 +27,6 @@ import (
 	"bytes"
 	"embed"
 	_ "embed"
-	"fmt"
 	"text/template"
 
 	"github.com/Cray-HPE/cray-nls/utils"
@@ -46,7 +45,7 @@ func GetWorkflowTemplate() []byte {
 	return argoWorkflowTemplate
 }
 
-func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
+func GetWorkerRebuildWorkflow(hostnames []string, dryRun bool) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		return nil, err
@@ -72,10 +71,11 @@ func GetWorkerRebuildWorkflow(hostnames []string) ([]byte, error) {
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns": hostnames})
+		"TargetNcns": hostnames,
+		"DryRun":     dryRun,
+	})
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(tmpRes.String())
 	return tmpRes.Bytes(), nil
 }

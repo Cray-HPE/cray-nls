@@ -45,7 +45,7 @@ import (
 
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
-	CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -76,7 +76,7 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
 }
 
-func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error) {
 	for _, hostname := range hostnames {
 		// only support worker rebuild for now
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
@@ -110,15 +110,20 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string) (*v1alpha1.Wo
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
 
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames)
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames, dryRun)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
+	jsonTmp, err := yaml.YAMLToJSONStrict(workerRebuildWorkflow)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+
 	var myWorkflow v1alpha1.Workflow
-	err = json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
+	err = json.Unmarshal(jsonTmp, &myWorkflow)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err

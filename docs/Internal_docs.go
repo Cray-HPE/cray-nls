@@ -678,6 +678,9 @@ const docTemplateInternal = `{
         "models.CreateRebuildWorkflowRequest": {
             "type": "object",
             "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
                 "hosts": {
                     "type": "array",
                     "items": {
