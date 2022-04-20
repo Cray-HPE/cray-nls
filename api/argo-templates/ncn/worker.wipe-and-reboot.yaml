@@ -23,7 +23,7 @@
 #
 {{define "worker.wipe-and-reboot"}}
 tasks:
-  - name: "todo-wipe-and-reboot"
+  - name: "wipe-and-reboot"
     templateRef:
       name: ssh-with-kubeconfig
       template: bash-script-example
@@ -33,5 +33,9 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            TODO
+            mv /etc/cray/upgrade/csm/{{ `{{inputs.parameters.targetNcn}}` }}/state \
+                /etc/cray/upgrade/csm/{{ `{{inputs.parameters.targetNcn}}` }}/state.bak || true
+            NONINTERACTIVE=1 \
+              /usr/share/doc/csm/upgrade/1.2/scripts/common/ncn-rebuild-common.sh \
+              {{ `{{inputs.parameters.targetNcn}}` }} --rebuild
 {{end}}
