@@ -105,7 +105,7 @@ tasks:
             -d client_id=admin-client \
             -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
             https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
-            csi automate ncn kubernetes --action delete-ncn --ncn {{.TargetNcn}} --kubeconfig /etc/kubernetes/admin.conf
+            csi automate ncn kubernetes --action delete-ncn --ncn {{ `{{inputs.parameters.targetNcn}}` }} --kubeconfig /etc/kubernetes/admin.conf
   - name: update-bss
     dependencies:
       - wait-for-cfs
@@ -125,5 +125,5 @@ tasks:
             -d client_id=admin-client \
             -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
             https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
-            csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{.TargetNcn}} 'cat /etc/cray/xname')
+            csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
 {{end}}
