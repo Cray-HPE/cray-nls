@@ -54,7 +54,6 @@ tasks:
   - name: goss
     dependencies:
       - wait-for-cfs-after-rebuild
-      - wait-for-key-pods
       - update-bss-no-wipe
     templateRef:
       name: ssh-with-kubeconfig
