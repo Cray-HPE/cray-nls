@@ -51,41 +51,9 @@ tasks:
             /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh \
               --xnames \
               $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
-  - name: wait-for-key-pods
-    templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
-    arguments:
-      parameters:
-        - name: dryRun
-          value: "{{ `{{inputs.parameters.dryRun}}` }}"
-        - name: scriptContent
-          value: |
-            while true; do
-              output=$(kubectl get po -A -o wide | grep -e etcd -e speaker | grep {{ `{{inputs.parameters.targetNcn}}` }} | awk '{print $4}')
-              if [ ! -n "$output" ]; then
-                #
-                # No pods scheduled to start on this node, we are done
-                #
-                break
-              fi
-              set +e
-              echo "$output" | grep -v -e Running -e Completed > /dev/null
-              rc=$?
-              set -e
-              if [[ "$rc" -eq 1 ]]; then
-                echo "All etcd and speaker pods are running on {{ `{{inputs.parameters.targetNcn}}` }}"
-                break
-              fi
-              echo "Some etcd and speaker pods are not running on {{ `{{inputs.parameters.targetNcn}}` }} -- sleeping for 10 seconds..."
-              sleep 10
-            done
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null /root/docs-csm-latest.noarch.rpm {{ `{{inputs.parameters.targetNcn}}` }}:/root/docs-csm-latest.noarch.rpm
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} "rpm --force -Uvh /root/docs-csm-latest.noarch.rpm"
   - name: goss
     dependencies:
       - wait-for-cfs-after-rebuild
-      - wait-for-key-pods
       - update-bss-no-wipe
     templateRef:
       name: ssh-with-kubeconfig
@@ -96,6 +64,13 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} -t "SW_ADMIN_PASSWORD='!nitial0' GOSS_BASE=/opt/cray/tests/install/ncn goss -g /opt/cray/tests/install/ncn/suites/ncn-upgrade-tests-worker.yaml --vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate"
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} \
+              -t "SW_ADMIN_PASSWORD='!nitial0' \
+                  GOSS_BASE=/opt/cray/tests/install/ncn \
+                  goss -g /opt/cray/tests/install/ncn/suites/ncn-upgrade-tests-worker.yaml \
+                    --vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate \
+                    --retry-timeout 1h \
+                    --sleep 5m \
+                    -f documentation"
 
 {{end}}

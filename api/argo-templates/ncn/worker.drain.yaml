@@ -36,19 +36,6 @@ tasks:
             /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh \
               --xnames \
               $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
-  - name: ensure-nexus-can-start-on-any-node
-    templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
-    arguments:
-      parameters:
-        - name: dryRun
-          value: "{{ `{{inputs.parameters.dryRun}}` }}"
-        - name: scriptContent
-          value: |
-            workers="$(kubectl get node --selector='!node-role.kubernetes.io/master' -o name | sed -e 's,^node/,,' | paste -sd,)"
-            export PDSH_SSH_ARGS_APPEND="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-            kubectl get configmap -n nexus cray-precache-images -o json | jq -r '.data.images_to_cache' | while read image; do echo >&2 "+ caching $image"; pdsh -w "$workers" "crictl pull $image" 2>/dev/null; done
   - name: ensure-etcd-pods
     templateRef:
       name: ssh-with-kubeconfig
@@ -59,20 +46,13 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            while [[ "$(kubectl get po -A -l 'app=etcd' | grep -v "Running"| wc -l)" != "1" ]]; do
-                echo "Some etcd pods are not in running state, wait for 5s ..."
-                kubectl get po -A -l 'app=etcd' | grep -v "Running"
-                sleep 5
-            done
-            etcdClusters=$(kubectl get Etcdclusters -n services | grep "cray-"|awk '{print $1}')
-            for cluster in $etcdClusters
-            do
-                numOfPods=$(kubectl get pods -A -l 'app=etcd'| grep $cluster | grep "Running" | wc -l)
-                if [[ $numOfPods -ne 3 ]];then
-                    echo "ERROR - Etcd cluster: $cluster should have 3 pods running but only $numOfPods are running"
-                    exit 1
-                fi
-            done
+            GOSS_BASE=/opt/cray/tests/install/ncn
+            GOSS_ARG="--vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate \
+              --retry-timeout 1h \
+              --sleep 5m \
+              -f documentation"
+
+            goss -g /opt/cray/tests/install/ncn/tests/goss-cray-service-etcd-health-check.yaml  ${GOSS_ARG}
   - name: ensure-pg-pods
     templateRef:
       name: ssh-with-kubeconfig
@@ -83,13 +63,22 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            wget -q http://rgw-vip.nmn/ncn-utils/csi;chmod 0755 csi
-            mv csi /usr/local/bin/csi
-            csi pit validate --postgres
+            GOSS_BASE=/opt/cray/tests/install/ncn
+            GOSS_ARG="--vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate \
+              --retry-timeout 1h \
+              --sleep 5m \
+              -f documentation"
+            
+            goss -g /opt/cray/tests/install/ncn/tests/goss-k8s-postgres-leader.yaml ${GOSS_ARG}
+
+            goss -g /opt/cray/tests/install/ncn/tests/goss-k8s-postgres-clusters-running.yaml ${GOSS_ARG}
+
+            goss -g /opt/cray/tests/install/ncn/tests/goss-k8s-postgres-pods-running.yaml ${GOSS_ARG}
+
+            goss -g /opt/cray/tests/install/ncn/tests/goss-k8s-postgres-replication-lag.yaml ${GOSS_ARG}
   - name: drain
     dependencies:
       - wait-for-cfs
-      - ensure-nexus-can-start-on-any-node
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
@@ -109,7 +98,6 @@ tasks:
   - name: update-bss
     dependencies:
       - wait-for-cfs
-      - ensure-nexus-can-start-on-any-node
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
