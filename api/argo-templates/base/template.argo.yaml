@@ -42,10 +42,10 @@ spec:
         source: |
           #!/bin/sh
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
-          cat <<'EOF' > "${ts}.sh"
-              set -e
-              {{inputs.parameters.scriptContent}}
-          EOF
+          cat <<'EOF2' > "${ts}.sh"
+          set -e
+          {{inputs.parameters.scriptContent}}
+          EOF2
           chmod +x ${ts}.sh
           DRY_RUN={{inputs.parameters.dryRun}}
           if [[ "$DRY_RUN" == "true" ]];then
