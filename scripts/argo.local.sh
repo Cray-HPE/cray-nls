@@ -44,6 +44,7 @@ fi
 k3d kubeconfig merge mycluster --kubeconfig-switch-context
 kubectl wait --for=condition=ready nodes -l node.kubernetes.io/instance-type=k3s
 kubectl get nodes
+kubectl taint nodes ncn-m001 node-role.kubernetes.io/master=:NoSchedule
 
 # create ssh folders for local dev
 docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh"
