@@ -33,6 +33,13 @@ spec:
       hostPath:
         path: /root/.ssh
         type: Directory
+  # schedule workflow jobs asap
+  priorityCLassName: system-node-critical
+  # Pod GC strategy must be one of the following:
+  # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
+  # * OnPodSuccess - delete pods immediately when pod is successful
+  # * OnWorkflowCompletion - delete pods when workflow is completed
+  # * OnWorkflowSuccess - delete pods when workflow is successful
   podGC:
     strategy: OnPodCompletion
   # allow workflow jobs running on master node
@@ -114,14 +121,6 @@ spec:
                 value: {{$value}}
               - name: dryRun
                 value: "{{$.DryRun}}"
-          - name: remove-labels-{{$value}}
-            dependencies:
-              - wipe-and-reboot-{{$value}}
-            template: remove-labels
-            arguments: 
-              parameters:
-              - name: targetNcn
-                value: {{$value}}
           {{- end }}
     # reference to individual tasks
     - name: add-labels
