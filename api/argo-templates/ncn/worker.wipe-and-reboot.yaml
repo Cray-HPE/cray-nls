@@ -181,7 +181,13 @@ tasks:
           value: |
             {{- include "common.envar" . | indent 12 }}
 
-            sleep 60
+            # wait random seconds (1-10s) until ssh is working
+            echo "wait for ssh"
+            while ! ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+            do
+              sleep $(( ( RANDOM % 10 )  + 1 ))
+            done
+
             # wait for cloud-init
             # ssh commands are expected to fail for a while, so we temporarily disable set -e
             set +e
