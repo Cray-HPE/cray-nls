@@ -33,19 +33,43 @@ spec:
       hostPath:
         path: /root/.ssh
         type: Directory
+  # schedule workflow jobs asap
+  priorityCLassName: system-node-critical
+  # Pod GC strategy must be one of the following:
+  # * OnPodCompletion - delete pods immediately when pod is completed (including errors/failures)
+  # * OnPodSuccess - delete pods immediately when pod is successful
+  # * OnWorkflowCompletion - delete pods when workflow is completed
+  # * OnWorkflowSuccess - delete pods when workflow is successful
   podGC:
     strategy: OnPodCompletion
+  # allow workflow jobs running on master node
+  #   we may have a situation that all worker nodes
+  #   are marked as "being rebuilt" (cray.nls=ncn-w001)
+  tolerations:
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
   affinity:
     nodeAffinity:
+      # avoid putting workflow jobs onto workers that will be rebuilt
+      # this label is set onto each workers at beginning of workflow
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: kubernetes.io/hostname
+          - key: cray.nls
             operator: NotIn
             values:
             {{- range $index,$value := .TargetNcns }}
             - {{$value -}}
             {{- end }}
+      # avoid using master node to run workflow jobs as soon as 
+      # we have worker nodes available
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 50
+          preference:
+            matchExpressions:
+            - key: node-role.kubernetes.io/master
+              operator: DoesNotExist
   entrypoint: main
   templates:
     - name: main
@@ -53,10 +77,18 @@ spec:
         failFast: true
         tasks:
           {{- range $index,$value := .TargetNcns }}
+          - name: add-labels-{{$value}}
+            template: add-labels
+            arguments: 
+              parameters:
+              - name: targetNcn
+                value: {{$value}}
           # drain: sync
           #     Only one worker can be drained at a time
           - name: drain-{{$value}}
             template: drain
+            dependencies:
+              - add-labels-{{$value}}
             arguments:
               parameters:
               - name: targetNcn
@@ -91,6 +123,33 @@ spec:
                 value: "{{$.DryRun}}"
           {{- end }}
     # reference to individual tasks
+    - name: add-labels
+      inputs:
+        parameters:
+          - name: targetNcn
+      resource:
+        action: patch
+        mergeStrategy: json
+        flags:
+          - "node"
+          - "{{ `{{inputs.parameters.targetNcn}}` }}"
+        manifest: |
+          - op: add
+            path: /metadata/labels/cray.nls
+            value: {{ `{{inputs.parameters.targetNcn}}` }}
+    - name: remove-labels
+      inputs:
+        parameters:
+          - name: targetNcn
+      resource:
+        action: patch
+        mergeStrategy: json
+        flags:
+          - "node"
+          - "{{ `{{inputs.parameters.targetNcn}}` }}"
+        manifest: |
+          - op: remove
+            path: /metadata/labels/cray.nls
     - name: drain
       synchronization:
         mutex:

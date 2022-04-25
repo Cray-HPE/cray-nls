@@ -106,7 +106,7 @@ func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, c 
 	} else {
 		myWorkflow := models.Workflow{
 			Name:       workflow.Name,
-			TargetNcns: []string{workflow.Labels["targetNcn"]}, //todo
+			TargetNcns: hostnames,
 		}
 		c.JSON(200, myWorkflow)
 		return
