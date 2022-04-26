@@ -191,10 +191,7 @@ tasks:
             set +e
             printf "%s" "waiting for cloud-init: $TARGET_NCN ..."
             while true ; do
-                if ssh_keygen_keyscan "${TARGET_NCN}" &> /dev/null ; then
-                    ssh_keys_done=1
-                    ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'cat /var/log/cloud-init-output.log | grep "The system is finally up"' &> /dev/null && break
-                fi
+                ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'cat /var/log/cloud-init-output.log | grep "The system is finally up"' &> /dev/null && break
                 printf "%c" "."
                 sleep 20
             done
