@@ -139,7 +139,6 @@ tasks:
             printf "%s" "waiting for boot: $TARGET_NCN ..."
             while true
             do
-                {
                 set +e
                 while true
                 do
@@ -152,7 +151,6 @@ tasks:
                     fi
                 done
                 set -e
-                } >> ${LOG_FILE} 2>&1
                 if [[ $tmp_bootscript_last_epoch -ne $bootscript_last_epoch ]]; then
                     echo "bootscript fetched"
                     break
