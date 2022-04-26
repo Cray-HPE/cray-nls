@@ -181,7 +181,7 @@ tasks:
 
             # wait random seconds (1-10s) until ssh is working
             echo "wait for ssh"
-            while ! ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+            while ! ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'ls /var/log/cloud-init-output.log'
             do
               sleep $(( ( RANDOM % 10 )  + 1 ))
             done
