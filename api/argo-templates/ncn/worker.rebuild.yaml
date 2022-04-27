@@ -33,6 +33,15 @@ spec:
       hostPath:
         path: /root/.ssh
         type: Directory
+    - name: podinfo
+      downwardAPI:
+        items:
+          - path: "labels"
+            fieldRef:
+              fieldPath: metadata.labels
+          - path: "annotations"
+            fieldRef:
+              fieldPath: metadata.annotations
   # schedule workflow jobs asap
   priorityCLassName: system-node-critical
   # Pod GC strategy must be one of the following:
@@ -41,7 +50,7 @@ spec:
   # * OnWorkflowCompletion - delete pods when workflow is completed
   # * OnWorkflowSuccess - delete pods when workflow is successful
   podGC:
-    strategy: OnPodCompletion
+    strategy: OnPodSuccess
   # allow workflow jobs running on master node
   #   we may have a situation that all worker nodes
   #   are marked as "being rebuilt" (cray.nls=ncn-w001)
