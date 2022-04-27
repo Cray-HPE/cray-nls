@@ -136,7 +136,7 @@ tasks:
             
             # wait for boot
             counter=0
-            printf "%s" "waiting for boot: $TARGET_NCN ..."
+            echo "waiting for boot: $TARGET_NCN ..."
             while true
             do
                 set +e
@@ -156,7 +156,7 @@ tasks:
                     break
                 fi
 
-                printf "%c" "."
+                echo "waiting for boot: $TARGET_NCN ..."
                 counter=$((counter+1))
                 if [ $counter -gt 300 ]; then
                     counter=0
@@ -180,19 +180,20 @@ tasks:
             {{- include "common.envar" . | indent 12 }}
 
             # wait random seconds (1-10s) until ssh is working
-            echo "wait for ssh"
+            echo "wait for ssh ..."
             while ! ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'ls /var/log/cloud-init-output.log'
             do
+              echo "wait for ssh ..."
               sleep $(( ( RANDOM % 10 )  + 1 ))
             done
 
             # wait for cloud-init
             # ssh commands are expected to fail for a while, so we temporarily disable set -e
             set +e
-            printf "%s" "waiting for cloud-init: $TARGET_NCN ..."
+            echo "waiting for cloud-init: $TARGET_NCN ..."
             while true ; do
                 ssh "${TARGET_NCN}" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null 'cat /var/log/cloud-init-output.log | grep "The system is finally up"' &> /dev/null && break
-                printf "%c" "."
+                echo "waiting for cloud-init: $TARGET_NCN ..."
                 sleep 20
             done
             # Restore set -e
