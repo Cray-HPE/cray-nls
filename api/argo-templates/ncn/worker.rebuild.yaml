@@ -83,7 +83,6 @@ spec:
   templates:
     - name: main
       dag:
-        failFast: true
         tasks:
           {{- range $index,$value := .TargetNcns }}
           - name: add-labels-{{$value}}
@@ -98,6 +97,9 @@ spec:
             template: drain
             dependencies:
               - add-labels-{{$value}}
+              {{ if ne $index 0 }}
+              - drain-{{ index $.TargetNcns (add $index -1) }}
+              {{ end }}
             arguments:
               parameters:
               - name: targetNcn
@@ -160,23 +162,17 @@ spec:
           - op: remove
             path: /metadata/labels/cray.nls
     - name: drain
-      synchronization:
-        mutex:
-          name: drain
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
       dag:
-        failFast: true
         {{- include "worker.drain" . | indent 8 }}
     - name: wipe-and-reboot
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
       dag:
-        failFast: true
         {{- include "worker.wipe-and-reboot" . | indent 8 }}
     - name: post-rebuild
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
       dag:
-        failFast: true
         {{- include "worker.post-rebuild" . | indent 8 }}

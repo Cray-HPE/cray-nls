@@ -53,6 +53,8 @@ spec:
             echo "=======DRY RUN======="
             echo "====================="
             cat ${ts}.sh
+            echo "======== POD INFO ========"
+            cat /etc/podinfo/annotations
           else
             scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
             ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
@@ -60,3 +62,5 @@ spec:
         volumeMounts:
           - name: ssh
             mountPath: /myssh
+          - name: podinfo
+            mountPath: /etc/podinfo
