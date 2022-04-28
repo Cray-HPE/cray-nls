@@ -50,7 +50,7 @@ spec:
   # * OnWorkflowCompletion - delete pods when workflow is completed
   # * OnWorkflowSuccess - delete pods when workflow is successful
   podGC:
-    strategy: OnPodSuccess
+    strategy: OnPodCompletion
   # allow workflow jobs running on master node
   #   we may have a situation that all worker nodes
   #   are marked as "being rebuilt" (cray.nls=ncn-w001)
@@ -97,6 +97,8 @@ spec:
             template: drain
             dependencies:
               - add-labels-{{$value}}
+              # each drain depends on previous drain action
+              # so we make sure only one node is drained at a time
               {{ if ne $index 0 }}
               - drain-{{ index $.TargetNcns (add $index -1) }}
               {{ end }}
