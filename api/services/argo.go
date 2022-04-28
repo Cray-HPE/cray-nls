@@ -38,7 +38,7 @@ type ArgoService struct {
 func NewArgoService(env utils.Env) ArgoService {
 	var argoOps apiclient.Opts = apiclient.Opts{
 		ArgoServerOpts: apiclient.ArgoServerOpts{
-			URL:                "localhost:2746",
+			URL:                env.ArgoServerURL,
 			InsecureSkipVerify: true,
 			Secure:             true,
 			HTTP1:              true,

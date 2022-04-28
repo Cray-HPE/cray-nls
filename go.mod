@@ -34,7 +34,6 @@ require (
 	go.uber.org/fx v1.17.1
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.21.0
-	gorm.io/gorm v1.23.3
 )
 
 require (

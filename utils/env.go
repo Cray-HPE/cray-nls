@@ -29,10 +29,10 @@ import (
 
 // Env has environment stored
 type Env struct {
-	ServerPort  string `mapstructure:"SERVER_PORT"`
-	Environment string `mapstructure:"ENV"`
-	LogOutput   string `mapstructure:"LOG_OUTPUT"`
-	ArgoToken   string `mapstructure:"ARGO_TOKEN"`
+	ServerPort    string `mapstructure:"SERVER_PORT"`
+	Environment   string `mapstructure:"ENV"`
+	ArgoToken     string `mapstructure:"ARGO_TOKEN"`
+	ArgoServerURL string `mapstructure:"ARGO_SERVER_URL"`
 }
 
 // NewEnv creates a new environment
@@ -40,6 +40,8 @@ func NewEnv(log Logger) Env {
 
 	env := Env{}
 	viper.SetConfigFile(".env")
+	viper.SetConfigType("env")
+	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
 	if err != nil {

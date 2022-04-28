@@ -4,3 +4,4 @@ clean-gin
 __debug_bin
 tmp
 gin-bin
+coverage.txt

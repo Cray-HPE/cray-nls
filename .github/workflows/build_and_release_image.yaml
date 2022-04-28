@@ -1,0 +1,41 @@
+#
+# MIT License
+#
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+name: Build and Publish Service Docker Images
+on:
+  - push # Perform a build of the contents from the branch
+  - pull_request # Perform a build after merging with the target branch
+  - workflow_dispatch
+jobs:
+  build_and_release:
+    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/build_and_release_image.yaml@v1
+    with:
+      image-name: cray-nls
+      enable-pr-comment: true
+    secrets:
+      artifactory-username: ${{ secrets.ARTIFACTORY_ALGOL60_USERNAME }}
+      artifactory-token: ${{ secrets.ARTIFACTORY_ALGOL60_TOKEN }}
+      snyk-token: ${{ secrets.SNYK_TOKEN }}
+      cosign-gcp-project-id: ${{ secrets.COSIGN_GCP_PROJECT_ID }}
+      cosign-gcp-sa-key:  ${{ secrets.COSIGN_GCP_SA_KEY }}
+      cosign-key: ${{ secrets.COSIGN_KEY }}
