@@ -117,7 +117,6 @@ require (
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220218161850-94dd64e39d7c // indirect
-	google.golang.org/grpc v1.44.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
 	gopkg.in/jcmturner/dnsutils.v1 v1.0.1 // indirect
@@ -147,4 +146,5 @@ require (
 	github.com/alecthomas/assert v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	google.golang.org/grpc v1.44.0
 )

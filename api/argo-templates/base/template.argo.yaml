@@ -25,6 +25,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: ssh-with-kubeconfig
+  labels:
+    version: "1"
 spec:
   entrypoint: bash-script-example
   templates:
@@ -53,7 +55,7 @@ spec:
             echo "=======DRY RUN======="
             echo "====================="
             cat ${ts}.sh
-            echo "======== POD INFO ========"
+            echo "======== POD INFO: Annotations ========"
             cat /etc/podinfo/annotations
           else
             scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh

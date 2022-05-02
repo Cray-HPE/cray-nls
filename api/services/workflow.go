@@ -32,6 +32,8 @@ import (
 	"regexp"
 
 	"github.com/argoproj/pkg/json"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
@@ -55,6 +57,7 @@ type workflowService struct {
 	ctx                   context.Context
 	workflowCient         workflow.WorkflowServiceClient
 	workflowTemplateCient workflowtemplate.WorkflowTemplateServiceClient
+	env                   utils.Env
 }
 
 // NewWorkflowService creates a new Workflowservice
@@ -157,7 +160,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	}
 
 	for _, workflowTemplate := range workflowTemplateList.Items {
-		if workflowTemplate.Name == myWorkflowTemplate.Name {
+		if workflowTemplate.Name == myWorkflowTemplate.Name && myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"] {
 			s.logger.Info("workflow template has already been initialized")
 			s.workflowTemplateCient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
 				Namespace: "argo",
@@ -174,7 +177,10 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 			Template:  &myWorkflowTemplate,
 		})
 	if err != nil {
-		s.logger.Error(err)
+		st := status.Convert(err)
+		if st == nil || st.Code() != codes.AlreadyExists {
+			s.logger.Errorf("Failed to create workflow template: %v", err)
+		}
 	}
 
 	s.logger.Infof("%s", "Workflow(Template) service initialized")
