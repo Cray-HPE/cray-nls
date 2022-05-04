@@ -52,6 +52,27 @@ tasks:
               --sleep 1m"
 
             goss -g /opt/cray/tests/install/ncn/tests/goss-cray-service-etcd-health-check.yaml  ${GOSS_ARG}
+
+            while [[ "$(kubectl get po -A -l 'app=etcd' | grep -v "Running"| wc -l)" != "1" ]]; do
+                echo "Some etcd pods are not in running state, wait for 5s ..."
+                kubectl get po -A -l 'app=etcd' | grep -v "Running"
+                sleep 5
+            done
+
+            etcdClusters=$(kubectl get Etcdclusters -n services | grep "cray-"|awk '{print $1}')
+            for cluster in $etcdClusters
+            do
+                while true; do
+                  numOfPods=$(kubectl get pods -A -l 'app=etcd'| grep $cluster | grep "Running" | wc -l)
+                  if [[ $numOfPods -ne 3 ]];then
+                    echo "ERROR - Etcd cluster: $cluster should have 3 pods running but only $numOfPods are running"
+                    continue
+                  else
+                    echo "Etcd cluster: $cluster have 3 pods running"
+                    break
+                  fi
+                done
+            done
   - name: ensure-pg-pods
     templateRef:
       name: ssh-with-kubeconfig
