@@ -71,14 +71,13 @@ spec:
             {{- range $index,$value := .TargetNcns }}
             - {{$value -}}
             {{- end }}
-      # avoid using master node to run workflow jobs as soon as 
-      # we have worker nodes available
+      # try to use master nodes as much as possible
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 50
           preference:
             matchExpressions:
             - key: node-role.kubernetes.io/master
-              operator: DoesNotExist
+              operator: Exists
   entrypoint: main
   templates:
     - name: main

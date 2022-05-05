@@ -46,6 +46,12 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
+            while [[ "$(kubectl get po -A -l 'app=cray-etcd-operator-etcd-operator-etcd-operator' | grep -v "Running"| wc -l)" != "1" ]]; do
+                echo "Etcd operator is not in running state, wait for 5s ..."
+                kubectl get po -A -l 'app=cray-etcd-operator-etcd-operator-etcd-operator' | grep -v "Running"
+                sleep 5
+            done
+
             export GOSS_BASE=/opt/cray/tests/install/ncn
             GOSS_ARG="--vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate \
               --retry-timeout 1h \
