@@ -24,4 +24,4 @@
 #
 go mod tidy || go mod tidy -compat=1.17
 go mod vendor
-fresh -c runner.conf
+~/go/bin/fresh -c runner.conf
