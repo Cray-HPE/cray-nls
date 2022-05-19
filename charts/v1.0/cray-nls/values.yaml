@@ -54,9 +54,13 @@ cray-service:
         # ARGO_TOKEN=
         # ARGO_SERVER_URL=localhost:2746
         - name: SERVER_PORT
-          value: 3000
+          value: "3000"
         - name: ENV
           value: production
+        - name: GIN_MODE
+          value: release
+        - name: ARGO_SERVER_URL
+          value: argo-server.argo.svc:2746
       ports:
         - name: http
           containerPort: 3000
