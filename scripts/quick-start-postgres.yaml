@@ -1590,6 +1590,7 @@ spec:
         - server
         - --auth-mode
         - client
+        - --secure=false
         env: []
         image: quay.io/argoproj/argocli:latest
         name: argo-server

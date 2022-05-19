@@ -40,7 +40,7 @@ func NewArgoService(env utils.Env) ArgoService {
 		ArgoServerOpts: apiclient.ArgoServerOpts{
 			URL:                env.ArgoServerURL,
 			InsecureSkipVerify: true,
-			Secure:             true,
+			Secure:             false,
 			HTTP1:              true,
 		},
 		AuthSupplier: func() string {
