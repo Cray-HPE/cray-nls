@@ -116,14 +116,20 @@ spec:
                     pods=( "nexus" "ipxe" "kea" )
                     for pod in ${pods[@]};do
                       podName=$(kubectl get pods --all-namespaces | awk '{print $2}' | grep $pod)
-                      ns=$(kubectl get po -A | grep $podName | awk '{print $1}')
                       if [[ -z $podName ]];then
                         echo "Couldn't not find pod: $pod"
                         echo "something is wrong"
                         exit 1
                       fi                 
-                      echo "Move Pod: $podName to Node: $nodeMoveTo"
-                      /opt/cray/platform-utils/move_pod.sh $podName $nodeMoveTo
+                      
+                      currentNode=$(kubectl get po -A -o wide | grep $podName | awk '{print $8}')
+                      if [[ "$nodeMoveTo" != "$currentNode" ]]; then
+                        echo "Move Pod: $podName to Node: $nodeMoveTo"
+                        /opt/cray/platform-utils/move_pod.sh $podName $nodeMoveTo > /dev/null
+                      fi
+
+                      podName=$(kubectl get pods --all-namespaces | awk '{print $2}' | grep $pod)
+                      ns=$(kubectl get po -A | grep $podName | awk '{print $1}')
                       kubectl wait --for=condition=ready pod $podName -n $ns --timeout=5m
                     done
           {{- range $index,$value := .TargetNcns }}
