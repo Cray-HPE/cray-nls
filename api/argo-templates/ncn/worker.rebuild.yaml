@@ -113,8 +113,8 @@ spec:
 
                     echo
 
-                    pods=("nexus" "ipxe" "kea")
-                    for pod in $pods;do
+                    pods=( "nexus" "ipxe" "kea" )
+                    for pod in ${pods[@]};do
                       podName=$(kubectl get pods --all-namespaces | awk '{print $2}' | grep $pod)
                       if [[ -z $podName ]];then
                         echo "Couldn't not find pod: $pod"
