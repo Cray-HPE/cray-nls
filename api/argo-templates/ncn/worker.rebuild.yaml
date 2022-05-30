@@ -83,6 +83,47 @@ spec:
     - name: main
       dag:
         tasks:
+          - name: move-critical-singleton-pods
+            templateRef:
+              name: ssh-with-kubeconfig
+              template: bash-script-example
+            arguments:
+              parameters:
+                - name: dryRun
+                  value: "{{$.DryRun}}"  
+                - name: scriptContent
+                  value: |
+                    targetNcns="{{.TargetNcns}}"
+                    # remove '[' and ']'
+                    targetNcns=${targetNcns:1:-1}
+                    # convert to array
+                    targetNcnsArray=($targetNcns)
+                    # set last rebuilding worker to nodeMoveTo
+                    nodeMoveTo=${targetNcnsArray[-1]}
+                    # try to find a node that is not in targetNcns
+                    nodes=$(kubectl get nodes | grep "ncn-w" | awk '{print $1}')
+                    for node in $nodes;do
+                      if echo $targetNcns | grep $node; then
+                        echo "skip $node"
+                      else
+                        nodeMoveTo=${node}
+                        break
+                      fi
+                    done
+
+                    echo
+
+                    pods=("nexus" "ipxe" "kea")
+                    for pod in $pods;do
+                      podName=$(kubectl get pods --all-namespaces | awk '{print $2}' | grep $pod)
+                      if [[ -z $podName ]];then
+                        echo "Couldn't not find pod: $pod"
+                        echo "something is wrong"
+                        exit 1
+                      fi                 
+                      echo "Move Pod: $podName to Node: $nodeMoveTo"
+                      /opt/cray/platform-utils/move_pod.sh $podName $nodeMoveTo
+                    done
           {{- range $index,$value := .TargetNcns }}
           - name: add-labels-{{$value}}
             template: add-labels
@@ -96,6 +137,7 @@ spec:
             template: drain
             dependencies:
               - add-labels-{{$value}}
+              - move-critical-singleton-pods
               # each drain depends on previous drain action
               # so we make sure only one node is drained at a time
               {{ if ne $index 0 }}
@@ -149,19 +191,6 @@ spec:
           - op: add
             path: /metadata/labels/cray.nls
             value: {{ `{{inputs.parameters.targetNcn}}` }}
-    - name: remove-labels
-      inputs:
-        parameters:
-          - name: targetNcn
-      resource:
-        action: patch
-        mergeStrategy: json
-        flags:
-          - "node"
-          - "{{ `{{inputs.parameters.targetNcn}}` }}"
-        manifest: |
-          - op: remove
-            path: /metadata/labels/cray.nls
     - name: drain
       inputs:
         {{- include "worker.common.parameters" . | indent 8 }}
