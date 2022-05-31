@@ -51,10 +51,23 @@ tasks:
             /usr/share/doc/csm/upgrade/1.2/scripts/cfs/wait_for_configuration.sh \
               --xnames \
               $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
+  - name: ensure-csm-rpms-installed
+    templateRef:
+      name: ssh-with-kubeconfig
+      template: bash-script-example
+    arguments:
+      parameters:
+        - name: dryRun
+          value: "{{ `{{inputs.parameters.dryRun}}` }}"
+        - name: scriptContent
+          value: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} \
+              'source /srv/cray/scripts/metal/metal-lib.sh;install_csm_rpms'
   - name: goss
     dependencies:
       - wait-for-cfs-after-rebuild
       - update-bss-no-wipe
+      - ensure-csm-rpms-installed
     templateRef:
       name: ssh-with-kubeconfig
       template: bash-script-example
