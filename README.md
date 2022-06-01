@@ -23,13 +23,6 @@
 
 1. Modify `cluster-admin` file
 
-    > Run the following command
-
-    ```bash
-    kubectl get nodes
-    ```
-    If you have 1 master and 3 worker nodes running you can proceed, otherwise re-try *step 1: Run argo workflow in k3d*
-
 
     > open the `cluster-admin` file in your default editor by running:
 
@@ -53,7 +46,7 @@
     Save and exit
 
 
-1. Create and update `.env` file
+2. Create and update `.env` file
 
      > Copy .env.example file to .env file
 
@@ -72,7 +65,7 @@
 
 
 
-1. Run server
+3. Run server
 
    > One time setup: copy and rename `.env.example` to `.env`
 
@@ -82,7 +75,7 @@
 
    Automatically rebuild and launch API server when a change is made. Fresh configuration file: `{rootDir}/runner.conf`
 
-1. Load swagger and Argo
+4. Load swagger and Argo
 
     > These sites are on localhost and will only open with the previous scripts running
 
