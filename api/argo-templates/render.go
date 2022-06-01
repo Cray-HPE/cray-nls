@@ -27,6 +27,8 @@ import (
 	"bytes"
 	"embed"
 	_ "embed"
+	"fmt"
+	"io/fs"
 	"text/template"
 
 	"github.com/Cray-HPE/cray-nls/utils"
@@ -36,13 +38,32 @@ import (
 //go:embed ncn/*
 var workerRebuildWorkflowFS embed.FS
 
-//go:embed base/template.argo.yaml
-var argoWorkflowTemplate []byte
+//go:embed base/*
+var argoWorkflowTemplateFS embed.FS
 
 var validator utils.Validator = utils.NewValidator()
 
-func GetWorkflowTemplate() []byte {
-	return argoWorkflowTemplate
+func GetWorkflowTemplate() ([][]byte, error) {
+	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, fmt.Errorf("template: pattern matches no files")
+	}
+	var filenames []string
+	filenames = append(filenames, list...)
+
+	var res [][]byte
+	for _, filename := range filenames {
+		tmpRes, err := fs.ReadFile(argoWorkflowTemplateFS, filename)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, tmpRes)
+	}
+
+	return res, nil
 }
 
 func GetWorkerRebuildWorkflow(hostnames []string, dryRun bool) ([]byte, error) {

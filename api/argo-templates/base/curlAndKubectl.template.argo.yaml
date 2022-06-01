@@ -24,13 +24,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: ssh-with-kubeconfig
+  name: curl-and-kubectl-template
   labels:
     version: "1"
 spec:
-  entrypoint: bash-script-example
+  entrypoint: shell-script
   templates:
-    - name: bash-script-example
+    - name: shell-script
       inputs:
         parameters:
           - name: scriptContent
@@ -39,14 +39,15 @@ spec:
         limit: "2"
         retryPolicy: "Always"
       script:
-        image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
+        image: artifactory.algol60.net/csm-docker/stable/docker-kubectl:1.19.15
         command: [sh]
         source: |
           #!/bin/sh
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF2' > "${ts}.sh"
           set -eu
-          {{inputs.parameters.scriptContent}}
+          export KUBECONFIG=/mykubeconfig/admin.conf
+          {{inputs.parameters.scriptContent}}`
           EOF2
           chmod +x ${ts}.sh
           DRY_RUN={{inputs.parameters.dryRun}}
@@ -58,11 +59,10 @@ spec:
             echo "======== POD INFO: Annotations ========"
             cat /etc/podinfo/annotations
           else
-            scp -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ts}.sh root@ncn-m001:/tmp/${ts}.sh
-            ssh -i /myssh/id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ncn-m001 "/tmp/${ts}.sh"
+            /tmp/${ts}.sh
           fi
         volumeMounts:
-          - name: ssh
-            mountPath: /myssh
+          - name: kubeconfig
+            mountPath: /mykubeconfig
           - name: podinfo
             mountPath: /etc/podinfo

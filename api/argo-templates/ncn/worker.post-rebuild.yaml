@@ -25,8 +25,8 @@
 tasks:
   - name: update-bss-no-wipe
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -40,8 +40,8 @@ tasks:
             csi handoff bss-update-param --set metal.no-wipe=1 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
   - name: wait-for-cfs-after-rebuild
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -53,8 +53,8 @@ tasks:
               $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
   - name: ensure-csm-rpms-installed
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -69,8 +69,8 @@ tasks:
       - update-bss-no-wipe
       - ensure-csm-rpms-installed
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun

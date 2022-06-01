@@ -65,14 +65,17 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 
 	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
 
-	res := workflowService{
+	workflowSvc := workflowService{
 		logger:                logger,
 		ctx:                   argoService.Context,
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
 	}
-	res.InitializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
-	return res
+	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
+	for _, workflowTemplate := range workflowTemplates {
+		workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+	}
+	return workflowSvc
 }
 
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
