@@ -1,0 +1,7 @@
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: Group
+    name: system:masters
+  - kind: ServiceAccount
+    name: default
+    namespace: argo

@@ -24,26 +24,11 @@
 1. Modify `cluster-admin` file
 
 
-    > open the `cluster-admin` file in your default editor by running:
+    > Patch the `cluster-admin` file by running the following command
 
+    ```bash
+     kubectl patch ClusterRoleBindings/cluster-admin --patch "$(cat cluster-admin-patch.yaml)"
     ```
-     kubectl edit ClusterRoleBindings/cluster-admin
-    ```
-
-    Replace the entire `subjects:` section with the following block
-
-    ```yaml
-    subjects:
-      - apiGroup: rbac.authorization.k8s.io
-        kind: Group
-        name: system:masters
-      - kind: ServiceAccount
-        name: default
-        namespace: argo
-    ```
-
-
-    Save and exit
 
 
 2. Create and update `.env` file
