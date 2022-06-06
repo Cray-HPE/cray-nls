@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/argoproj/pkg/json"
 	"google.golang.org/grpc/codes"
@@ -71,7 +72,15 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
 	}
-	res.InitializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
+	for {
+		err := res.InitializeWorkflowTemplate(argo_templates.GetWorkflowTemplate())
+		if err == nil {
+			break
+		}
+		time.Sleep(5 * time.Second)
+		logger.Warn("Failded to initialize workflow templates")
+	}
+
 	return res
 }
 
@@ -156,7 +165,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 
 	workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Fatal(err)
 	}
 
 	for _, workflowTemplate := range workflowTemplateList.Items {
