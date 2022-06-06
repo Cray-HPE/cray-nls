@@ -85,8 +85,8 @@ spec:
         tasks:
           - name: move-critical-singleton-pods
             templateRef:
-              name: ssh-with-kubeconfig
-              template: bash-script-example
+              name: ssh-template
+              template: shell-script
             arguments:
               parameters:
                 - name: dryRun

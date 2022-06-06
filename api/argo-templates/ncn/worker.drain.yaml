@@ -25,8 +25,8 @@
 tasks:
   - name: wait-for-cfs
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -38,8 +38,8 @@ tasks:
               $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
   - name: ensure-etcd-pods
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -81,8 +81,8 @@ tasks:
             done
   - name: ensure-pg-pods
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -107,8 +107,8 @@ tasks:
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
@@ -130,8 +130,8 @@ tasks:
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
-      name: ssh-with-kubeconfig
-      template: bash-script-example
+      name: ssh-template
+      template: shell-script
     arguments:
       parameters:
         - name: dryRun
