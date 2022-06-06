@@ -24,7 +24,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: curl-and-kubectl-template
+  name: kubectl-template
   labels:
     version: "1"
 spec:

@@ -74,14 +74,9 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
 	for _, workflowTemplate := range workflowTemplates {
-		for {
-			err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
-			if err == nil {
-				break
-			}
-			logger.Warnf("Failded to initialize workflow templates: %v", err)
-
-			time.Sleep(5 * time.Second)
+		err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+		if err != nil {
+			return nil
 		}
 	}
 	return workflowSvc
@@ -157,44 +152,52 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 }
 
 func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
-	s.logger.Infof("initialize workflow template")
-
 	var myWorkflowTemplate v1alpha1.WorkflowTemplate
 	tmpBytes, _ := yaml.YAMLToJSON(template)
 	err := json.Unmarshal(tmpBytes, &myWorkflowTemplate)
 	if err != nil {
 		s.logger.Error(err)
 	}
+	s.logger.Infof("Initializing workflow template: %s", myWorkflowTemplate.Name)
+	for {
+		workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
+		if err != nil {
+			s.logger.Errorf("Failded to get a list of workflow templates: %v", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
 
-	workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
-	if err != nil {
-		s.logger.Fatal(err)
-	}
+		for _, workflowTemplate := range workflowTemplateList.Items {
+			if workflowTemplate.Name == myWorkflowTemplate.Name && myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"] {
+				s.logger.Info("workflow template has already been initialized")
+				s.workflowTemplateCient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+					Namespace: "argo",
+					Name:      workflowTemplate.Name,
+				})
+				break
+			}
+		}
 
-	for _, workflowTemplate := range workflowTemplateList.Items {
-		if workflowTemplate.Name == myWorkflowTemplate.Name && myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"] {
-			s.logger.Info("workflow template has already been initialized")
-			s.workflowTemplateCient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+		_, err = s.workflowTemplateCient.CreateWorkflowTemplate(
+			s.ctx,
+			&workflowtemplate.WorkflowTemplateCreateRequest{
 				Namespace: "argo",
-				Name:      workflowTemplate.Name,
+				Template:  &myWorkflowTemplate,
 			})
-			break
+		if err != nil {
+			st := status.Convert(err)
+			if st != nil && st.Code() == codes.AlreadyExists {
+				err = nil
+				break
+			}
+			// retry
+			s.logger.Warnf("Failded to initialize workflow templates: %v", err)
+			time.Sleep(5 * time.Second)
+			continue
 		}
+		break
 	}
 
-	_, err = s.workflowTemplateCient.CreateWorkflowTemplate(
-		s.ctx,
-		&workflowtemplate.WorkflowTemplateCreateRequest{
-			Namespace: "argo",
-			Template:  &myWorkflowTemplate,
-		})
-	if err != nil {
-		st := status.Convert(err)
-		if st != nil && st.Code() == codes.AlreadyExists {
-			err = nil
-		}
-	}
-
-	s.logger.Infof("%s", "Workflow(Template) service initialized")
-	return err
+	s.logger.Infof("Workflow template initialized: %s", myWorkflowTemplate.Name)
+	return nil
 }
