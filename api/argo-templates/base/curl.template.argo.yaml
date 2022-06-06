@@ -35,6 +35,7 @@ spec:
         parameters:
           - name: scriptContent
           - name: dryRun
+          - name: token
       retryStrategy:
         limit: "2"
         retryPolicy: "Always"
@@ -46,6 +47,8 @@ spec:
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF2' > "${ts}.sh"
           set -eu
+          export TOKEN={{inputs.parameters.token}}
+          alias mycurl="curl -s -k -H \"Authorization: Bearer ${TOKEN}\""
           {{inputs.parameters.scriptContent}}`
           EOF2
           chmod +x ${ts}.sh
