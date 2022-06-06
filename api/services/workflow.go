@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/argoproj/pkg/json"
 	"google.golang.org/grpc/codes"
@@ -73,7 +74,15 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
 	for _, workflowTemplate := range workflowTemplates {
-		workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+		for {
+			err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+			if err == nil {
+				break
+			}
+			logger.Warnf("Failded to initialize workflow templates: %v", err)
+
+			time.Sleep(5 * time.Second)
+		}
 	}
 	return workflowSvc
 }
@@ -159,7 +168,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 
 	workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Fatal(err)
 	}
 
 	for _, workflowTemplate := range workflowTemplateList.Items {
@@ -181,8 +190,8 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 		})
 	if err != nil {
 		st := status.Convert(err)
-		if st == nil || st.Code() != codes.AlreadyExists {
-			s.logger.Errorf("Failed to create workflow template: %v", err)
+		if st != nil && st.Code() == codes.AlreadyExists {
+			err = nil
 		}
 	}
 
