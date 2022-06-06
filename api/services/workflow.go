@@ -77,8 +77,10 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 		if err == nil {
 			break
 		}
+		logger.Warnf("Failded to initialize workflow templates: %v", err)
+
 		time.Sleep(5 * time.Second)
-		logger.Warn("Failded to initialize workflow templates")
+
 	}
 
 	return res
@@ -187,8 +189,8 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 		})
 	if err != nil {
 		st := status.Convert(err)
-		if st == nil || st.Code() != codes.AlreadyExists {
-			s.logger.Errorf("Failed to create workflow template: %v", err)
+		if st != nil && st.Code() == codes.AlreadyExists {
+			err = nil
 		}
 	}
 
