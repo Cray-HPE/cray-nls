@@ -24,7 +24,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: kubectl-template
+  name: kubectl-and-curl-template
   labels:
     version: "1"
 spec:
@@ -39,7 +39,7 @@ spec:
         limit: "2"
         retryPolicy: "Always"
       script:
-        image: artifactory.algol60.net/csm-docker/stable/docker-kubectl:1.19.15
+        image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
         command: [sh]
         source: |
           #!/bin/sh
@@ -47,7 +47,7 @@ spec:
           cat <<'EOF2' > "${ts}.sh"
           set -eu
           export KUBECONFIG=/mykubeconfig/admin.conf
-          {{inputs.parameters.scriptContent}}`
+          {{inputs.parameters.scriptContent}}
           EOF2
           chmod +x ${ts}.sh
           DRY_RUN={{inputs.parameters.dryRun}}

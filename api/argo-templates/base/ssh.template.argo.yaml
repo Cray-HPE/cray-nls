@@ -46,7 +46,7 @@ spec:
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF2' > "${ts}.sh"
           set -eu
-          {{inputs.parameters.scriptContent}}`
+          {{inputs.parameters.scriptContent}}
           EOF2
           chmod +x ${ts}.sh
           DRY_RUN={{inputs.parameters.dryRun}}
