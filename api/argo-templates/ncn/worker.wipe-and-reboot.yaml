@@ -82,7 +82,7 @@ tasks:
       - validate-bss-ntp
       - wipe-node-disk
     templateRef:
-      name: ssh-template
+      name: kubectl-and-curl-template
       template: shell-script
     arguments:
       parameters:
@@ -90,7 +90,10 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            {{- include "common.envar" . | indent 12 }}
+            TARGET_NCN={{ `{{inputs.parameters.targetNcn}}` }}
+            TARGET_XNAME=$(curl -s -k -H "Authorization: Bearer ${TOKEN}" "https://api-gw-service-nmn.local/apis/sls/v1/search/hardware?extra_properties.Role=Management" | \
+                jq -r ".[] | select(.ExtraProperties.Aliases[] | contains(\"$TARGET_NCN\")) | .Xname")
+            /host_usr_bin/csi handoff bss-update-param --set metal.no-wipe=0 --limit $TARGET_XNAME
             
             bootscript_last_epoch=$(curl -s -k -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
@@ -202,7 +205,7 @@ tasks:
     dependencies:
       - wait-for-boot
     templateRef:
-      name: ssh-template
+      name: kubectl-and-curl-template
       template: shell-script
     arguments:
       parameters:
@@ -210,11 +213,11 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            {{- include "common.envar" . | indent 12 }}
+            TARGET_NCN={{ `{{inputs.parameters.targetNcn}}` }}
 
             set +e
             echo "waiting for k8s: $TARGET_NCN ..."
-            until csi automate ncn kubernetes --action is-member --ncn $TARGET_NCN --kubeconfig /etc/kubernetes/admin.conf
+            until /host_usr_bin/csi automate ncn kubernetes --action is-member --ncn $TARGET_NCN --kubeconfig mykubeconfig/admin.conf/kubernetes/admin.conf
             do
                 sleep 5
             done
