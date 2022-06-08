@@ -39,30 +39,66 @@ spec:
         limit: "2"
         retryPolicy: "Always"
       script:
-        image: artifactory.algol60.net/csm-docker/stable/docker.io/alpine/git:2.32.0
+        # use portainer/kubectl-shell that has:
+        #  - kubectl, jq, culr 
+        image: portainer/kubectl-shell:latest-v1.21.1-amd64
         command: [sh]
         source: |
           #!/bin/sh
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
-          cat <<'EOF2' > "${ts}.sh"
-          set -eu
-          export KUBECONFIG=/mykubeconfig/admin.conf
+          cat <<'EOF2' > "/tmp/${ts}.sh"
+          set -e
+          
+          # construct kubeconfig file in the pod
+          # this is so csi can use it too
+          secret=`kubectl -n argo get serviceaccount/default -o jsonpath='{.secrets[0].name}'`
+          token=`kubectl -n argo get secret $secret -o jsonpath='{.data.token}'| base64 -d`
+          mkdir -p mykubeconfig
+          cat << EOF > mykubeconfig/admin.conf
+          apiVersion: v1
+          kind: Config
+          current-context: default
+          contexts:
+            - context:
+                cluster: kubernetes
+                user: default
+                namespace: default
+              name: default
+          clusters:
+            - cluster:
+                server: https://kubeapi-vip.local:6442
+                insecure-skip-tls-verify: true
+              name: kubernetes
+          users:
+          - name: default
+            user:
+              token: ${token}
+          EOF
+          export KUBECONFIG=mykubeconfig/admin.conf
+          
+          export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
+            -d client_id=admin-client \
+            -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
+            https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
+
           {{inputs.parameters.scriptContent}}
           EOF2
-          chmod +x ${ts}.sh
+          chmod +x /tmp/${ts}.sh
           DRY_RUN={{inputs.parameters.dryRun}}
           if [[ "$DRY_RUN" == "true" ]];then
             echo "====================="
             echo "=======DRY RUN======="
             echo "====================="
-            cat ${ts}.sh
+            cat /tmp/${ts}.sh
             echo "======== POD INFO: Annotations ========"
             cat /etc/podinfo/annotations
           else
-            /tmp/${ts}.sh
+            bash -e /tmp/${ts}.sh
           fi
         volumeMounts:
-          - name: kubeconfig
-            mountPath: /mykubeconfig
           - name: podinfo
             mountPath: /etc/podinfo
+          # mount csi from host to docker
+          # csi is go compiled so it can be used from host to container
+          - name: host-usr-bin
+            mountPath: /host_usr_bin

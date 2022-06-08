@@ -33,6 +33,7 @@ podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false
 podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://postgres:12-alpine docker://registry.local/library/postgres:12-alpine
 podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://minio/minio docker://registry.local/docker.io/minio/minio
 podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://kennethreitz/httpbin:latest docker://registry.local/docker.io/kennethreitz/httpbin:latest
+podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://portainer/kubectl-shell:latest-v1.21.1-amd64 docker://registry.local/docker.io/portainer/kubectl-shell:latest-v1.21.1-amd64
 
 
 # csm 1.0
