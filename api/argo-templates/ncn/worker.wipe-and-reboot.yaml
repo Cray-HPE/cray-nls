@@ -217,7 +217,7 @@ tasks:
 
             set +e
             echo "waiting for k8s: $TARGET_NCN ..."
-            until /host_usr_bin/csi automate ncn kubernetes --action is-member --ncn $TARGET_NCN --kubeconfig mykubeconfig/admin.conf/kubernetes/admin.conf
+            until /host_usr_bin/csi automate ncn kubernetes --action is-member --ncn $TARGET_NCN --kubeconfig mykubeconfig/admin.conf
             do
                 sleep 5
             done
