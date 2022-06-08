@@ -26,7 +26,7 @@ kind: WorkflowTemplate
 metadata:
   name: ssh-template
   labels:
-    version: "1"
+    version: "2"
 spec:
   entrypoint: shell-script
   templates:
@@ -45,7 +45,7 @@ spec:
           #!/bin/sh
           ts=$(echo $RANDOM | md5sum | head -c 20; echo)
           cat <<'EOF2' > "${ts}.sh"
-          set -eu
+          set -e
           {{inputs.parameters.scriptContent}}
           EOF2
           chmod +x ${ts}.sh

@@ -107,7 +107,7 @@ tasks:
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
-      name: ssh-template
+      name: kubectl-and-curl-template
       template: shell-script
     arguments:
       parameters:
@@ -118,11 +118,7 @@ tasks:
             kubectl get node {{ `{{inputs.parameters.targetNcn}}` }} || res=$?
             # only delete a ncn that exists in cluster
             if [[ $res -eq 0 ]]; then
-              export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
-              -d client_id=admin-client \
-              -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
-              https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
-              csi automate ncn kubernetes --action delete-ncn --ncn {{ `{{inputs.parameters.targetNcn}}` }} --kubeconfig /etc/kubernetes/admin.conf
+              /host_usr_bin/csi automate ncn kubernetes --action delete-ncn --ncn {{ `{{inputs.parameters.targetNcn}}` }} --kubeconfig mykubeconfig/admin.conf
             fi
   - name: update-bss
     dependencies:
@@ -130,7 +126,7 @@ tasks:
       - ensure-etcd-pods
       - ensure-pg-pods
     templateRef:
-      name: ssh-template
+      name: kubectl-and-curl-template
       template: shell-script
     arguments:
       parameters:
@@ -138,9 +134,8 @@ tasks:
           value: "{{ `{{inputs.parameters.dryRun}}` }}"
         - name: scriptContent
           value: |
-            export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
-            -d client_id=admin-client \
-            -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
-            https://api-gw-service-nmn.local/keycloak/realms/shasta/protocol/openid-connect/token | jq -r '.access_token')
-            csi handoff bss-update-param --set metal.no-wipe=0 --limit $(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} 'cat /etc/cray/xname')
+            TARGET_NCN={{ `{{inputs.parameters.targetNcn}}` }}
+            TARGET_XNAME=$(curl -s -k -H "Authorization: Bearer ${TOKEN}" "https://api-gw-service-nmn.local/apis/sls/v1/search/hardware?extra_properties.Role=Management" | \
+                jq -r ".[] | select(.ExtraProperties.Aliases[] | contains(\"$TARGET_NCN\")) | .Xname")
+            /host_usr_bin/csi handoff bss-update-param --set metal.no-wipe=0 --limit $TARGET_XNAME
 {{end}}

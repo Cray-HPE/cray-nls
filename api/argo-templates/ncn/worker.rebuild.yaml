@@ -33,6 +33,10 @@ spec:
       hostPath:
         path: /root/.ssh
         type: Directory
+    - name: host-usr-bin
+      hostPath:
+        path: /usr/bin
+        type: Directory
     - name: podinfo
       downwardAPI:
         items:
@@ -50,7 +54,7 @@ spec:
   # * OnWorkflowCompletion - delete pods when workflow is completed
   # * OnWorkflowSuccess - delete pods when workflow is successful
   podGC:
-    strategy: OnPodCompletion
+    strategy: OnWorkflowSuccess
   # allow workflow jobs running on master node
   #   we may have a situation that all worker nodes
   #   are marked as "being rebuilt" (cray.nls=ncn-w001)
@@ -83,6 +87,20 @@ spec:
     - name: main
       dag:
         tasks:
+          - name: install-csi
+            templateRef:
+              name: ssh-template
+              template: shell-script
+            arguments:
+              parameters:
+                - name: dryRun
+                  value: "{{$.DryRun}}"  
+                - name: scriptContent
+                  value: |
+                    source /srv/cray/scripts/metal/metal-lib.sh
+                    csi_url=$(paginate "https://packages.local/service/rest/v1/components?repository=csm-sle-15sp2" \
+                      | jq -r  '.items[] | .assets[] | .downloadUrl' | grep cray-site-init | sort -V | tail -1)
+                    pdsh -w $(grep -oP 'ncn-\m\d+' /etc/hosts | sort -u | tr -t '\n' ',') "zypper install -y $csi_url"
           - name: move-critical-singleton-pods
             templateRef:
               name: ssh-template
@@ -146,6 +164,7 @@ spec:
             dependencies:
               - add-labels-{{$value}}
               - move-critical-singleton-pods
+              - install-csi
               # each drain depends on previous drain action
               # so we make sure only one node is drained at a time
               {{ if ne $index 0 }}
