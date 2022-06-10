@@ -53,7 +53,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Tags      NCNs
 // @Accept    json
 // @Produce   json
-// @Success   200  {object}  models.Workflow
+// @Success   200  {object}  models.CreateRebuildWorkflowResponse
 // @Failure   400  {object}  utils.ResponseError
 // @Failure   404  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
@@ -70,7 +70,7 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 // @Tags      NCNs
 // @Accept    json
 // @Produce   json
-// @Success   200  {object}  models.Workflow
+// @Success   200  {object}  models.CreateRebuildWorkflowResponse
 // @Failure   400  {object}  utils.ResponseError
 // @Failure   404  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
@@ -104,7 +104,7 @@ func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, c 
 		c.JSON(500, errResponse)
 		return
 	} else {
-		myWorkflow := models.Workflow{
+		myWorkflow := models.CreateRebuildWorkflowResponse{
 			Name:       workflow.Name,
 			TargetNcns: hostnames,
 		}

@@ -27,3 +27,8 @@ type CreateRebuildWorkflowRequest struct {
 	Hosts  []string `json:"hosts"`
 	DryRun bool     `json:"dryRun"`
 }
+
+type CreateRebuildWorkflowResponse struct {
+	Name       string   `json:"name"`
+	TargetNcns []string `json:"targetNcns"`
+}

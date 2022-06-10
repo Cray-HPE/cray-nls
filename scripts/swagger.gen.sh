@@ -27,7 +27,7 @@
 swag fmt
 
 # update swagger doc yaml
-swag init --md docs/ --outputTypes go,yaml --exclude api/controllers/v2
+swag init --md  docs/ --outputTypes go,yaml --exclude api/controllers/v2
 # generate all apis for internal use
 swag init --md docs/ --outputTypes go,yaml  --instanceName Internal 
 
