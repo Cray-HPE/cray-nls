@@ -23,8 +23,8 @@
 //
 package models
 
-// User model
-type Workflow struct {
-	Name       string   `json:"name"`
-	TargetNcns []string `json:"targetNcns"`
-} //@name Workflow
+type GetWorkflowResponse struct {
+	Name   string            `json:"name"`
+	Labels map[string]string `json:"label" swaggertype:"object"`
+	Status interface{}       `json:"status" swaggertype:"object"`
+}

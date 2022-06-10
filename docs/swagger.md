@@ -115,7 +115,7 @@ End to end rebuild of a single ncn (worker only)
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | OK | [Workflow](#workflow) |
+| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
 | 400 | Bad Request | [ResponseError](#responseerror) |
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
@@ -143,7 +143,7 @@ End to end rolling rebuild ncns (workers only)
 
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
-| 200 | OK | [Workflow](#workflow) |
+| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
 | 400 | Bad Request | [ResponseError](#responseerror) |
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
@@ -189,11 +189,20 @@ Get version of cray-nls service
 
 Get status of a ncn workflow
 
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| labelSelector | query | Label Selector | No | string |
+
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ [models.GetWorkflowResponse](#modelsgetworkflowresponse) ] |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ##### Security
 
@@ -290,16 +299,24 @@ Retry a failed ncn workflow, skip passed steps
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
 
-#### Workflow
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| targetNcns | [ string ] |  | No |
-
 #### models.CreateRebuildWorkflowRequest
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | dryRun | boolean |  | No |
 | hosts | [ string ] |  | No |
+
+#### models.CreateRebuildWorkflowResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| targetNcns | [ string ] |  | No |
+
+#### models.GetWorkflowResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| label | object |  | No |
+| name | string |  | No |
+| status | object |  | No |

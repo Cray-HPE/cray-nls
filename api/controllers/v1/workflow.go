@@ -26,6 +26,7 @@ package controllers_v1
 import (
 	"fmt"
 
+	"github.com/Cray-HPE/cray-nls/api/models"
 	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
@@ -47,10 +48,14 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 
 // GetWorkflows
 // @Summary   Get status of a ncn workflow
+// @Param     labelSelector  query  string  false  "Label Selector"
 // @Tags      Workflow
 // @Accept    json
 // @Produce   json
-// @Failure   501  "Not Implemented"
+// @Success   200  {object}  []models.GetWorkflowResponse
+// @Failure   400  {object}  utils.ResponseError
+// @Failure   404  {object}  utils.ResponseError
+// @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/workflows [get]
 // @Security  OAuth2Application[admin,read]
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
@@ -60,16 +65,18 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 		c.JSON(500, errResponse)
 		return
 	}
-	var workflows []interface{}
+	var workflows []models.GetWorkflowResponse
 	for _, workflow := range workflowList.Items {
-		tmp := map[string]interface{}{
-			"name":      workflow.Name,
-			"phase":     workflow.Labels["workflows.argoproj.io/phase"],
-			"targetNcn": workflow.Labels["targetNcn"],
+		workflow.Status.StoredTemplates = nil
+		workflow.Status.ArtifactRepositoryRef = nil
+		tmp := models.GetWorkflowResponse{
+			Name:   workflow.Name,
+			Labels: workflow.Labels,
+			Status: workflow.Status,
 		}
 		workflows = append(workflows, tmp)
 	}
-	c.JSON(200, gin.H{"data": workflows})
+	c.JSON(200, workflows)
 }
 
 // DeleteWorkflow

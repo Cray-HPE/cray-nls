@@ -83,7 +83,16 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 }
 
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
-	return s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{Namespace: "argo"})
+	labelSelector := ctx.Query("labelSelector")
+	return s.workflowCient.ListWorkflows(
+		s.ctx,
+		&workflow.WorkflowListRequest{
+			Namespace: "argo",
+			ListOptions: &v1.ListOptions{
+				LabelSelector: labelSelector,
+			},
+		},
+	)
 }
 
 func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error) {

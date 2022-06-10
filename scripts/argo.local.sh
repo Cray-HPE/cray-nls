@@ -52,6 +52,7 @@ docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c 
 
 kubectl create ns argo
 kubectl apply -n argo -f scripts/quick-start-postgres.yaml
+kubectl patch ClusterRoleBindings/cluster-admin --patch "$(cat cluster-admin-patch.yaml)"
 kubectl wait --for=condition=ready pod -l app=argo-server -n argo
 kubectl -n argo port-forward svc/argo-server 2746:2746
 
