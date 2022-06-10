@@ -251,6 +251,14 @@ const docTemplateInternal = `{
                     "Workflow"
                 ],
                 "summary": "Get status of a ncn workflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Label Selector",
+                        "name": "labelSelector",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

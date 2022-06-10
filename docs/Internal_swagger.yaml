@@ -260,6 +260,11 @@ paths:
     get:
       consumes:
       - application/json
+      parameters:
+      - description: Label Selector
+        in: query
+        name: labelSelector
+        type: string
       produces:
       - application/json
       responses:

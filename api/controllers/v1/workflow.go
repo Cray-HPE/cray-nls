@@ -48,6 +48,7 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 
 // GetWorkflows
 // @Summary   Get status of a ncn workflow
+// @Param     labelSelector  query  string  false  "Label Selector"
 // @Tags      Workflow
 // @Accept    json
 // @Produce   json
@@ -66,7 +67,6 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	}
 	var workflows []models.GetWorkflowResponse
 	for _, workflow := range workflowList.Items {
-		workflow.Status.Nodes = nil
 		workflow.Status.StoredTemplates = nil
 		workflow.Status.ArtifactRepositoryRef = nil
 		tmp := models.GetWorkflowResponse{

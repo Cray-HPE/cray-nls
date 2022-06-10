@@ -189,6 +189,12 @@ Get version of cray-nls service
 
 Get status of a ncn workflow
 
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| labelSelector | query | Label Selector | No | string |
+
 ##### Responses
 
 | Code | Description | Schema |
