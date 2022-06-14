@@ -39,7 +39,7 @@ if [[ $? -ne 0 ]]; then
         --k3s-arg "--node-name=ncn-w002"@agent:1 \
         --k3s-arg "--node-name=ncn-w003"@agent:2 \
         --k3s-arg "--node-name=ncn-m001"@server:0
-else 
+else
     k3d cluster start --wait
 fi
 k3d kubeconfig merge mycluster --kubeconfig-switch-context
@@ -47,8 +47,8 @@ kubectl wait --for=condition=ready nodes -l node.kubernetes.io/instance-type=k3s
 kubectl get nodes
 kubectl taint nodes ncn-m001 node-role.kubernetes.io/master=:NoSchedule
 
-# create ssh folders for local dev
-docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh;mkdir -p /etc/kubernetes"
+# create folders for local dev
+docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh;mkdir -p /etc/kubernetes;mkdir -p /usr/bin"
 
 kubectl create ns argo
 kubectl apply -n argo -f scripts/quick-start-postgres.yaml
