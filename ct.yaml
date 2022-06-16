@@ -1,0 +1,7 @@
+---
+chart-dirs: []
+chart-repos:
+  - cray-algol60=https://artifactory.algol60.net/artifactory/csm-helm-charts
+validate-maintainers: false
+check-version-increment: false
+target-branch: main

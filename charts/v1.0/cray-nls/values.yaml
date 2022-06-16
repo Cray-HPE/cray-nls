@@ -53,7 +53,7 @@ cray-service:
   initContainers:
     wait-for-argo-server:
       name: "wait-for-argo-server"
-      image: 
+      image:
         repository: artifactory.algol60.net/csm-docker/stable/docker.io/curlimages/curl
         tag: 7.80.0
       pullPolicy: IfNotPresent
@@ -78,9 +78,9 @@ cray-service:
       env:
         - name: ARGO_TOKEN
           valueFrom:
-              secretKeyRef:
-                name: argo-server-secret
-                key: token
+            secretKeyRef:
+              name: argo-server-secret
+              key: token
         - name: SERVER_PORT
           value: "3000"
         - name: ENV
@@ -130,16 +130,28 @@ cray-service-pg-only:
       argo: argouser
     backup:
       enabled: true
-      schedule: "10 23 * * *" # Once per day at 11:10 pm
+      # Once per day at 11:10 pm
+      schedule: "10 23 * * *"
 
 # argo workflow
 argo-workflows:
   workflow:
     workflowNamespaces:
       - argo
+  executor:
+    image:
+      # -- Registry to use for the controller
+      registry: artifactory.algol60.net/csm-docker/stable
+      # -- Registry to use for the controller
+      repository: quay.io/argoproj/argoexec
+      tag: v3.3.6
   server:
     replicas: 3
     image:
+      # -- Registry to use for the controller
+      registry: artifactory.algol60.net/csm-docker/stable
+      # -- Registry to use for the controller
+      repository: quay.io/argoproj/argocli
       tag: v3.3.6
     pdb:
       enabled: true
@@ -150,9 +162,9 @@ argo-workflows:
   controller:
     image:
       # -- Registry to use for the controller
-      registry: quay.io
+      registry: artifactory.algol60.net/csm-docker/stable
       # -- Registry to use for the controller
-      repository: argoproj/workflow-controller
+      repository: quay.io/argoproj/workflow-controller
       # -- Overrides the image tag whose default is the chart appVersion.
       tag: v3.3.6
     replicas: 2
