@@ -40,11 +40,6 @@ import (
 
 // @BasePath  /apis/nls
 
-// @securitydefinitions.oauth2.application  OAuth2Application
-// @tokenUrl                                https://example.com/oauth/token
-// @scope.read                              Grants read access
-// @scope.admin                             Grants read and write access to administrative information
-
 // @tag.name  NCNs
 // @tag.description.markdown
 

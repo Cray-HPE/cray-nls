@@ -58,7 +58,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Failure   404  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/ncns/{hostname}/rebuild [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
 	u.createRebuildWorkflow([]string{hostname}, false, c)
@@ -75,7 +75,7 @@ func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 // @Failure   404  {object}  utils.ResponseError
 // @Failure   500  {object}  utils.ResponseError
 // @Router    /v1/ncns/rebuild [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
