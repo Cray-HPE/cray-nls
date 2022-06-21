@@ -67,7 +67,7 @@ cray-service:
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.0.6
+        tag: 0.0.7
       resources:
         limits:
           cpu: 1
@@ -108,7 +108,8 @@ cray-service:
     enabled: false
   ingress:
     enabled: true
-    prefix: /apis/bss
+    prefix: /apis/nls
+    uri: /apis/nls
 
 cray-service-pg-only:
   type: ""
