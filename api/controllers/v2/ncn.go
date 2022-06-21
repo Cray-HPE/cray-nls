@@ -52,7 +52,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/{hostname}/reboot [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -65,7 +65,7 @@ func (u NcnController) NcnCreateRebootWorkflow(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/reboot [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -77,7 +77,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/hooks/before-k8s-drain [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsBeforeK8sDrainHook(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -89,7 +89,7 @@ func (u NcnController) NcnsBeforeK8sDrainHook(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/hooks/before-wipe [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsBeforeWipeHook(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -101,7 +101,7 @@ func (u NcnController) NcnsBeforeWipeHook(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/hooks/post-boot [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsPostBootHook(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -114,7 +114,7 @@ func (u NcnController) NcnsPostBootHook(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/hooks [get]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsGetHooks(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -127,7 +127,7 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/hooks/{hook_name} [delete]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnsRemoveHook(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -139,7 +139,7 @@ func (u NcnController) NcnsRemoveHook(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncn [post]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnAdd(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -152,7 +152,7 @@ func (u NcnController) NcnAdd(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v2/ncns/{hostname} [delete]
-// @Security  OAuth2Application[admin]
+
 func (u NcnController) NcnRemove(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

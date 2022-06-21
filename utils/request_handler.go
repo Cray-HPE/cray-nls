@@ -53,7 +53,7 @@ func NewRequestHandler(logger Logger, env Env) RequestHandler {
 	}
 
 	engine.GET(
-		"/swagger/*any",
+		"/apis/nls/openapi/*any",
 		ginSwagger.WrapHandler(
 			swaggerFiles.Handler,
 			ginSwagger.DocExpansion("none"),

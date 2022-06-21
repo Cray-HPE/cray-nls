@@ -87,7 +87,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name} [delete]
-// @Security  OAuth2Application[admin]
+
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }
@@ -100,7 +100,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name}/retry [put]
-// @Security  OAuth2Application[admin]
+
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }
@@ -113,7 +113,7 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 // @Produce   json
 // @Failure   501  "Not Implemented"
 // @Router    /v1/workflows/{name}/rerun [put]
-// @Security  OAuth2Application[admin]
+
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }

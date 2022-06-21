@@ -74,17 +74,6 @@ The jwt token will be passed down to each microservices and individual microserv
 
 **License:** [MIT](https://github.com/Cray-HPE/cray-nls/blob/master/License)
 
-### Security
-**OAuth2Application**  
-
-|oauth2|*OAuth 2.0*|
-|---|---|
-|Flow|application|
-|**Scopes**||
-|admin|                             Grants read and write access to administrative information|
-|read|                              Grants read access|
-|Token URL|<https://example.com/oauth/token>|
-
 ### /v1/liveness
 
 #### GET
@@ -97,62 +86,6 @@ K8s Liveness endpoint
 | Code | Description |
 | ---- | ----------- |
 | 204 |  |
-
-### /v1/ncns/{hostname}/rebuild
-
-#### POST
-##### Summary
-
-End to end rebuild of a single ncn (worker only)
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/ncns/rebuild
-
-#### POST
-##### Summary
-
-End to end rolling rebuild ncns (workers only)
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| include | body | hostnames to include | Yes | [models.CreateRebuildWorkflowRequest](#modelscreaterebuildworkflowrequest) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
 
 ### /v1/readiness
 
@@ -210,81 +143,6 @@ Get status of a ncn workflow
 | --- | --- | --- |
 | OAuth2Application | admin | read |
 
-### /v1/workflows/{name}
-
-#### DELETE
-##### Summary
-
-Delete a ncn workflow
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| name | path | name of workflow | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/workflows/{name}/rerun
-
-#### PUT
-##### Summary
-
-Rerun a workflow, all steps will run
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| name | path | name of workflow | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
-### /v1/workflows/{name}/retry
-
-#### PUT
-##### Summary
-
-Retry a failed ncn workflow, skip passed steps
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| name | path | name of workflow | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-##### Security
-
-| Security Schema | Scopes |
-| --- | --- |
-| OAuth2Application | admin |
-
 ### Models
 
 #### ResponseError
@@ -298,20 +156,6 @@ Retry a failed ncn workflow, skip passed steps
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
-
-#### models.CreateRebuildWorkflowRequest
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| dryRun | boolean |  | No |
-| hosts | [ string ] |  | No |
-
-#### models.CreateRebuildWorkflowResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| targetNcns | [ string ] |  | No |
 
 #### models.GetWorkflowResponse
 
