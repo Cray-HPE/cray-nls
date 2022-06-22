@@ -64,7 +64,7 @@
 
     > These sites are on localhost and will only open with the previous scripts running
 
-    - [Swagger URL](http://localhost:3000/swagger/index.html)
+    - [Swagger URL](http://localhost:3000/apis/nls/openapi/index.html)
     - [Argo URL](http://localhost:2746/)
 
 

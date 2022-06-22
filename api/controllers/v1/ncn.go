@@ -48,34 +48,32 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 }
 
 // NcnCreateRebuildWorkflow
-// @Summary   End to end rebuild of a single ncn (worker only)
-// @Param     hostname  path  string  true  "hostname"
-// @Tags      NCNs
-// @Accept    json
-// @Produce   json
-// @Success   200  {object}  models.CreateRebuildWorkflowResponse
-// @Failure   400  {object}  utils.ResponseError
-// @Failure   404  {object}  utils.ResponseError
-// @Failure   500  {object}  utils.ResponseError
-// @Router    /v1/ncns/{hostname}/rebuild [post]
-
+// @Summary  End to end rebuild of a single ncn (worker only)
+// @Param    hostname  path  string  true  "hostname"
+// @Tags     NCNs
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  models.CreateRebuildWorkflowResponse
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/ncns/{hostname}/rebuild [post]
 func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
 	hostname := c.Param("hostname")
 	u.createRebuildWorkflow([]string{hostname}, false, c)
 }
 
 // NcnsCreateRebuildWorkflow
-// @Summary   End to end rolling rebuild ncns (workers only)
-// @Param     include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
-// @Tags      NCNs
-// @Accept    json
-// @Produce   json
-// @Success   200  {object}  models.CreateRebuildWorkflowResponse
-// @Failure   400  {object}  utils.ResponseError
-// @Failure   404  {object}  utils.ResponseError
-// @Failure   500  {object}  utils.ResponseError
-// @Router    /v1/ncns/rebuild [post]
-
+// @Summary  End to end rolling rebuild ncns (workers only)
+// @Param    include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
+// @Tags     NCNs
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  models.CreateRebuildWorkflowResponse
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/ncns/rebuild [post]
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {

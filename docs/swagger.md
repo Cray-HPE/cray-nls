@@ -87,6 +87,50 @@ K8s Liveness endpoint
 | ---- | ----------- |
 | 204 |  |
 
+### /v1/ncns/{hostname}/rebuild
+
+#### POST
+##### Summary
+
+End to end rebuild of a single ncn (worker only)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hostname | path | hostname | Yes | string |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
+### /v1/ncns/rebuild
+
+#### POST
+##### Summary
+
+End to end rolling rebuild ncns (workers only)
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | Yes | [models.CreateRebuildWorkflowRequest](#modelscreaterebuildworkflowrequest) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
 ### /v1/readiness
 
 #### GET
@@ -137,11 +181,62 @@ Get status of a ncn workflow
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-##### Security
+### /v1/workflows/{name}
 
-| Security Schema | Scopes | |
-| --- | --- | --- |
-| OAuth2Application | admin | read |
+#### DELETE
+##### Summary
+
+Delete a ncn workflow
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| name | path | name of workflow | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+### /v1/workflows/{name}/rerun
+
+#### PUT
+##### Summary
+
+Rerun a workflow, all steps will run
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| name | path | name of workflow | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+### /v1/workflows/{name}/retry
+
+#### PUT
+##### Summary
+
+Retry a failed ncn workflow, skip passed steps
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| name | path | name of workflow | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
 
 ### Models
 
@@ -156,6 +251,20 @@ Get status of a ncn workflow
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
+
+#### models.CreateRebuildWorkflowRequest
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| dryRun | boolean |  | No |
+| hosts | [ string ] |  | No |
+
+#### models.CreateRebuildWorkflowResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| targetNcns | [ string ] |  | No |
 
 #### models.GetWorkflowResponse
 

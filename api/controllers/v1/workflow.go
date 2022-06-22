@@ -47,17 +47,16 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 }
 
 // GetWorkflows
-// @Summary   Get status of a ncn workflow
-// @Param     labelSelector  query  string  false  "Label Selector"
-// @Tags      Workflow
-// @Accept    json
-// @Produce   json
-// @Success   200  {object}  []models.GetWorkflowResponse
-// @Failure   400  {object}  utils.ResponseError
-// @Failure   404  {object}  utils.ResponseError
-// @Failure   500  {object}  utils.ResponseError
-// @Router    /v1/workflows [get]
-// @Security  OAuth2Application[admin,read]
+// @Summary  Get status of a ncn workflow
+// @Param    labelSelector  query  string  false  "Label Selector"
+// @Tags     Workflow
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []models.GetWorkflowResponse
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/workflows [get]
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	workflowList, err := u.service.GetWorkflows(c)
 	if err != nil {
@@ -80,40 +79,37 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 }
 
 // DeleteWorkflow
-// @Summary   Delete a ncn workflow
-// @Param     name  path  string  true  "name of workflow"
-// @Tags      Workflow
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v1/workflows/{name} [delete]
-
+// @Summary  Delete a ncn workflow
+// @Param    name  path  string  true  "name of workflow"
+// @Tags     Workflow
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/workflows/{name} [delete]
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }
 
 // RetryWorkflows
-// @Summary   Retry a failed ncn workflow, skip passed steps
-// @Param     name  path  string  true  "name of workflow"
-// @Tags      Workflow
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v1/workflows/{name}/retry [put]
-
+// @Summary  Retry a failed ncn workflow, skip passed steps
+// @Param    name  path  string  true  "name of workflow"
+// @Tags     Workflow
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/workflows/{name}/retry [put]
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }
 
 // RerunWorkflows
-// @Summary   Rerun a workflow, all steps will run
-// @Param     name  path  string  true  "name of workflow"
-// @Tags      Workflow
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
-// @Router    /v1/workflows/{name}/rerun [put]
-
+// @Summary  Rerun a workflow, all steps will run
+// @Param    name  path  string  true  "name of workflow"
+// @Tags     Workflow
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/workflows/{name}/rerun [put]
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	c.JSON(200, gin.H{"data": " updated"})
 }
