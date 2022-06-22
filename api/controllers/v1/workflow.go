@@ -87,7 +87,13 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // @Failure  501  "Not Implemented"
 // @Router   /v1/workflows/{name} [delete]
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": " updated"})
+	err := u.service.DeleteWorkflow(c)
+	if err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(500, errResponse)
+		return
+	}
+	c.JSON(200, gin.H{"data": " deleted"})
 }
 
 // RetryWorkflows

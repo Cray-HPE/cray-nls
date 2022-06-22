@@ -1,2 +1,3 @@
 # Collapse generated files on Github
 docs/**.* linguist-generated
+api/mocks/**.* linguist-generated
