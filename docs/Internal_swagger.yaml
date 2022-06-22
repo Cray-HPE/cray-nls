@@ -296,8 +296,22 @@ paths:
       produces:
       - application/json
       responses:
-        "501":
-          description: Not Implemented
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseOk'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Delete a ncn workflow
       tags:
       - Workflow
@@ -314,8 +328,22 @@ paths:
       produces:
       - application/json
       responses:
-        "501":
-          description: Not Implemented
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseOk'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Rerun a workflow, all steps will run
       tags:
       - Workflow
@@ -332,8 +360,22 @@ paths:
       produces:
       - application/json
       responses:
-        "501":
-          description: Not Implemented
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ResponseOk'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Retry a failed ncn workflow, skip passed steps
       tags:
       - Workflow

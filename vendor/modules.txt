@@ -50,7 +50,7 @@ github.com/argoproj/argo-events/pkg/client/eventsource/clientset/versioned/typed
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned/scheme
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned/typed/sensor/v1alpha1
-# github.com/argoproj/argo-workflows/v3 v3.3.5
+# github.com/argoproj/argo-workflows/v3 v3.3.6
 ## explicit; go 1.17
 github.com/argoproj/argo-workflows/v3
 github.com/argoproj/argo-workflows/v3/config

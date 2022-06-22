@@ -49,6 +49,8 @@ import (
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
 	DeleteWorkflow(ctx *gin.Context) error
+	RerunWorkflow(ctx *gin.Context) error
+	RetryWorkflow(ctx *gin.Context) error
 	CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
@@ -110,6 +112,40 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 	return err
 }
 
+func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
+	err := s.checkRunningWorkflows()
+	if err != nil {
+		return err
+	}
+
+	wfName := ctx.Param("name")
+	_, err = s.workflowCient.ResubmitWorkflow(
+		s.ctx,
+		&workflow.WorkflowResubmitRequest{
+			Namespace: "argo",
+			Name:      wfName,
+		},
+	)
+	return err
+}
+
+func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
+	err := s.checkRunningWorkflows()
+	if err != nil {
+		return err
+	}
+
+	wfName := ctx.Param("name")
+	_, err = s.workflowCient.RetryWorkflow(
+		s.ctx,
+		&workflow.WorkflowRetryRequest{
+			Namespace: "argo",
+			Name:      wfName,
+		},
+	)
+	return err
+}
+
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
 	labelSelector := ctx.Query("labelSelector")
 	return s.workflowCient.ListWorkflows(
@@ -138,20 +174,8 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 		}
 	}
 
-	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
-		Namespace: "argo",
-		ListOptions: &v1.ListOptions{
-			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild",
-		},
-	})
+	err := s.checkRunningWorkflows()
 	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-
-	if workflows.Items.Len() > 0 {
-		err := fmt.Errorf("another ncn rebuild workflow is still running")
-		s.logger.Error(err)
 		return nil, err
 	}
 
@@ -236,5 +260,25 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	}
 
 	s.logger.Infof("Workflow template initialized: %s", myWorkflowTemplate.Name)
+	return nil
+}
+
+func (s workflowService) checkRunningWorkflows() error {
+	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
+		Namespace: "argo",
+		ListOptions: &v1.ListOptions{
+			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild",
+		},
+	})
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	if workflows.Items.Len() > 0 {
+		err := fmt.Errorf("another ncn rebuild workflow is still running")
+		s.logger.Error(err)
+		return err
+	}
 	return nil
 }

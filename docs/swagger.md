@@ -196,9 +196,12 @@ Delete a ncn workflow
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows/{name}/rerun
 
@@ -215,9 +218,12 @@ Rerun a workflow, all steps will run
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows/{name}/retry
 
@@ -234,9 +240,12 @@ Retry a failed ncn workflow, skip passed steps
 
 ##### Responses
 
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### Models
 
