@@ -84,7 +84,10 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // @Tags     Workflow
 // @Accept   json
 // @Produce  json
-// @Failure  501  "Not Implemented"
+// @Success  200  {object}  utils.ResponseOk
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/workflows/{name} [delete]
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	err := u.service.DeleteWorkflow(c)
@@ -102,10 +105,19 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // @Tags     Workflow
 // @Accept   json
 // @Produce  json
-// @Failure  501  "Not Implemented"
+// @Success  200  {object}  utils.ResponseOk
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/workflows/{name}/retry [put]
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": " updated"})
+	err := u.service.RetryWorkflow(c)
+	if err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(500, errResponse)
+		return
+	}
+	c.Status(200)
 }
 
 // RerunWorkflows
@@ -114,8 +126,17 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 // @Tags     Workflow
 // @Accept   json
 // @Produce  json
-// @Failure  501  "Not Implemented"
+// @Success  200  {object}  utils.ResponseOk
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/workflows/{name}/rerun [put]
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
-	c.JSON(200, gin.H{"data": " updated"})
+	err := u.service.RerunWorkflow(c)
+	if err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(500, errResponse)
+		return
+	}
+	c.Status(200)
 }

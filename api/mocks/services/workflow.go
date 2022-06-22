@@ -92,3 +92,31 @@ func (mr *MockWorkflowServiceMockRecorder) InitializeWorkflowTemplate(template i
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitializeWorkflowTemplate", reflect.TypeOf((*MockWorkflowService)(nil).InitializeWorkflowTemplate), template)
 }
+
+// RerunWorkflow mocks base method.
+func (m *MockWorkflowService) RerunWorkflow(ctx *gin.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RerunWorkflow", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RerunWorkflow indicates an expected call of RerunWorkflow.
+func (mr *MockWorkflowServiceMockRecorder) RerunWorkflow(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RerunWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).RerunWorkflow), ctx)
+}
+
+// RetryWorkflow mocks base method.
+func (m *MockWorkflowService) RetryWorkflow(ctx *gin.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RetryWorkflow", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RetryWorkflow indicates an expected call of RetryWorkflow.
+func (mr *MockWorkflowServiceMockRecorder) RetryWorkflow(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetryWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).RetryWorkflow), ctx)
+}

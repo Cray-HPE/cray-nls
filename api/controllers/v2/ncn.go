@@ -140,10 +140,10 @@ func (u NcnController) NcnAdd(c *gin.Context) {
 // NcnRemove
 // @Summary  Remove a ncn
 // @Param    hostname  path  string  true  "hostname"
-// @Tags      V2 NCNs
-// @Accept    json
-// @Produce   json
-// @Failure   501  "Not Implemented"
+// @Tags     V2 NCNs
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
 // @Router   /v2/ncns/{hostname} [delete]
 func (u NcnController) NcnRemove(c *gin.Context) {
 	c.JSON(501, "not implemented")
