@@ -48,6 +48,7 @@ import (
 
 type WorkflowService interface {
 	GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error)
+	DeleteWorkflow(ctx *gin.Context) error
 	CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
@@ -80,6 +81,33 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 		}
 	}
 	return workflowSvc
+}
+
+func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
+	wfName := ctx.Param("name")
+	workflowToDelete, err := s.workflowCient.GetWorkflow(
+		s.ctx,
+		&workflow.WorkflowGetRequest{
+			Namespace: "argo",
+			Name:      wfName,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to find workflow with name: %s", wfName)
+	}
+	// only delete rebuild workflow
+	if workflowToDelete.Labels["type"] != "rebuild" {
+		return fmt.Errorf("workflow type is wrong: %s", workflowToDelete.Labels["type"])
+	}
+
+	_, err = s.workflowCient.DeleteWorkflow(
+		s.ctx,
+		&workflow.WorkflowDeleteRequest{
+			Namespace: "argo",
+			Name:      wfName,
+		},
+	)
+	return err
 }
 
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {

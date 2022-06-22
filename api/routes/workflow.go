@@ -41,6 +41,7 @@ func (s WorkflowRoutes) Setup() {
 	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
 		api.GET("/workflows", s.workflowController.GetWorkflows)
+		api.DELETE("/workflows/:name", s.workflowController.DeleteWorkflow)
 	}
 }
 
