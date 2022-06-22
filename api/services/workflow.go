@@ -113,7 +113,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
-			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true",
+			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild",
 		},
 	})
 	if err != nil {
@@ -122,7 +122,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 	}
 
 	if workflows.Items.Len() > 0 {
-		err := fmt.Errorf("another workflow is still running")
+		err := fmt.Errorf("another ncn rebuild workflow is still running")
 		s.logger.Error(err)
 		return nil, err
 	}
