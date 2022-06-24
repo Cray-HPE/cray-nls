@@ -3,13 +3,28 @@ package main_test
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
+	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
 	"github.com/joho/godotenv"
 )
+
+func TestMessingAround(t *testing.T) {
+	//messing with argo templates
+	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
+
+	index := 0
+	for _, workflowtemplate := range workflowTemplates {
+
+		fmt.Printf("template %v\n", index)
+		fmt.Println(string((workflowtemplate)))
+		index++
+	}
+}
 
 func TestSingleLabelRebuild(t *testing.T) {
 
@@ -26,21 +41,17 @@ func TestSingleLabelRebuild(t *testing.T) {
 		t.Fatalf("could not rebuild hosts: %v", err.Error())
 	}
 
-	// wait for workflow to start
-	// DI: let me know if theres a smarter way to handle this
-	time.Sleep(5 * time.Second)
-
+	//Check response untill it succeedes or fails
 	var getResponse GetResponse
-	getRebuildStatus(envMap["STATUS_URL"], "target-ncns="+hosts[0], &getResponse)
+	label := fmt.Sprintf("target-ncns=%v", hosts[0])
 
-	for getResponse[0].Status.Phase == "Running" {
+	for {
 		// make get request to check status
 		// TODO: handle error that this returns
-		getRebuildStatus(envMap["STATUS_URL"], "target-ncns="+hosts[0], &getResponse)
-
-		// DI: Let me know if you would like me to sleep here or just request as many times as possible?
-		// time.Sleep(2 * time.Second)
-
+		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
+		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
+			break
+		}
 	}
 
 	// TODO: Fail here in more cases
@@ -53,13 +64,13 @@ func TestSingleLabelRebuild(t *testing.T) {
 
 func rebuildHosts(url string, hosts []string, target interface{}) error {
 
-	hoststostring := ``
+	hoststostring := ""
 
 	for i := 0; i < len(hosts); i++ {
 		if i == len(hosts)-1 {
-			hoststostring += `"` + hosts[i] + `"`
+			hoststostring += fmt.Sprintf("\"%s\"", hosts[i])
 		} else {
-			hoststostring += `"` + hosts[i] + `",`
+			hoststostring += fmt.Sprintf("\"%s\",", hosts[i])
 		}
 	}
 
@@ -76,8 +87,6 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 	if err != nil {
 		return errors.New("could not complete POST request: " + err.Error())
 	}
-
-	// content, _ := ioutil.ReadAll(response.Body)
 
 	return json.NewDecoder(response.Body).Decode(target)
 
@@ -98,9 +107,18 @@ func getEnvMap() (map[string]string, error) {
 
 func getRebuildStatus(url string, label string, target interface{}) error {
 
-	url += "?labelSelector=" + label
+	// url += "?labelSelector=" + label
+	new_url := ""
+	if label == "" {
 
-	response, err := http.Get(url)
+		new_url = url
+
+	} else {
+
+		new_url = fmt.Sprintf("%s?labelSelector=%s", url, label)
+	}
+
+	response, err := http.Get(new_url)
 	defer response.Body.Close()
 	if err != nil {
 		return err
