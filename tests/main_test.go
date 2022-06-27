@@ -15,7 +15,10 @@ import (
 
 func TestMessingAround(t *testing.T) {
 	//messing with argo templates
+	//Di: not really sure what I need to do with the workflowtemplates once I have them/ which ones to use
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
+
+	// workerRebuildWorkflow, _ := argo_templates.GetWorkerRebuildWorkflow()
 
 	index := 0
 	for _, workflowtemplate := range workflowTemplates {
