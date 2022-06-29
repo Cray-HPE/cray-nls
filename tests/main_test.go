@@ -65,6 +65,25 @@ func TestSingleLabelRebuild(t *testing.T) {
 
 }
 
+func TestBadHostname(t *testing.T) {
+
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"bad-name"}
+
+	var rebuildResponse RebuildResponse
+
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err == nil {
+
+		t.Fatalf("expected error")
+	}
+
+}
+
 func rebuildHosts(url string, hosts []string, target interface{}) error {
 
 	hoststostring := ""
@@ -89,6 +108,10 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 	defer response.Body.Close()
 	if err != nil {
 		return errors.New("could not complete POST request: " + err.Error())
+	}
+
+	if response.StatusCode != 200 {
+		return errors.New("expected status code 200 got: " + fmt.Sprint(response.StatusCode))
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
@@ -125,6 +148,10 @@ func getRebuildStatus(url string, label string, target interface{}) error {
 	defer response.Body.Close()
 	if err != nil {
 		return err
+	}
+
+	if response.StatusCode != 200 {
+		return errors.New("expected status code 200 got: " + fmt.Sprint(response.StatusCode))
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
