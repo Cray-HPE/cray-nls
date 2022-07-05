@@ -30,6 +30,9 @@ metadata:
     type: rebuild
     node-type: worker
 spec:
+  podMetadata:
+    annotations:
+      sidecar.istio.io/inject: "false"    
   volumes:
     - name: ssh
       hostPath:
