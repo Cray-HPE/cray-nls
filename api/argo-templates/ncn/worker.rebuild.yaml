@@ -136,7 +136,7 @@ spec:
 
                     echo
 
-                    pods=( "nexus" "ipxe" "kea" )
+                    pods=( "nexus" "ipxe" "kea" "cray-cfs-api" )
                     for pod in ${pods[@]};do
                       podName=$(kubectl get pods --all-namespaces | awk '{print $2}' | grep $pod)
                       if [[ -z $podName ]];then

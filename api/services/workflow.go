@@ -113,12 +113,16 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 }
 
 func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
-	err := s.checkRunningWorkflows()
+	wfName := ctx.Param("name")
+	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
 		return err
 	}
 
-	wfName := ctx.Param("name")
+	if workflows.Len() == 1 && workflows[0].Name != wfName {
+		return fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+	}
+
 	_, err = s.workflowCient.ResubmitWorkflow(
 		s.ctx,
 		&workflow.WorkflowResubmitRequest{
@@ -130,12 +134,16 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 }
 
 func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
-	err := s.checkRunningWorkflows()
+	wfName := ctx.Param("name")
+	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
 		return err
 	}
 
-	wfName := ctx.Param("name")
+	if workflows.Len() == 1 && workflows[0].Name != wfName {
+		return fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+	}
+
 	_, err = s.workflowCient.RetryWorkflow(
 		s.ctx,
 		&workflow.WorkflowRetryRequest{
@@ -174,9 +182,13 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 		}
 	}
 
-	err := s.checkRunningWorkflows()
+	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
 		return nil, err
+	}
+
+	if workflows.Len() > 0 {
+		return nil, fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
 	}
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
@@ -263,7 +275,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	return nil
 }
 
-func (s workflowService) checkRunningWorkflows() error {
+func (s workflowService) checkRunningWorkflows() (v1alpha1.Workflows, error) {
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
@@ -272,13 +284,14 @@ func (s workflowService) checkRunningWorkflows() error {
 	})
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return nil, err
 	}
 
-	if workflows.Items.Len() > 0 {
+	if workflows.Items.Len() > 1 {
 		err := fmt.Errorf("another ncn rebuild workflow is still running")
 		s.logger.Error(err)
-		return err
+		return nil, err
 	}
-	return nil
+
+	return workflows.Items, nil
 }
