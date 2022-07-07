@@ -29,6 +29,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
 	"regexp"
 	"time"
 
@@ -65,7 +66,7 @@ type workflowService struct {
 }
 
 // NewWorkflowService creates a new Workflowservice
-func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowService {
+func NewWorkflowService(logger utils.Logger, argoService ArgoService, env utils.Env) WorkflowService {
 
 	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
 
@@ -74,6 +75,7 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService) WorkflowSe
 		ctx:                   argoService.Context,
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
+		env:                   env,
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
 	for _, workflowTemplate := range workflowTemplates {
@@ -192,8 +194,8 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 	}
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
-
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(hostnames, dryRun)
+	workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err

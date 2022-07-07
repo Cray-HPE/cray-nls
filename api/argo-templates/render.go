@@ -35,9 +35,6 @@ import (
 	"github.com/Masterminds/sprig/v3"
 )
 
-//go:embed ncn/*
-var workerRebuildWorkflowFS embed.FS
-
 //go:embed base/*
 var argoWorkflowTemplateFS embed.FS
 
@@ -66,7 +63,7 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(hostnames []string, dryRun bool) ([]byte, error) {
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string, dryRun bool) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		return nil, err
