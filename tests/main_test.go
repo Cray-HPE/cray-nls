@@ -1,9 +1,12 @@
 package main_test
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 	"testing"
@@ -104,14 +107,41 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 		]
 	  	}`)
 
-	response, err := http.Post(url, "application/json", requestBody)
-	defer response.Body.Close()
+	// TODO: This is insecure; use only in dev environments.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	//create POST request
+	request, err := http.NewRequest("POST", url, requestBody)
 	if err != nil {
-		return errors.New("could not complete POST request: " + err.Error())
+		return errors.New("could not create POST request: " + err.Error())
+	}
+	defer request.Body.Close()
+
+	// get env map
+	envMap, err := getEnvMap()
+	if err != nil {
+		return errors.New("could not get the environment map: " + err.Error())
+	}
+	// Set header variables
+	request.Header.Set("Authorization", envMap["TOKEN"])
+	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Content-Type", "application/json")
+
+	//make POST request
+	response, err := client.Do(request)
+	if err != nil {
+		return errors.New("could not receive POST response: " + err.Error())
 	}
 
 	if response.StatusCode != 200 {
-		return errors.New("expected status code 200 got: " + fmt.Sprint(response.StatusCode))
+		bodyBytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return errors.New("expected status code 200 got: " + "\nbody: " + string(bodyBytes))
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
