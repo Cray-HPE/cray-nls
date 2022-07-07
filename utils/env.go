@@ -29,10 +29,11 @@ import (
 
 // Env has environment stored
 type Env struct {
-	ServerPort    string `mapstructure:"SERVER_PORT"`
-	Environment   string `mapstructure:"ENV"`
-	ArgoToken     string `mapstructure:"ARGO_TOKEN"`
-	ArgoServerURL string `mapstructure:"ARGO_SERVER_URL"`
+	ServerPort                 string `mapstructure:"SERVER_PORT"`
+	Environment                string `mapstructure:"ENV"`
+	ArgoToken                  string `mapstructure:"ARGO_TOKEN"`
+	ArgoServerURL              string `mapstructure:"ARGO_SERVER_URL"`
+	WorkerRebuildWorkflowFiles string `mapstructure:"WORKER_REBUILD_WORKFLOW_FILES"`
 }
 
 // NewEnv creates a new environment
