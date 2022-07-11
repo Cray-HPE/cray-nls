@@ -126,7 +126,7 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 		return errors.New("could not get the environment map: " + err.Error())
 	}
 	// Set header variables
-	request.Header.Set("Authorization", envMap["TOKEN"])
+	request.Header.Set("Authorization", "Bearer "+envMap["TOKEN"])
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Content-Type", "application/json")
 
@@ -141,7 +141,7 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-		return errors.New("expected status code 200 got: " + "\nbody: " + string(bodyBytes))
+		return errors.New("expected status code 200 got: " + fmt.Sprint(response.StatusCode) + "\nbody: " + string(bodyBytes))
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
