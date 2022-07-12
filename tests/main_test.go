@@ -30,6 +30,7 @@ func TestMessingAround(t *testing.T) {
 		fmt.Println(string((workflowtemplate)))
 		index++
 	}
+
 }
 
 func TestSingleLabelRebuild(t *testing.T) {
@@ -47,7 +48,7 @@ func TestSingleLabelRebuild(t *testing.T) {
 		t.Fatalf("could not rebuild hosts: %v", err.Error())
 	}
 
-	//Check response untill it succeedes or fails
+	//Check response until it succeedes or fails
 	var getResponse GetResponse
 	label := fmt.Sprintf("target-ncns=%v", hosts[0])
 
@@ -64,6 +65,44 @@ func TestSingleLabelRebuild(t *testing.T) {
 	if getResponse[0].Status.Phase != "Succeeded" {
 		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
 
+	}
+
+}
+
+func TestRebuildWhileBusy(t *testing.T) {
+
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"ncn-w001"}
+	var rebuildResponse RebuildResponse
+	// Make good request to ensure a rebuild is already in progress
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err != nil {
+		t.Fatalf("could not rebuild hosts: %v", err.Error())
+	}
+
+	// make a new response and make sure it returns "another workflow is still running"
+
+	var secondRebuildResponse RebuildResponse
+
+	second_err := rebuildHosts(envMap["REBUILD_URL"], hosts, &secondRebuildResponse)
+
+	if second_err == nil {
+		t.Fatalf("expected another workflow to be running but did not get an error")
+	}
+
+	// Wait for the initial workflow to complete so this wont interfere with other tests
+	var getResponse GetResponse
+	label := fmt.Sprintf("target-ncns=%v", hosts[0])
+	for {
+		// make get request to check status
+		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
+		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
+			break
+		}
 	}
 
 }
@@ -126,7 +165,9 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 		return errors.New("could not get the environment map: " + err.Error())
 	}
 	// Set header variables
-	request.Header.Set("Authorization", "Bearer "+envMap["TOKEN"])
+	if envMap["TOKEN"] != "" {
+		request.Header.Set("Authorization", "Bearer "+envMap["TOKEN"])
+	}
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Content-Type", "application/json")
 
