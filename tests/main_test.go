@@ -69,6 +69,77 @@ func TestSingleLabelRebuild(t *testing.T) {
 
 }
 
+func TestDoubleLabelRebuild(t *testing.T) {
+
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"ncn-w001", "ncn-w002"}
+	var rebuildResponse RebuildResponse
+
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err != nil {
+		t.Fatalf("could not rebuild hosts: %v", err.Error())
+	}
+
+	//Check response until it succeedes or fails
+	var getResponse GetResponse
+	label := ""
+
+	for {
+		// make get request to check status
+		// TODO: handle error that this returns
+		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
+		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
+			break
+		}
+	}
+
+	// TODO: Fail here in more cases
+	if getResponse[0].Status.Phase != "Succeeded" {
+		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
+
+	}
+
+}
+func TestTripleLabelRebuild(t *testing.T) {
+
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"ncn-w001", "ncn-w002", "ncn-w003"}
+	var rebuildResponse RebuildResponse
+
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err != nil {
+		t.Fatalf("could not rebuild hosts: %v", err.Error())
+	}
+
+	//Check response until it succeedes or fails
+	var getResponse GetResponse
+	label := ""
+
+	for {
+		// make get request to check status
+		// TODO: handle error that this returns
+		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
+		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
+			break
+		}
+	}
+
+	// TODO: Fail here in more cases
+	if getResponse[0].Status.Phase != "Succeeded" {
+		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
+
+	}
+
+}
+
 func TestRebuildWhileBusy(t *testing.T) {
 
 	envMap, mapErr := getEnvMap()
