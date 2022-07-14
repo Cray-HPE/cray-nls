@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func TestMessingAround(t *testing.T) {
+func TestOutputtingTemplates(t *testing.T) {
 	//messing with argo templates
 	//Di: not really sure what I need to do with the workflowtemplates once I have them/ which ones to use
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
@@ -30,7 +30,6 @@ func TestMessingAround(t *testing.T) {
 		fmt.Println(string((workflowtemplate)))
 		index++
 	}
-
 }
 
 func TestSingleLabelRebuild(t *testing.T) {
@@ -52,12 +51,17 @@ func TestSingleLabelRebuild(t *testing.T) {
 	var getResponse GetResponse
 	label := fmt.Sprintf("target-ncns=%v", hosts[0])
 
+	job_timeout_seconds := 300
+	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
+
 	for {
 		// make get request to check status
 		// TODO: handle error that this returns
 		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
 		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
 			break
+		} else if time.Now().After(maxTime) {
+			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
 		}
 	}
 
@@ -66,7 +70,6 @@ func TestSingleLabelRebuild(t *testing.T) {
 		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
 
 	}
-
 }
 
 func TestDoubleLabelRebuild(t *testing.T) {
@@ -88,12 +91,17 @@ func TestDoubleLabelRebuild(t *testing.T) {
 	var getResponse GetResponse
 	label := ""
 
+	job_timeout_seconds := 400
+	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
+
 	for {
 		// make get request to check status
 		// TODO: handle error that this returns
 		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
 		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
 			break
+		} else if time.Now().After(maxTime) {
+			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
 		}
 	}
 
@@ -102,7 +110,6 @@ func TestDoubleLabelRebuild(t *testing.T) {
 		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
 
 	}
-
 }
 func TestTripleLabelRebuild(t *testing.T) {
 
@@ -123,12 +130,17 @@ func TestTripleLabelRebuild(t *testing.T) {
 	var getResponse GetResponse
 	label := ""
 
+	job_timeout_seconds := 800
+	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
+
 	for {
 		// make get request to check status
 		// TODO: handle error that this returns
 		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
 		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
 			break
+		} else if time.Now().After(maxTime) {
+			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
 		}
 	}
 
@@ -137,7 +149,6 @@ func TestTripleLabelRebuild(t *testing.T) {
 		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
 
 	}
-
 }
 
 func TestRebuildWhileBusy(t *testing.T) {
@@ -166,6 +177,10 @@ func TestRebuildWhileBusy(t *testing.T) {
 	}
 
 	// Wait for the initial workflow to complete so this wont interfere with other tests
+
+	job_timeout_seconds := 300
+	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
+
 	var getResponse GetResponse
 	label := fmt.Sprintf("target-ncns=%v", hosts[0])
 	for {
@@ -173,9 +188,10 @@ func TestRebuildWhileBusy(t *testing.T) {
 		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
 		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
 			break
+		} else if time.Now().After(maxTime) {
+			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
 		}
 	}
-
 }
 
 func TestBadHostname(t *testing.T) {
