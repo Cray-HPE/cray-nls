@@ -24,8 +24,9 @@
 package models
 
 type CreateRebuildWorkflowRequest struct {
-	Hosts  []string `json:"hosts"`
-	DryRun bool     `json:"dryRun"`
+	Hosts          []string `json:"hosts"`
+	DryRun         bool     `json:"dryRun"`
+	SwitchPassword string   `json:"switchPassword,omitempty"`
 }
 
 type CreateRebuildWorkflowResponse struct {

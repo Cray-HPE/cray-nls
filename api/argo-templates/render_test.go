@@ -41,7 +41,7 @@ var workerRebuildWorkflowFS embed.FS
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
 		targetNcns := []string{"ncn-w006", "ncn-w005"}
-		_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, targetNcns, doDryRun)
+		_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, targetNcns, doDryRun, "thisIsApassword")
 		assert.Equal(t, true, err == nil)
 	})
 	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
@@ -61,7 +61,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, tt.hostnames, doDryRun)
+				_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, tt.hostnames, doDryRun, "thisIsApassword")
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -72,10 +72,16 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, []string{targetNcn}, doDryRun)
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, []string{targetNcn}, doDryRun, "thisIsApassword")
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
 		assert.Equal(t, targetNcn, myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
+	})
+
+	t.Run("It should render switch password", func(t *testing.T) {
+		targetNcn := "ncn-w99999"
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, []string{targetNcn}, doDryRun, "thisIsApassword")
+		assert.Contains(t, string(workerRebuildWorkflow), "thisIsApassword")
 	})
 }

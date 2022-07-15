@@ -87,28 +87,6 @@ K8s Liveness endpoint
 | ---- | ----------- |
 | 204 |  |
 
-### /v1/ncns/{hostname}/rebuild
-
-#### POST
-##### Summary
-
-End to end rebuild of a single ncn (worker only)
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hostname | path | hostname | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
-| 400 | Bad Request | [ResponseError](#responseerror) |
-| 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
 ### /v1/ncns/rebuild
 
 #### POST
@@ -267,6 +245,7 @@ Retry a failed ncn workflow, skip passed steps
 | ---- | ---- | ----------- | -------- |
 | dryRun | boolean |  | No |
 | hosts | [ string ] |  | No |
+| switchPassword | string |  | No |
 
 #### models.CreateRebuildWorkflowResponse
 

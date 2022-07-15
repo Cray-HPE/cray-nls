@@ -115,55 +115,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncns/{hostname}/rebuild": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCNs"
-                ],
-                "summary": "End to end rebuild of a single ncn (worker only)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "hostname",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.CreateRebuildWorkflowResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/readiness": {
             "get": {
                 "consumes": [
@@ -444,6 +395,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "switchPassword": {
+                    "type": "string"
                 }
             }
         },

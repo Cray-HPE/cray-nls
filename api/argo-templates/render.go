@@ -63,7 +63,7 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string, dryRun bool) ([]byte, error) {
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string, dryRun bool, switchPassword string) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(hostnames)
 	if err != nil {
 		return nil, err
@@ -89,8 +89,9 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string,
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns": hostnames,
-		"DryRun":     dryRun,
+		"TargetNcns":     hostnames,
+		"DryRun":         dryRun,
+		"SwitchPassword": switchPassword,
 	})
 	if err != nil {
 		return nil, err

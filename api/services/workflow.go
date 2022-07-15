@@ -52,7 +52,7 @@ type WorkflowService interface {
 	DeleteWorkflow(ctx *gin.Context) error
 	RerunWorkflow(ctx *gin.Context) error
 	RetryWorkflow(ctx *gin.Context) error
-	CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -169,7 +169,7 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	)
 }
 
-func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string) (*v1alpha1.Workflow, error) {
 	for _, hostname := range hostnames {
 		// only support worker rebuild for now
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
@@ -195,7 +195,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool) 
 
 	s.logger.Infof("Creating workflow for: %v", hostnames)
 	workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun)
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun, switchPassword)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
