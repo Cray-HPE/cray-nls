@@ -30,6 +30,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/Cray-HPE/cray-nls/api/models"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
@@ -42,8 +43,12 @@ var workerRebuildWorkflowFS embed.FS
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
-		targetNcns := []string{"ncn-w006", "ncn-w005"}
-		_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, targetNcns, doDryRun, "thisIsApassword")
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts:          []string{"ncn-w006", "ncn-w005"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
+		}
+		_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)
 	})
 	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
@@ -63,7 +68,12 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, tt.hostnames, doDryRun, "thisIsApassword")
+				req := models.CreateRebuildWorkflowRequest{
+					Hosts:          tt.hostnames,
+					DryRun:         doDryRun,
+					SwitchPassword: "thisIsApassword",
+				}
+				_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -73,17 +83,25 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
-		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, []string{targetNcn}, doDryRun, "thisIsApassword")
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts:          []string{"ncn-w99999"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
+		}
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
-		assert.Equal(t, targetNcn, myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
+		assert.Equal(t, "ncn-w99999", myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
 	})
 
 	t.Run("It should render switch password", func(t *testing.T) {
-		targetNcn := "ncn-w99999"
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, []string{targetNcn}, doDryRun, "thisIsApassword")
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts:          []string{"ncn-w99999"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
+		}
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 		assert.Contains(t, string(workerRebuildWorkflow), "thisIsApassword")
 	})
 }

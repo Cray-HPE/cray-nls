@@ -67,21 +67,21 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 		c.JSON(400, errResponse)
 		return
 	}
-	u.createRebuildWorkflow(requestBody.Hosts, requestBody.DryRun, requestBody.SwitchPassword, c)
+	u.createRebuildWorkflow(requestBody, c)
 }
 
-func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string, c *gin.Context) {
-	hostnames = removeDuplicateHostnames(hostnames)
+func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {
+	req.Hosts = removeDuplicateHostnames(req.Hosts)
 
-	err := u.validator.ValidateWorkerHostnames(hostnames)
+	err := u.validator.ValidateWorkerHostnames(req.Hosts)
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
 	}
-	u.logger.Infof("Hostnames: %v, dryRun: %v", hostnames, dryRun)
+	u.logger.Infof("Hostnames: %v, dryRun: %v", req.Hosts, req.DryRun)
 
-	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames, dryRun, switchPassword)
+	workflow, err := u.workflowService.CreateRebuildWorkflow(req)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -90,7 +90,7 @@ func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, sw
 	} else {
 		myWorkflow := models.CreateRebuildWorkflowResponse{
 			Name:       workflow.Name,
-			TargetNcns: hostnames,
+			TargetNcns: req.Hosts,
 		}
 		c.JSON(200, myWorkflow)
 		return
