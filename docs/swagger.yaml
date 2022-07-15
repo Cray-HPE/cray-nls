@@ -41,6 +41,8 @@ definitions:
         items:
           type: string
         type: array
+      switchPassword:
+        type: string
     type: object
   models.CreateRebuildWorkflowResponse:
     properties:
@@ -151,38 +153,6 @@ paths:
       summary: K8s Liveness endpoint
       tags:
       - Misc
-  /v1/ncns/{hostname}/rebuild:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: hostname
-        in: path
-        name: hostname
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.CreateRebuildWorkflowResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ResponseError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseError'
-      summary: End to end rebuild of a single ncn (worker only)
-      tags:
-      - NCNs
   /v1/ncns/rebuild:
     post:
       consumes:

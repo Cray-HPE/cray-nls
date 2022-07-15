@@ -1,26 +1,28 @@
-//
-//  MIT License
-//
-//  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included
-//  in all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-//  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-//  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-//  OTHER DEALINGS IN THE SOFTWARE.
-//
+/*
+ *
+ *  MIT License
+ *
+ *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
+ *  Software is furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ *  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *  OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 package controllers_v1
 
 import (
@@ -47,22 +49,6 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 	}
 }
 
-// NcnCreateRebuildWorkflow
-// @Summary  End to end rebuild of a single ncn (worker only)
-// @Param    hostname  path  string  true  "hostname"
-// @Tags     NCNs
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  models.CreateRebuildWorkflowResponse
-// @Failure  400  {object}  utils.ResponseError
-// @Failure  404  {object}  utils.ResponseError
-// @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/ncns/{hostname}/rebuild [post]
-func (u NcnController) NcnCreateRebuildWorkflow(c *gin.Context) {
-	hostname := c.Param("hostname")
-	u.createRebuildWorkflow([]string{hostname}, false, c)
-}
-
 // NcnsCreateRebuildWorkflow
 // @Summary  End to end rolling rebuild ncns (workers only)
 // @Param    include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
@@ -81,10 +67,10 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 		c.JSON(400, errResponse)
 		return
 	}
-	u.createRebuildWorkflow(requestBody.Hosts, requestBody.DryRun, c)
+	u.createRebuildWorkflow(requestBody.Hosts, requestBody.DryRun, requestBody.SwitchPassword, c)
 }
 
-func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, c *gin.Context) {
+func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string, c *gin.Context) {
 	hostnames = removeDuplicateHostnames(hostnames)
 
 	err := u.validator.ValidateWorkerHostnames(hostnames)
@@ -95,7 +81,7 @@ func (u NcnController) createRebuildWorkflow(hostnames []string, dryRun bool, c 
 	}
 	u.logger.Infof("Hostnames: %v, dryRun: %v", hostnames, dryRun)
 
-	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames, dryRun)
+	workflow, err := u.workflowService.CreateRebuildWorkflow(hostnames, dryRun, switchPassword)
 
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}

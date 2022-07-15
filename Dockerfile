@@ -1,6 +1,7 @@
+#
 # MIT License
 #
-# (C) Copyright [2018-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright 2018-2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,7 +20,7 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-
+#
 # Dockerfile for building HMS bss.
 
 ### build-base stage ###
@@ -52,7 +53,7 @@ FROM base AS builder
 RUN set -ex && go build -v -i -o /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls
 
 ### Final Stage ###
-FROM artifactory.algol60.net/docker.io/alpine:3.15
+FROM artifactory.algol60.net/docker.io/library/alpine:3.16
 LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 5000
 STOPSIGNAL SIGTERM
