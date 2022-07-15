@@ -53,7 +53,7 @@ FROM base AS builder
 RUN set -ex && go build -v -i -o /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls
 
 ### Final Stage ###
-FROM artifactory.algol60.net/docker.io/library/alpine:3.16
+FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.16
 LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 5000
 STOPSIGNAL SIGTERM
