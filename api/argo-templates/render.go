@@ -33,6 +33,7 @@ import (
 	"io/fs"
 	"text/template"
 
+	"github.com/Cray-HPE/cray-nls/api/models"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/Masterminds/sprig/v3"
 )
@@ -65,8 +66,8 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string, dryRun bool, switchPassword string) ([]byte, error) {
-	err := validator.ValidateWorkerHostnames(hostnames)
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +92,10 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, hostnames []string,
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns":     hostnames,
-		"DryRun":         dryRun,
-		"SwitchPassword": switchPassword,
+		"TargetNcns":     createRebuildWorkflowRequest.Hosts,
+		"DryRun":         createRebuildWorkflowRequest.DryRun,
+		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
+		"WipeOsd":        createRebuildWorkflowRequest.WipeOsd,
 	})
 	if err != nil {
 		return nil, err

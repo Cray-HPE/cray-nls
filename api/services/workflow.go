@@ -42,6 +42,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
+	"github.com/Cray-HPE/cray-nls/api/models"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
@@ -54,7 +55,7 @@ type WorkflowService interface {
 	DeleteWorkflow(ctx *gin.Context) error
 	RerunWorkflow(ctx *gin.Context) error
 	RetryWorkflow(ctx *gin.Context) error
-	CreateRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -171,8 +172,8 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 	)
 }
 
-func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool, switchPassword string) (*v1alpha1.Workflow, error) {
-	for _, hostname := range hostnames {
+func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
+	for _, hostname := range req.Hosts {
 		// only support worker rebuild for now
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
 		if err != nil {
@@ -195,9 +196,9 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool, 
 		return nil, fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
 	}
 
-	s.logger.Infof("Creating workflow for: %v", hostnames)
+	s.logger.Infof("Creating workflow for: %v", req.Hosts)
 	workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun, switchPassword)
+	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
@@ -221,7 +222,7 @@ func (s workflowService) CreateRebuildWorkflow(hostnames []string, dryRun bool, 
 		Workflow:  &myWorkflow,
 	})
 	if err != nil {
-		s.logger.Infof("Creating workflow for: %v FAILED", hostnames)
+		s.logger.Infof("Creating workflow for: %v FAILED", req.Hosts)
 		s.logger.Error(err)
 		return nil, err
 	}
