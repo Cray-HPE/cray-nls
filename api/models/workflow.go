@@ -28,3 +28,8 @@ type GetWorkflowResponse struct {
 	Labels map[string]string `json:"label" swaggertype:"object"`
 	Status interface{}       `json:"status" swaggertype:"object"`
 }
+
+type RetryWorkflowRequestBody struct {
+	StepName          string `json:"stepName,omitempty"`
+	RestartSuccessful bool   `json:"restartSuccessful,omitempty"`
+}

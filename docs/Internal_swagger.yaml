@@ -43,6 +43,8 @@ definitions:
         type: array
       switchPassword:
         type: string
+      wipeOsd:
+        type: boolean
     type: object
   models.CreateRebuildWorkflowResponse:
     properties:
@@ -61,6 +63,13 @@ definitions:
         type: string
       status:
         type: object
+    type: object
+  models.RetryWorkflowRequestBody:
+    properties:
+      restartSuccessful:
+        type: boolean
+      stepName:
+        type: string
     type: object
 info:
   contact: {}
@@ -327,6 +336,12 @@ paths:
         name: name
         required: true
         type: string
+      - description: retry options
+        in: body
+        name: retryOptions
+        required: true
+        schema:
+          $ref: '#/definitions/models.RetryWorkflowRequestBody'
       produces:
       - application/json
       responses:
