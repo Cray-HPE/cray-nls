@@ -215,6 +215,7 @@ Retry a failed ncn workflow, skip passed steps
 | Name | Located in | Description | Required | Schema |
 | ---- | ---------- | ----------- | -------- | ---- |
 | name | path | name of workflow | Yes | string |
+| retryOptions | body | retry options | Yes | [models.RetryWorkflowRequestBody](#modelsretryworkflowrequestbody) |
 
 ##### Responses
 
@@ -246,6 +247,7 @@ Retry a failed ncn workflow, skip passed steps
 | dryRun | boolean |  | No |
 | hosts | [ string ] |  | No |
 | switchPassword | string |  | No |
+| wipeOsd | boolean |  | No |
 
 #### models.CreateRebuildWorkflowResponse
 
@@ -261,3 +263,10 @@ Retry a failed ncn workflow, skip passed steps
 | label | object |  | No |
 | name | string |  | No |
 | status | object |  | No |
+
+#### models.RetryWorkflowRequestBody
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| restartSuccessful | boolean |  | No |
+| stepName | string |  | No |

@@ -149,11 +149,20 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 		return fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
 	}
 
+	var requestBody models.RetryWorkflowRequestBody
+	if err := ctx.BindJSON(&requestBody); err != nil {
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		ctx.JSON(400, errResponse)
+		return err
+	}
+
 	_, err = s.workflowCient.RetryWorkflow(
 		s.ctx,
 		&workflow.WorkflowRetryRequest{
-			Namespace: "argo",
-			Name:      wfName,
+			Namespace:         "argo",
+			Name:              wfName,
+			RestartSuccessful: requestBody.RestartSuccessful,
+			NodeFieldSelector: fmt.Sprintf("name=%s", requestBody.StepName),
 		},
 	)
 	return err

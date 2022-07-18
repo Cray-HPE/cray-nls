@@ -80,7 +80,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 
 // DeleteWorkflow
 // @Summary  Delete a ncn workflow
-// @Param    name  path  string  true  "name of workflow"
+// @Param    name          path  string                           true  "name of workflow"
 // @Tags     Workflow
 // @Accept   json
 // @Produce  json
@@ -102,6 +102,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // RetryWorkflows
 // @Summary  Retry a failed ncn workflow, skip passed steps
 // @Param    name  path  string  true  "name of workflow"
+// @Param    retryOptions  body  models.RetryWorkflowRequestBody  true  "retry options"
 // @Tags     Workflow
 // @Accept   json
 // @Produce  json
