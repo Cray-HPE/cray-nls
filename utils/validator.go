@@ -73,6 +73,7 @@ func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
 				return fmt.Errorf("Invalid worker hostname: %s", hostname)
 			}
 		}
+	}
 	return nil
 }
 
@@ -91,4 +92,5 @@ func (validator Validator) ValidateStorageHostnames(hostnames []string) error {
 			}
 		}
 	return nil
+	}
 }
