@@ -162,7 +162,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 			Namespace:         "argo",
 			Name:              wfName,
 			RestartSuccessful: requestBody.RestartSuccessful,
-			NodeFieldSelector: fmt.Sprintf("name=%s", requestBody.StepName),
+			NodeFieldSelector: fmt.Sprintf("name=%s.%s", wfName, requestBody.StepName),
 		},
 	)
 	return err
