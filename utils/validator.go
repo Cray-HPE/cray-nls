@@ -37,24 +37,58 @@ func NewValidator() Validator {
 	return Validator{}
 }
 
-func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
-	for _, hostname := range hostnames {
-		err := validator.validateWorkerHostname(hostname)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (validator Validator) validateWorkerHostname(hostname string) error {
-	isValid, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+func (validator Validator) ValidateHostnames(hostnames []string) error {
+	firstHostname = hostnames[0]
+	isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(firstHostname))
 	if err != nil {
 		return err
 	}
-
-	if !isValid {
-		return fmt.Errorf("invalid worker hostname: %s", hostname)
+	if isWorker {
+		return ValidateWorkerHostnames(hostnames)
 	}
+	else {
+		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(firstHostname))
+		if err != nil {
+			return err
+		}
+		if isStorage {
+			return ValidateStorageHostnames(hostnames)
+		} else {
+			return fmt.Errorf("invalid worker or storage hostname: %s", firstHostname)
+		}
+	}
+}
+
+func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
+	for _, hostname := range hostnames {
+		isValid, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+		if err != nil {
+			return err
+		}
+		if !isValid {
+			isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
+			if isStorage {
+				return fmt.Errorf("Cannot have both storage and worker node hostnames")
+			} else {
+				return fmt.Errorf("Invalid worker hostname: %s", hostname)
+			}
+		}
+	return nil
+}
+
+func (validator Validator) ValidateStorageHostnames(hostnames []string) error {
+	for _, hostname := range hostnames {
+		isValid, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
+		if err != nil {
+			return err
+		}
+		if !isValid {
+			isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+			if isWorker {
+				return fmt.Errorf("Cannot have both storage and worker node hostnames")
+			} else {
+				return fmt.Errorf("Invalid storage hostname: %s", hostname)
+			}
+		}
 	return nil
 }

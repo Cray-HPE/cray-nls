@@ -173,18 +173,36 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 }
 
 func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
+	// support worker rebuild and storage rebuild for now
+	workerNodeSet, storageNodeSet = false, false
 	for _, hostname := range req.Hosts {
-		// only support worker rebuild for now
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
 		if err != nil {
 			s.logger.Error(err)
 			return nil, err
 		}
-		if !isWorker {
-			err := fmt.Errorf("only worker nodes rebuild is supported")
+		if isWorker{
+			workerNodeSet = true
+		}
+		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
+		if err != nil {
 			s.logger.Error(err)
 			return nil, err
 		}
+		if isStorage {
+			storageNodeSet = true
+		}
+		if !isWorker && !isStorage {
+			err := fmt.Errorf("invalid worker or storage node hostname: %s", hostname)
+			s.logger.Error(err)
+			return nil, err
+		}
+	}
+	// check that hostnames do not contain both worker and storage nodes
+	if workerNodeSet && storageNodeSet {
+		err := fmt.Errorf("hostnames cannot contain both worker and storage nodes. Only one node type is supported at a time")
+			s.logger.Error(err)
+			return nil, err
 	}
 
 	workflows, err := s.checkRunningWorkflows()
@@ -196,15 +214,22 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		return nil, fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
 	}
 
-	s.logger.Infof("Creating workflow for: %v", req.Hosts)
-	workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-	workerRebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+	s.logger.Infof("Creating workflow for: %v", hostnames)
+	if workerNodeSet {
+		// rebuild worker nodes
+		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
+		rebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun, switchPassword)
+	} else{
+		// rebuild storage nodes
+		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
+		rebuildWorkflow, err := argo_templates.GetStorageRebuildWorkflow(rebuildWorkflowFS, hostnames, dryRun, switchPassword)
+	}
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
 
-	jsonTmp, err := yaml.YAMLToJSONStrict(workerRebuildWorkflow)
+	jsonTmp, err := yaml.YAMLToJSONStrict(rebuildWorkflow)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err

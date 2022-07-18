@@ -73,7 +73,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {
 	req.Hosts = removeDuplicateHostnames(req.Hosts)
 
-	err := u.validator.ValidateWorkerHostnames(req.Hosts)
+	err := u.validator.ValidateHostnames(req.Hosts)
 	if err != nil {
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)

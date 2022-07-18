@@ -74,6 +74,21 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 
 	tmpl := template.New("worker.rebuild.yaml")
 
+	return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest)
+}
+
+func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+	err := validator.ValidateStorageHostnames(createRebuildWorkflowRequest.Hosts)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl := template.New("storage.rebuild.yaml")
+
+	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
+}
+
+func GetWorkflow(tmpl template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -85,7 +100,7 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 	}
 
 	// add sprig templating func
-	tmpl, err = tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workerRebuildWorkflowFS, "ncn/*.yaml")
+	tmpl, err = tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "ncn/*.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -102,3 +117,4 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 	}
 	return tmpRes.Bytes(), nil
 }
+
