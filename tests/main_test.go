@@ -210,7 +210,23 @@ func TestBadHostname(t *testing.T) {
 
 		t.Fatalf("expected error")
 	}
+}
+func TestGoodAndBadHostname(t *testing.T) {
 
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"ncn-w001", "bad-name"}
+
+	var rebuildResponse RebuildResponse
+
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err == nil {
+
+		t.Fatalf("expected error")
+	}
 }
 
 func rebuildHosts(url string, hosts []string, target interface{}) error {
@@ -273,7 +289,6 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
-
 }
 
 func getEnvMap() (map[string]string, error) {
