@@ -45,7 +45,7 @@ COPY bootstrap $GOPATH/src/github.com/Cray-HPE/cray-nls/bootstrap
 COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/docs
 COPY utils $GOPATH/src/github.com/Cray-HPE/cray-nls/utils
 COPY main.go $GOPATH/src/github.com/Cray-HPE/cray-nls/main.go
-COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
+COPY .version $GOPATH/src/github.com/Cray-HPE/cray-nls/.version
 
 ### Build Stage ###
 FROM base AS builder
@@ -68,4 +68,4 @@ USER 65534:65534
 # Setup environment variables.
 ENV ENV=production
 # Set up the command to start the service, the run the init script.
-CMD /ncn-lifecycle-service
+ENTRYPOINT [ "/ncn-lifecycle-service" ]
