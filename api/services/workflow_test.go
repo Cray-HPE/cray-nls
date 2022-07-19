@@ -24,40 +24,118 @@
 package services
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
+	"github.com/Cray-HPE/cray-nls/api/models"
+	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/alecthomas/assert"
+	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
+	wftemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestInitializeWorkflowTemplate(t *testing.T) {
-	t.Skip("skip: TODO")
+	// setup mocks
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+	wftServiceSclientMock.On(
+		"ListWorkflowTemplates",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.WorkflowTemplateList), nil)
+	wftServiceSclientMock.On(
+		"CreateWorkflowTemplate",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil, nil)
+
+	workflowSvc := workflowService{
+		logger:                utils.GetLogger(),
+		ctx:                   context.Background(),
+		workflowCient:         wfServiceClientMock,
+		workflowTemplateCient: wftServiceSclientMock,
+		env:                   utils.Env{},
+	}
 	t.Run("It should initialize workflow template", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-	t.Run("It should update workflow template", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
+		workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
+		for _, workflowTemplate := range workflowTemplates {
+			err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+			assert.Nil(t, err)
+		}
+		wftServiceSclientMock.AssertExpectations(t)
 	})
 }
 
 func TestCreateWorkflow(t *testing.T) {
-	t.Skip("skip: TODO")
+
 	t.Run("It can create a new workflow", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+		wfServiceClientMock.On(
+			"ListWorkflows",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowList), nil)
+
+		workflowSvc := workflowService{
+			logger:                utils.GetLogger(),
+			ctx:                   context.Background(),
+			workflowCient:         wfServiceClientMock,
+			workflowTemplateCient: wftServiceSclientMock,
+			env:                   utils.Env{},
+		}
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts: []string{"ncn-w001"},
+		}
+		_, err := workflowSvc.CreateRebuildWorkflow(req)
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.Contains(t, err.Error(), "template: pattern matches no files: `ncn/*.yaml`")
+		wfServiceClientMock.AssertExpectations(t)
 	})
 	t.Run("It should NOT create a new workflow when there is a running one", func(t *testing.T) {
+		t.Skip("skip: TODO")
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
 	t.Run("It should prevent jobs running on the ncn being rebuilt", func(t *testing.T) {
+		t.Skip("skip: TODO")
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
 }
 
 func TestGetWorkflows(t *testing.T) {
-	t.Skip("skip: TODO")
+	// setup mocks
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+	wfServiceClientMock.On(
+		"ListWorkflows",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil, nil)
+
+	workflowSvc := workflowService{
+		logger:                utils.GetLogger(),
+		ctx:                   context.Background(),
+		workflowCient:         wfServiceClientMock,
+		workflowTemplateCient: wftServiceSclientMock,
+		env:                   utils.Env{},
+	}
 	t.Run("It should get workflows", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
+		response := httptest.NewRecorder()
+		context, _ := gin.CreateTestContext(response)
+
+		context.Request, _ = http.NewRequest("GET", "/", nil)
+		_, err := workflowSvc.GetWorkflows(context)
+		assert.Nil(t, err)
+		wfServiceClientMock.AssertExpectations(t)
 	})
-	t.Run("It should get workflows by (type,ncn, some other filters .....)", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
+
 }

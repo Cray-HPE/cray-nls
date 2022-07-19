@@ -50,7 +50,7 @@ github.com/argoproj/argo-events/pkg/client/eventsource/clientset/versioned/typed
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned/scheme
 github.com/argoproj/argo-events/pkg/client/sensor/clientset/versioned/typed/sensor/v1alpha1
-# github.com/argoproj/argo-workflows/v3 v3.3.6
+# github.com/argoproj/argo-workflows/v3 v3.3.8
 ## explicit; go 1.17
 github.com/argoproj/argo-workflows/v3
 github.com/argoproj/argo-workflows/v3/config
@@ -62,8 +62,10 @@ github.com/argoproj/argo-workflows/v3/pkg/apiclient/cronworkflow
 github.com/argoproj/argo-workflows/v3/pkg/apiclient/http1
 github.com/argoproj/argo-workflows/v3/pkg/apiclient/info
 github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow
+github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks
 github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowarchive
 github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate
+github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks
 github.com/argoproj/argo-workflows/v3/pkg/apis/workflow
 github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1
 github.com/argoproj/argo-workflows/v3/pkg/client/clientset/versioned
@@ -397,9 +399,13 @@ github.com/spf13/viper/internal/encoding/hcl
 github.com/spf13/viper/internal/encoding/json
 github.com/spf13/viper/internal/encoding/toml
 github.com/spf13/viper/internal/encoding/yaml
+# github.com/stretchr/objx v0.2.0
+## explicit; go 1.12
+github.com/stretchr/objx
 # github.com/stretchr/testify v1.7.1
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
+github.com/stretchr/testify/mock
 # github.com/subosito/gotenv v1.2.0
 ## explicit
 github.com/subosito/gotenv

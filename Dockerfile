@@ -45,27 +45,26 @@ COPY bootstrap $GOPATH/src/github.com/Cray-HPE/cray-nls/bootstrap
 COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/docs
 COPY utils $GOPATH/src/github.com/Cray-HPE/cray-nls/utils
 COPY main.go $GOPATH/src/github.com/Cray-HPE/cray-nls/main.go
-COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
+COPY .version $GOPATH/src/github.com/Cray-HPE/cray-nls/.version
 
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -i -o /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls
+RUN set -ex && CGO_ENABLED=0 go build -o /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls
 
 ### Final Stage ###
-FROM artifactory.algol60.net/csm-docker/stable/docker.io/library/alpine:3.16
+FROM gcr.io/distroless/static
 LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 5000
 STOPSIGNAL SIGTERM
 
 # Get the boot-script-service from the builder stage.
-COPY --from=builder /usr/local/bin/ncn-lifecycle-service /usr/local/bin/.
+COPY --from=builder /usr/local/bin/ncn-lifecycle-service /
 
 COPY .version /
 COPY .env.example .env
-# noboby 65534:65534
 USER 65534:65534
 # Setup environment variables.
 ENV ENV=production
 # Set up the command to start the service, the run the init script.
-CMD ncn-lifecycle-service
+ENTRYPOINT [ "/ncn-lifecycle-service" ] 

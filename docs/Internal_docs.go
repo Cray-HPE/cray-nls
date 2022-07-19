@@ -336,6 +336,15 @@ const docTemplateInternal = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "retry options",
+                        "name": "retryOptions",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.RetryWorkflowRequestBody"
+                        }
                     }
                 ],
                 "responses": {
@@ -598,6 +607,9 @@ const docTemplateInternal = `{
                 },
                 "switchPassword": {
                     "type": "string"
+                },
+                "wipeOsd": {
+                    "type": "boolean"
                 }
             }
         },
@@ -626,6 +638,17 @@ const docTemplateInternal = `{
                 },
                 "status": {
                     "type": "object"
+                }
+            }
+        },
+        "models.RetryWorkflowRequestBody": {
+            "type": "object",
+            "properties": {
+                "restartSuccessful": {
+                    "type": "boolean"
+                },
+                "stepName": {
+                    "type": "string"
                 }
             }
         }
