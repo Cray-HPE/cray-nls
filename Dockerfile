@@ -59,7 +59,7 @@ EXPOSE 5000
 STOPSIGNAL SIGTERM
 
 # Get the boot-script-service from the builder stage.
-COPY --from=builder /usr/local/bin/ncn-lifecycle-service /ncn-lifecycle-service
+COPY --from=builder /usr/local/bin/ncn-lifecycle-service /
 
 COPY .version /
 COPY .env.example .env
