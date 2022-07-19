@@ -24,18 +24,47 @@
 package services
 
 import (
+	"context"
 	"testing"
 
+	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
+	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/alecthomas/assert"
+	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
+	wftemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestInitializeWorkflowTemplate(t *testing.T) {
-	t.Skip("skip: TODO")
+	// setup mocks
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+	wftServiceSclientMock.On(
+		"ListWorkflowTemplates",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.WorkflowTemplateList), nil)
+	wftServiceSclientMock.On(
+		"CreateWorkflowTemplate",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil, nil)
+
+	workflowSvc := workflowService{
+		logger:                utils.GetLogger(),
+		ctx:                   context.Background(),
+		workflowCient:         wfServiceClientMock,
+		workflowTemplateCient: wftServiceSclientMock,
+		env:                   utils.Env{},
+	}
 	t.Run("It should initialize workflow template", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
-	})
-	t.Run("It should update workflow template", func(t *testing.T) {
-		assert.Fail(t, "NOT IMPLEMENTED")
+		workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
+		for _, workflowTemplate := range workflowTemplates {
+			err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
+			assert.Nil(t, err)
+		}
+		wftServiceSclientMock.AssertExpectations(t)
 	})
 }
 
