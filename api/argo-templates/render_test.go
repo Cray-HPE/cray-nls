@@ -148,16 +148,4 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 		}
 
 	})
-	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
-		req := models.CreateRebuildWorkflowRequest{
-			Hosts:          []string{"ncn-s99999"},
-			DryRun:         doDryRun,
-			SwitchPassword: "thisIsApassword",
-		}
-		storageRebuildWorkflow, _ := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
-		storageRebuildWorkflowJson, _ := yaml.YAMLToJSON(storageRebuildWorkflow)
-		var myWorkflow v1alpha1.Workflow
-		json.Unmarshal(storageRebuildWorkflowJson, &myWorkflow)
-		assert.Equal(t, "ncn-s99999", myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
-	})
 }

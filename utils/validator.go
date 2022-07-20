@@ -45,17 +45,15 @@ func (validator Validator) ValidateHostnames(hostnames []string) error {
 	}
 	if isWorker {
 		return validator.ValidateWorkerHostnames(hostnames)
-	} else {
-		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(firstHostname))
-		if err != nil {
-			return err
-		}
-		if isStorage {
-			return validator.ValidateStorageHostnames(hostnames)
-		} else {
-			return fmt.Errorf("invalid worker or storage hostname: %s", firstHostname)
-		}
 	}
+	isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(firstHostname))
+	if err != nil {
+		return err
+	}
+	if isStorage {
+		return validator.ValidateStorageHostnames(hostnames)
+	}
+	return fmt.Errorf("invalid worker or storage hostname: %s", firstHostname)
 }
 
 func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
