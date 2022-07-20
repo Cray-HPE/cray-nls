@@ -29,41 +29,16 @@ import (
 
 func TestWorkerHostnameValidator(t *testing.T) {
 	var tests = []struct {
-		hostname string
-		wantErr  bool
-	}{
-		{"ncn-m001", true},
-		{"ncn-w001", false},
-		{"ncn-s001", false},
-		{"ncn-m011", true},
-		{"ncn-x001", true},
-		{"sccn-m001", true},
-		{"ncn-x001", true},
-		{"ncn-m001asdf", true},
-	}
-	validator := NewValidator()
-	for _, tt := range tests {
-		t.Run(tt.hostname, func(t *testing.T) {
-			err := validator.validateWorkerHostname(tt.hostname)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-func TestWorkerHostnamesValidator(t *testing.T) {
-	var tests = []struct {
 		hostnames []string
-		wantErr   bool
+		wantErr  bool
 	}{
 		{[]string{"ncn-m001"}, true},
 		{[]string{"ncn-w001"}, false},
 		{[]string{"ncn-w001", "ncn-m002"}, true},
-		{[]string{"ncn-s001"}, false},
+		{[]string{"ncn-s001"}, true},
 		{[]string{"ncn-m011"}, true},
 		{[]string{"ncn-w001", "ncn-s002"}, true},
+		{[]string{"ncn-w001", "ncn-w002"}, false},
 		{[]string{"ncn-x001"}, true},
 		{[]string{"sccn-m001"}, true},
 		{[]string{"ncn-x001"}, true},
@@ -73,6 +48,66 @@ func TestWorkerHostnamesValidator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.hostnames[0], func(t *testing.T) {
 			err := validator.ValidateWorkerHostnames(tt.hostnames)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestStorageHostnamesValidator(t *testing.T) {
+	var tests = []struct {
+		hostnames []string
+		wantErr   bool
+	}{
+		{[]string{"ncn-m001"}, true},
+		{[]string{"ncn-w001"}, true},
+		{[]string{"ncn-w001", "ncn-m002"}, true},
+		{[]string{"ncn-s001"}, false},
+		{[]string{"ncn-m011"}, true},
+		{[]string{"ncn-w001", "ncn-s002"}, true},
+		{[]string{"ncn-s001", "ncn-s002"}, false},
+		{[]string{"ncn-x001"}, true},
+		{[]string{"sccn-m001"}, true},
+		{[]string{"ncn-x001"}, true},
+		{[]string{"ncn-m001asdf"}, true},
+	}
+	validator := NewValidator()
+	for _, tt := range tests {
+		t.Run(tt.hostnames[0], func(t *testing.T) {
+			err := validator.ValidateStorageHostnames(tt.hostnames)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+
+func TestHostnamesValidator(t *testing.T) {
+	var tests = []struct {
+		hostnames []string
+		wantErr   bool
+	}{
+		{[]string{"ncn-m001"}, true},
+		{[]string{"ncn-w001"}, false},
+		{[]string{"ncn-w001", "ncn-m002"}, true},
+		{[]string{"ncn-w001", "ncn-w002"}, false},
+		{[]string{"ncn-s001"}, false},
+		{[]string{"ncn-m011"}, true},
+		{[]string{"ncn-w001", "ncn-s002"}, true},
+		{[]string{"ncn-s001", "ncn-s002"}, false},
+		{[]string{"ncn-x001"}, true},
+		{[]string{"sccn-m001"}, true},
+		{[]string{"ncn-x001"}, true},
+		{[]string{"ncn-m001asdf"}, true},
+	}
+	validator := NewValidator()
+	for _, tt := range tests {
+		t.Run(tt.hostnames[0], func(t *testing.T) {
+			err := validator.ValidateHostnames(tt.hostnames)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return

@@ -88,7 +88,7 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
 }
 
-func GetWorkflow(tmpl template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {

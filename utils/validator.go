@@ -38,21 +38,20 @@ func NewValidator() Validator {
 }
 
 func (validator Validator) ValidateHostnames(hostnames []string) error {
-	firstHostname = hostnames[0]
+	var firstHostname = hostnames[0]
 	isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(firstHostname))
 	if err != nil {
 		return err
 	}
 	if isWorker {
-		return ValidateWorkerHostnames(hostnames)
-	}
-	else {
+		return validator.ValidateWorkerHostnames(hostnames)
+	} else {
 		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(firstHostname))
 		if err != nil {
 			return err
 		}
 		if isStorage {
-			return ValidateStorageHostnames(hostnames)
+			return validator.ValidateStorageHostnames(hostnames)
 		} else {
 			return fmt.Errorf("invalid worker or storage hostname: %s", firstHostname)
 		}
@@ -67,6 +66,9 @@ func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
 		}
 		if !isValid {
 			isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
+			if err != nil {
+				return err
+			}
 			if isStorage {
 				return fmt.Errorf("Cannot have both storage and worker node hostnames")
 			} else {
@@ -85,12 +87,15 @@ func (validator Validator) ValidateStorageHostnames(hostnames []string) error {
 		}
 		if !isValid {
 			isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
+			if err != nil {
+				return err
+			}
 			if isWorker {
 				return fmt.Errorf("Cannot have both storage and worker node hostnames")
 			} else {
 				return fmt.Errorf("Invalid storage hostname: %s", hostname)
 			}
 		}
-	return nil
 	}
+	return nil
 }
