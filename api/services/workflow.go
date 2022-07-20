@@ -183,7 +183,7 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 
 func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
 	// support worker rebuild and storage rebuild for now
-	workerNodeSet, storageNodeSet = false, false
+	workerNodeSet, storageNodeSet := false, false
 	for _, hostname := range req.Hosts {
 		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
 		if err != nil {
@@ -223,15 +223,16 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		return nil, fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
 	}
 
-	s.logger.Infof("Creating workflow for: %v", hostnames)
+	s.logger.Infof("Creating workflow for: %v", req.Hosts)
+	var rebuildWorkflow []byte
 	if workerNodeSet {
 		// rebuild worker nodes
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-		rebuildWorkflow, err := argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, hostnames, dryRun, switchPassword)
+		rebuildWorkflow, err = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 	} else{
 		// rebuild storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
-		rebuildWorkflow, err := argo_templates.GetStorageRebuildWorkflow(rebuildWorkflowFS, hostnames, dryRun, switchPassword)
+		rebuildWorkflow, err = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
 	}
 	if err != nil {
 		s.logger.Error(err)
