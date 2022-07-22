@@ -39,7 +39,7 @@ import (
 const doDryRun bool = true
 
 //go:embed ncn/*
-var workerRebuildWorkflowFS embed.FS
+var rebuildWorkflowFS embed.FS
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+		_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)
 	})
 	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
@@ -73,7 +73,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 					DryRun:         doDryRun,
 					SwitchPassword: "thisIsApassword",
 				}
-				_, err := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+				_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -88,7 +88,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req)
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
@@ -101,7 +101,51 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Contains(t, string(workerRebuildWorkflow), "thisIsApassword")
+	})
+}
+
+//---- Storage Testing ----// 
+func TestRenderStorageRebuildTemplate(t *testing.T) {
+	t.Run("It should render a workflow template for a group of storage nodes", func(t *testing.T) {
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts:          []string{"ncn-s006", "ncn-s005"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
+		}
+		_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
+		assert.Equal(t, true, err == nil)
+	})
+	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
+		var tests = []struct {
+			hostnames []string
+			wantErr   bool
+		}{
+			{[]string{"ncn-m001"}, true},
+			{[]string{"ncn-w001"}, true},
+			{[]string{"ncn-s001"}, false},
+			{[]string{"ncn-m011"}, true},
+			{[]string{"ncn-x001"}, true},
+			{[]string{"sccn-m001"}, true},
+			{[]string{"ncn-x001"}, true},
+			{[]string{"ncn-m001asdf"}, true},
+			{[]string{"ncn-w001", "ncn-m001asdf"}, true},
+		}
+		for _, tt := range tests {
+			t.Run(tt.hostnames[0], func(t *testing.T) {
+				req := models.CreateRebuildWorkflowRequest{
+					Hosts:          tt.hostnames,
+					DryRun:         doDryRun,
+					SwitchPassword: "thisIsApassword",
+				}
+				_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			})
+		}
+
 	})
 }

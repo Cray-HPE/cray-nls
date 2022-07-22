@@ -84,6 +84,27 @@ func TestNcnsCreateRebuildWorkflow(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.Code)
 	})
 
+	t.Run("Happy", func(t *testing.T) {
+
+		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		workflowServiceMock.EXPECT().CreateRebuildWorkflow(gomock.Any()).Return(
+			&v1alpha1.Workflow{
+				ObjectMeta: v1.ObjectMeta{Name: "mocked", Labels: map[string]string{"targetNcn": "mocked-target-ncn"}},
+			}, nil)
+		res := executeWithContext(
+			workflowServiceMock,
+			`{
+				"hosts": [
+					"ncn-s003",
+					"ncn-s003",
+					"ncn-s003",
+					"ncn-s003"
+				]
+			}`,
+		)
+		assert.Equal(t, http.StatusOK, res.Code)
+	})
+
 	t.Run("Error", func(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
