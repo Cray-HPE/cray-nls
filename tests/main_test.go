@@ -51,7 +51,7 @@ func TestSingleLabelRebuild(t *testing.T) {
 	var getResponse GetResponse
 	label := fmt.Sprintf("target-ncns=%v", hosts[0])
 
-	job_timeout_seconds := 300
+	job_timeout_seconds := 500
 	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
 
 	for {
@@ -65,9 +65,43 @@ func TestSingleLabelRebuild(t *testing.T) {
 		}
 	}
 
+	allowedAttempts := 10
+	attemptsMade := 0
+
 	// TODO: Fail here in more cases
 	if getResponse[0].Status.Phase != "Succeeded" {
-		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
+
+		for {
+			fmt.Printf("RETRY...\n")
+			time.Sleep(3 * time.Second)
+
+			err := retryRebuild(rebuildResponse.Name)
+			attemptsMade++
+			if err != nil {
+				t.Fatalf("Retry was unsuccesful %v\n", err)
+			}
+
+			// wait for status to succeed or fail
+			var secondGetResponse GetResponse
+			for {
+				// make get request to check status
+				// TODO: handle error that this returns
+				getRebuildStatus(envMap["STATUS_URL"], label, &secondGetResponse)
+				if secondGetResponse[0].Status.Phase != "Running" && secondGetResponse[0].Status.Phase != "" {
+					break
+				} else if time.Now().After(maxTime) {
+					t.Fatalf("Retry was unable to complete in %v seconds", job_timeout_seconds)
+				}
+			}
+
+			if secondGetResponse[0].Status.Phase == "Succeded" {
+				break
+			} else if attemptsMade >= allowedAttempts {
+				t.Fatalf("Could not complete after %v retries with phase: %v", allowedAttempts, secondGetResponse[0].Status.Phase)
+			}
+		}
+
+		// t.Fatalf("expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
 
 	}
 }
@@ -289,6 +323,57 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 	}
 
 	return json.NewDecoder(response.Body).Decode(target)
+}
+func retryRebuild(workflowName string) error {
+	// get env map
+	envMap, err := getEnvMap()
+	if err != nil {
+		return errors.New("could not get the environment map: " + err.Error())
+	}
+
+	requestBody := strings.NewReader(`
+	{
+		"restartSuccessful": true,
+		"stepName": "string"
+	  }`)
+
+	// TODO: This is insecure; use only in dev environments.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	url := fmt.Sprintf("%s%s/retry", envMap["RETRY_URL"], workflowName)
+
+	//create POST request
+	request, err := http.NewRequest("PUT", url, requestBody)
+	if err != nil {
+		return errors.New("could not create PUT request: " + err.Error())
+	}
+	defer request.Body.Close()
+
+	// Set header variables
+	if envMap["TOKEN"] != "" {
+		request.Header.Set("Authorization", "Bearer "+envMap["TOKEN"])
+	}
+	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Content-Type", "application/json")
+
+	//make POST request
+	response, err := client.Do(request)
+	if err != nil {
+		return errors.New("could not receive PUT response: " + err.Error())
+	}
+
+	if response.StatusCode != 200 {
+		bodyBytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			return errors.New("could not read response body bytes: " + err.Error())
+		}
+		return errors.New("expected status code 200 got: " + fmt.Sprint(response.StatusCode) + "\nbody: " + string(bodyBytes))
+	}
+
+	return nil
 }
 
 func getEnvMap() (map[string]string, error) {
