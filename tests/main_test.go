@@ -48,61 +48,10 @@ func TestSingleLabelRebuild(t *testing.T) {
 	}
 
 	//Check response until it succeedes or fails
-	var getResponse GetResponse
-	label := fmt.Sprintf("target-ncns=%v", hosts[0])
+	waitForWorkflowErr := waitForWorkflowResponse(rebuildResponse.Name, envMap["STATUS_URL"], 500, 10)
 
-	job_timeout_seconds := 500
-	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
-
-	for {
-		// make get request to check status
-		// TODO: handle error that this returns
-		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
-		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
-			break
-		} else if time.Now().After(maxTime) {
-			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
-		}
-	}
-
-	allowedAttempts := 10
-	attemptsMade := 0
-
-	// TODO: Fail here in more cases
-	if getResponse[0].Status.Phase != "Succeeded" {
-
-		for {
-			fmt.Printf("RETRY...\n")
-			time.Sleep(3 * time.Second)
-
-			err := retryRebuild(rebuildResponse.Name)
-			attemptsMade++
-			if err != nil {
-				t.Fatalf("Retry was unsuccesful %v\n", err)
-			}
-
-			// wait for status to succeed or fail
-			var secondGetResponse GetResponse
-			for {
-				// make get request to check status
-				// TODO: handle error that this returns
-				getRebuildStatus(envMap["STATUS_URL"], label, &secondGetResponse)
-				if secondGetResponse[0].Status.Phase != "Running" && secondGetResponse[0].Status.Phase != "" {
-					break
-				} else if time.Now().After(maxTime) {
-					t.Fatalf("Retry was unable to complete in %v seconds", job_timeout_seconds)
-				}
-			}
-
-			if secondGetResponse[0].Status.Phase == "Succeded" {
-				break
-			} else if attemptsMade >= allowedAttempts {
-				t.Fatalf("Could not complete after %v retries with phase: %v", allowedAttempts, secondGetResponse[0].Status.Phase)
-			}
-		}
-
-		// t.Fatalf("expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
-
+	if waitForWorkflowErr != nil {
+		t.Fatalf("wait for workflow failed with: %v\n", waitForWorkflowErr)
 	}
 }
 
@@ -122,29 +71,13 @@ func TestDoubleLabelRebuild(t *testing.T) {
 	}
 
 	//Check response until it succeedes or fails
-	var getResponse GetResponse
-	label := ""
+	waitForWorkflowErr := waitForWorkflowResponse(rebuildResponse.Name, envMap["STATUS_URL"], 600, 10)
 
-	job_timeout_seconds := 400
-	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
-
-	for {
-		// make get request to check status
-		// TODO: handle error that this returns
-		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
-		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
-			break
-		} else if time.Now().After(maxTime) {
-			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
-		}
-	}
-
-	// TODO: Fail here in more cases
-	if getResponse[0].Status.Phase != "Succeeded" {
-		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
-
+	if waitForWorkflowErr != nil {
+		t.Fatalf("wait for workflow failed with: %v\n", waitForWorkflowErr)
 	}
 }
+
 func TestTripleLabelRebuild(t *testing.T) {
 
 	envMap, mapErr := getEnvMap()
@@ -161,27 +94,10 @@ func TestTripleLabelRebuild(t *testing.T) {
 	}
 
 	//Check response until it succeedes or fails
-	var getResponse GetResponse
-	label := ""
+	waitForWorkflowErr := waitForWorkflowResponse(rebuildResponse.Name, envMap["STATUS_URL"], 800, 10)
 
-	job_timeout_seconds := 800
-	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
-
-	for {
-		// make get request to check status
-		// TODO: handle error that this returns
-		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
-		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
-			break
-		} else if time.Now().After(maxTime) {
-			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
-		}
-	}
-
-	// TODO: Fail here in more cases
-	if getResponse[0].Status.Phase != "Succeeded" {
-		t.Fatalf("Expected phase to be Succeeded but got: %v", getResponse[0].Status.Phase)
-
+	if waitForWorkflowErr != nil {
+		t.Fatalf("wait for workflow failed with: %v\n", waitForWorkflowErr)
 	}
 }
 
@@ -212,19 +128,10 @@ func TestRebuildWhileBusy(t *testing.T) {
 
 	// Wait for the initial workflow to complete so this wont interfere with other tests
 
-	job_timeout_seconds := 300
-	maxTime := time.Now().Add(time.Second * time.Duration(job_timeout_seconds))
+	waitForWorkflowErr := waitForWorkflowResponse(rebuildResponse.Name, envMap["STATUS_URL"], 500, 10)
 
-	var getResponse GetResponse
-	label := fmt.Sprintf("target-ncns=%v", hosts[0])
-	for {
-		// make get request to check status
-		getRebuildStatus(envMap["STATUS_URL"], label, &getResponse)
-		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
-			break
-		} else if time.Now().After(maxTime) {
-			t.Fatalf("Task was unable to complete in %v seconds", job_timeout_seconds)
-		}
+	if err != nil {
+		t.Fatalf("wait for workflow failed with: %v\n", waitForWorkflowErr)
 	}
 }
 
@@ -245,6 +152,7 @@ func TestBadHostname(t *testing.T) {
 		t.Fatalf("expected error")
 	}
 }
+
 func TestGoodAndBadHostname(t *testing.T) {
 
 	envMap, mapErr := getEnvMap()
@@ -324,6 +232,72 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 
 	return json.NewDecoder(response.Body).Decode(target)
 }
+
+func waitForWorkflowResponse(workflowName string, url string, timeout int, retryAttempts int) error {
+
+	fmt.Printf("waiting for response...\n")
+	maxTime := time.Now().Add(time.Second * time.Duration(timeout))
+	var getResponse GetResponse
+
+	for {
+		// make get request to check status
+		err := getRebuildStatus(url, &getResponse)
+
+		if err != nil {
+			return errors.New("Failed to get rebuild status: " + err.Error())
+		}
+
+		if getResponse[0].Status.Phase != "Running" && getResponse[0].Status.Phase != "" {
+			break
+		} else if time.Now().After(maxTime) {
+			return errors.New("Task was unable to complete in  " + fmt.Sprint(timeout) + " seconds")
+		}
+
+	}
+
+	// TODO: add the code to retry a bunch here
+	if getResponse[0].Status.Phase != "Succeeded" {
+		attemptsMade := 0
+
+		if getResponse[0].Status.Phase != "Succeeded" {
+
+			for {
+				fmt.Printf("retry...\n")
+				time.Sleep(3 * time.Second)
+
+				retryErr := retryRebuild(workflowName)
+				attemptsMade++
+				if retryErr != nil {
+					return errors.New("Retry was unsuccesful with: " + retryErr.Error())
+				}
+
+				// wait for status to succeed or fail
+				var secondGetResponse GetResponse
+				for {
+					// make get request to check status
+					// TODO: handle error that this returns
+					getRebuildStatus(url, &secondGetResponse)
+					if secondGetResponse[0].Status.Phase != "Running" && secondGetResponse[0].Status.Phase != "" {
+						break
+					} else if time.Now().After(maxTime) {
+						return errors.New("retry was unable to complete in " + fmt.Sprint(timeout) + " seconds")
+					}
+				}
+
+				if secondGetResponse[0].Status.Phase == "Succeded" {
+					break
+				} else if attemptsMade >= retryAttempts {
+					return errors.New("could not complete after " + fmt.Sprint(retryAttempts) + " retries with phase: " + secondGetResponse[0].Status.Phase)
+				}
+			}
+
+		}
+		// return errors.New("expected phase to be Succeeded but got: " + getResponse[0].Status.Phase)
+	}
+
+	return nil
+}
+
 func retryRebuild(workflowName string) error {
 	// get env map
 	envMap, err := getEnvMap()
@@ -389,20 +363,10 @@ func getEnvMap() (map[string]string, error) {
 	return envMap, nil
 }
 
-func getRebuildStatus(url string, label string, target interface{}) error {
+func getRebuildStatus(url string, target interface{}) error {
 
 	// url += "?labelSelector=" + label
-	new_url := ""
-	if label == "" {
-
-		new_url = url
-
-	} else {
-
-		new_url = fmt.Sprintf("%s?labelSelector=%s", url, label)
-	}
-
-	response, err := http.Get(new_url)
+	response, err := http.Get(url)
 	defer response.Body.Close()
 	if err != nil {
 		return err
