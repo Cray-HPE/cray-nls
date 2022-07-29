@@ -63,6 +63,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
@@ -75,6 +76,7 @@ func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowReq
 
 	err := u.validator.ValidateHostnames(req.Hosts)
 	if err != nil {
+		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
@@ -84,6 +86,7 @@ func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowReq
 	workflow, err := u.workflowService.CreateRebuildWorkflow(req)
 
 	if err != nil {
+		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(500, errResponse)
 		return
