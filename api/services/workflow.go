@@ -100,11 +100,14 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 		},
 	)
 	if err != nil {
+		s.logger.Error(err)
 		return fmt.Errorf("failed to find workflow with name: %s", wfName)
 	}
 	// only delete rebuild workflow
 	if workflowToDelete.Labels["type"] != "rebuild" {
-		return fmt.Errorf("workflow type is wrong: %s", workflowToDelete.Labels["type"])
+		err := fmt.Errorf("workflow type is wrong: %s", workflowToDelete.Labels["type"])
+		s.logger.Error(err)
+		return err
 	}
 
 	_, err = s.workflowCient.DeleteWorkflow(
@@ -114,18 +117,26 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 			Name:      wfName,
 		},
 	)
-	return err
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
 	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
+		s.logger.Error(err)
 		return err
 	}
 
 	if workflows.Len() == 1 && workflows[0].Name != wfName {
-		return fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		err := fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		s.logger.Error(err)
+		return err
 	}
 
 	_, err = s.workflowCient.ResubmitWorkflow(
@@ -135,22 +146,30 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 			Name:      wfName,
 		},
 	)
-	return err
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
 	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
+		s.logger.Error(err)
 		return err
 	}
 
 	if workflows.Len() == 1 && workflows[0].Name != wfName {
-		return fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		err := fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		s.logger.Error(err)
+		return err
 	}
 
 	var requestBody models.RetryWorkflowRequestBody
 	if err := ctx.BindJSON(&requestBody); err != nil {
+		s.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		ctx.JSON(400, errResponse)
 		return err
@@ -165,7 +184,12 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 			NodeFieldSelector: fmt.Sprintf("name=%s.%s", wfName, requestBody.StepName),
 		},
 	)
-	return err
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	return nil
 }
 
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
@@ -190,7 +214,7 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 			s.logger.Error(err)
 			return nil, err
 		}
-		if isWorker{
+		if isWorker {
 			workerNodeSet = true
 		}
 		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
@@ -210,17 +234,20 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 	// check that hostnames do not contain both worker and storage nodes
 	if workerNodeSet && storageNodeSet {
 		err := fmt.Errorf("hostnames cannot contain both worker and storage nodes. Only one node type is supported at a time")
-			s.logger.Error(err)
-			return nil, err
+		s.logger.Error(err)
+		return nil, err
 	}
 
 	workflows, err := s.checkRunningWorkflows()
 	if err != nil {
+		s.logger.Error(err)
 		return nil, err
 	}
 
 	if workflows.Len() > 0 {
-		return nil, fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		err := fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+		s.logger.Error(err)
+		return nil, err
 	}
 
 	s.logger.Infof("Creating workflow for: %v", req.Hosts)
@@ -229,7 +256,7 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		// rebuild worker nodes
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
 		rebuildWorkflow, err = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
-	} else{
+	} else {
 		// rebuild storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
 		rebuildWorkflow, err = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
@@ -257,7 +284,7 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		Workflow:  &myWorkflow,
 	})
 	if err != nil {
-		s.logger.Infof("Creating workflow for: %v FAILED", req.Hosts)
+		s.logger.Errorf("Creating workflow for: %v FAILED", req.Hosts)
 		s.logger.Error(err)
 		return nil, err
 	}
@@ -270,6 +297,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	err := json.Unmarshal(tmpBytes, &myWorkflowTemplate)
 	if err != nil {
 		s.logger.Error(err)
+		return err
 	}
 	s.logger.Infof("Initializing workflow template: %s", myWorkflowTemplate.Name)
 	for {
