@@ -127,7 +127,18 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 
 func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
-	workflows, err := s.checkRunningWorkflows()
+	wf, err := s.workflowCient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
+		Namespace: "argo",
+		Name:      wfName,
+	})
+	if err != nil || wf == nil {
+		if err == nil {
+			err = fmt.Errorf("failed to get workflow: %s", wfName)
+		}
+		s.logger.Error(err)
+		return err
+	}
+	workflows, err := s.checkRunningOrFailedWorkflows(models.RebuildWorkflowType(wf.Labels["node-type"]))
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -155,7 +166,18 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 
 func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
-	workflows, err := s.checkRunningWorkflows()
+	wf, err := s.workflowCient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
+		Namespace: "argo",
+		Name:      wfName,
+	})
+	if err != nil || wf == nil {
+		if err == nil {
+			err = fmt.Errorf("failed to get workflow: %s", wfName)
+		}
+		s.logger.Error(err)
+		return err
+	}
+	workflows, err := s.checkRunningOrFailedWorkflows(models.RebuildWorkflowType(wf.Labels["node-type"]))
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -208,44 +230,43 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
 	// support worker rebuild and storage rebuild for now
 	workerNodeSet, storageNodeSet := false, false
-	for _, hostname := range req.Hosts {
-		isWorker, err := regexp.Match(`^ncn-w[0-9]*$`, []byte(hostname))
-		if err != nil {
-			s.logger.Error(err)
-			return nil, err
-		}
-		if isWorker {
-			workerNodeSet = true
-		}
-		isStorage, err := regexp.Match(`^ncn-s[0-9]*$`, []byte(hostname))
-		if err != nil {
-			s.logger.Error(err)
-			return nil, err
-		}
-		if isStorage {
-			storageNodeSet = true
-		}
-		if !isWorker && !isStorage {
-			err := fmt.Errorf("invalid worker or storage node hostname: %s", hostname)
-			s.logger.Error(err)
-			return nil, err
-		}
-	}
-	// check that hostnames do not contain both worker and storage nodes
-	if workerNodeSet && storageNodeSet {
-		err := fmt.Errorf("hostnames cannot contain both worker and storage nodes. Only one node type is supported at a time")
-		s.logger.Error(err)
-		return nil, err
-	}
-
-	workflows, err := s.checkRunningWorkflows()
+	var rebuildType models.RebuildWorkflowType
+	workerRegEx, err := regexp.Compile(`^ncn-w[0-9]*$`)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
+	storageRegEx, err := regexp.Compile(`^ncn-s[0-9]*$`)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+	for _, hostname := range req.Hosts {
+		isWorker := workerRegEx.Match([]byte(hostname))
+		if isWorker {
+			workerNodeSet = true
+			rebuildType = models.WORKER
+		}
+		isStorage := storageRegEx.Match([]byte(hostname))
+		if isStorage {
+			storageNodeSet = true
+			rebuildType = models.STORAGE
+		}
+		if !isWorker && !isStorage {
+			err = fmt.Errorf("invalid worker or storage node hostname: %s", hostname)
+			s.logger.Error(err)
+			return nil, err
+		}
+		// check that hostnames do not contain both worker and storage nodes
+		if workerNodeSet && storageNodeSet {
+			err = fmt.Errorf("hostnames cannot contain both worker and storage nodes. Only one node type is supported at a time")
+			s.logger.Error(err)
+			return nil, err
+		}
+	}
 
-	if workflows.Len() > 0 {
-		err := fmt.Errorf("another ncn rebuild workflow is still running: %s", workflows[0].Name)
+	_, err = s.checkRunningOrFailedWorkflows(rebuildType)
+	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
@@ -343,11 +364,11 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	return nil
 }
 
-func (s workflowService) checkRunningWorkflows() (v1alpha1.Workflows, error) {
+func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models.RebuildWorkflowType) (v1alpha1.Workflows, error) {
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
-			LabelSelector: "workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild",
+			LabelSelector: fmt.Sprintf("workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild,node-type=%s", rebuildType),
 		},
 	})
 	if err != nil {
@@ -356,7 +377,7 @@ func (s workflowService) checkRunningWorkflows() (v1alpha1.Workflows, error) {
 	}
 
 	if workflows.Items.Len() > 1 {
-		err := fmt.Errorf("another ncn rebuild workflow is still running")
+		err := fmt.Errorf("another ncn rebuild workflow (type: %s) is running/failed", rebuildType)
 		s.logger.Error(err)
 		return nil, err
 	}

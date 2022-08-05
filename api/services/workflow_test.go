@@ -101,13 +101,64 @@ func TestCreateWorkflow(t *testing.T) {
 		assert.Contains(t, err.Error(), "template: pattern matches no files: `ncn/*.yaml`")
 		wfServiceClientMock.AssertExpectations(t)
 	})
-	t.Run("It should NOT create a new workflow when there is a running one", func(t *testing.T) {
+	t.Run("It should NOT create a new workflow when there is a running one of same type", func(t *testing.T) {
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+		wfServiceClientMock.On(
+			"ListWorkflows",
+			mock.Anything,
+			mock.Anything,
+		).Return(&v1alpha1.WorkflowList{Items: make(v1alpha1.Workflows, 2)}, nil)
+
+		workflowSvc := workflowService{
+			logger:                utils.GetLogger(),
+			ctx:                   context.Background(),
+			workflowCient:         wfServiceClientMock,
+			workflowTemplateCient: wftServiceSclientMock,
+			env:                   utils.Env{},
+		}
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts: []string{"ncn-w001"},
+		}
+		_, err := workflowSvc.CreateRebuildWorkflow(req)
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.Contains(t, err.Error(), "another ncn rebuild workflow (type: worker) is running/failed")
+		wfServiceClientMock.AssertExpectations(t)
+	})
+	t.Run("It should NOT create a new workflow when there is a failed/error one of same type", func(t *testing.T) {
 		t.Skip("skip: TODO")
 		assert.Fail(t, "NOT IMPLEMENTED")
 	})
-	t.Run("It should prevent jobs running on the ncn being rebuilt", func(t *testing.T) {
-		t.Skip("skip: TODO")
-		assert.Fail(t, "NOT IMPLEMENTED")
+	t.Run("It should NOT create a new workflow when request has mixed type", func(t *testing.T) {
+		workflowSvc := workflowService{
+			logger:                utils.GetLogger(),
+			ctx:                   context.Background(),
+			workflowCient:         nil,
+			workflowTemplateCient: nil,
+			env:                   utils.Env{},
+		}
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts: []string{"ncn-w001", "ncn-s001"},
+		}
+		_, err := workflowSvc.CreateRebuildWorkflow(req)
+		assert.Contains(t, err.Error(), "hostnames cannot contain both worker and storage nodes. Only one node type is supported at a time")
+	})
+	t.Run("It should NOT create a new workflow when request has wrong hostname", func(t *testing.T) {
+		workflowSvc := workflowService{
+			logger:                utils.GetLogger(),
+			ctx:                   context.Background(),
+			workflowCient:         nil,
+			workflowTemplateCient: nil,
+			env:                   utils.Env{},
+		}
+		req := models.CreateRebuildWorkflowRequest{
+			Hosts: []string{"ncn-ws1", "ncn-s001"},
+		}
+		_, err := workflowSvc.CreateRebuildWorkflow(req)
+		assert.Contains(t, err.Error(), "invalid worker or storage node hostname")
 	})
 }
 

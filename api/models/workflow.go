@@ -33,3 +33,10 @@ type RetryWorkflowRequestBody struct {
 	StepName          string `json:"stepName,omitempty"`
 	RestartSuccessful bool   `json:"restartSuccessful,omitempty"`
 }
+
+type RebuildWorkflowType string
+
+const (
+	WORKER  RebuildWorkflowType = "worker"
+	STORAGE RebuildWorkflowType = "storage"
+)
