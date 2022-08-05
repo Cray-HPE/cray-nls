@@ -70,13 +70,6 @@ func (u MiscController) GetVersion(c *gin.Context) {
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/readiness [get]
 func (u MiscController) GetReadiness(c *gin.Context) {
-	workflows, err := u.workflowService.GetWorkflows(c)
-	if err != nil && len(workflows.Items) == 0 {
-		u.logger.Error(err)
-		c.Status(http.StatusInternalServerError)
-		return
-	}
-
 	c.Status(http.StatusNoContent)
 }
 
