@@ -12,25 +12,8 @@ import (
 	"testing"
 	"time"
 
-	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
 	"github.com/joho/godotenv"
 )
-
-func TestOutputtingTemplates(t *testing.T) {
-	//messing with argo templates
-	//Di: not really sure what I need to do with the workflowtemplates once I have them/ which ones to use
-	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
-
-	// workerRebuildWorkflow, _ := argo_templates.GetWorkerRebuildWorkflow()
-
-	index := 0
-	for _, workflowtemplate := range workflowTemplates {
-
-		fmt.Printf("template %v\n", index)
-		fmt.Println(string((workflowtemplate)))
-		index++
-	}
-}
 
 func TestSingleLabelRebuild(t *testing.T) {
 
@@ -167,9 +150,34 @@ func TestGoodAndBadHostname(t *testing.T) {
 
 	if err == nil {
 
-		t.Fatalf("expected error")
+		t.Fatalf("expected error but workflow succeed")
 	}
 }
+
+func TestDuplicateHostname(t *testing.T) {
+
+	envMap, mapErr := getEnvMap()
+	if mapErr != nil {
+		t.Fatalf("%v", mapErr)
+	}
+	hosts := []string{"ncn-w001", "ncn-w001"}
+	var rebuildResponse RebuildResponse
+
+	err := rebuildHosts(envMap["REBUILD_URL"], hosts, &rebuildResponse)
+
+	if err != nil {
+		t.Fatalf("could not rebuild hosts: %v", err.Error())
+	}
+
+	//Check response until it succeedes or fails
+	waitForWorkflowErr := waitForWorkflowResponse(rebuildResponse.Name, envMap["STATUS_URL"], 500, 10)
+
+	if waitForWorkflowErr != nil {
+		t.Fatalf("wait for workflow failed with: %v\n", waitForWorkflowErr)
+	}
+}
+
+// Helper Functions
 
 func rebuildHosts(url string, hosts []string, target interface{}) error {
 
@@ -182,7 +190,7 @@ func rebuildHosts(url string, hosts []string, target interface{}) error {
 			hoststostring += fmt.Sprintf("\"%s\",", hosts[i])
 		}
 	}
-
+	// TODO: Make dryrun here a variable that is passed to the function or read from .env
 	requestBody := strings.NewReader(`
 		{
 		"dryRun": true,
