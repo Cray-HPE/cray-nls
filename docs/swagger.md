@@ -87,12 +87,94 @@ K8s Liveness endpoint
 | ---- | ----------- |
 | 204 |  |
 
+### /v1/ncns/hooks
+
+#### GET
+##### Summary
+
+Get ncn lifecycle hooks
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+#### POST
+##### Summary
+
+Get ncn lifecycle hooks
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+### /v1/ncns/hooks/{hook_id}
+
+#### DELETE
+##### Summary
+
+Get ncn lifecycle hooks
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hook_id | path | id of a hook | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+#### PUT
+##### Summary
+
+Update a ncn lifecycle hook
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| hook_id | path | id of a hook | Yes | string |
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 501 | Not Implemented |
+
+### /v1/ncns/reboot
+
+#### POST
+##### Summary
+
+End to end rolling reboot ncns
+
+##### Parameters
+
+| Name | Located in | Description | Required | Schema |
+| ---- | ---------- | ----------- | -------- | ---- |
+| include | body | hostnames to include | Yes | [models.CreateRebootWorkflowRequest](#modelscreaterebootworkflowrequest) |
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [models.CreateRebootWorkflowResponse](#modelscreaterebootworkflowresponse) |
+| 400 | Bad Request | [ResponseError](#responseerror) |
+| 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
 ### /v1/ncns/rebuild
 
 #### POST
 ##### Summary
 
-End to end rolling rebuild ncns (workers only)
+End to end rolling rebuild ncns
 
 ##### Parameters
 
@@ -239,6 +321,22 @@ Retry a failed ncn workflow, skip passed steps
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
+
+#### models.CreateRebootWorkflowRequest
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| dryRun | boolean |  | No |
+| hosts | [ string ] |  | No |
+| switchPassword | string |  | No |
+| wipeOsd | boolean |  | No |
+
+#### models.CreateRebootWorkflowResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| name | string |  | No |
+| targetNcns | [ string ] |  | No |
 
 #### models.CreateRebuildWorkflowRequest
 

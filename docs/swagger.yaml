@@ -33,6 +33,28 @@ definitions:
       message:
         type: string
     type: object
+  models.CreateRebootWorkflowRequest:
+    properties:
+      dryRun:
+        type: boolean
+      hosts:
+        items:
+          type: string
+        type: array
+      switchPassword:
+        type: string
+      wipeOsd:
+        type: boolean
+    type: object
+  models.CreateRebootWorkflowResponse:
+    properties:
+      name:
+        type: string
+      targetNcns:
+        items:
+          type: string
+        type: array
+    type: object
   models.CreateRebuildWorkflowRequest:
     properties:
       dryRun:
@@ -162,6 +184,97 @@ paths:
       summary: K8s Liveness endpoint
       tags:
       - Misc
+  /v1/ncns/hooks:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      summary: Get ncn lifecycle hooks
+      tags:
+      - NCN Lifecycle Hooks
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      summary: Get ncn lifecycle hooks
+      tags:
+      - NCN Lifecycle Hooks
+  /v1/ncns/hooks/{hook_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id of a hook
+        in: path
+        name: hook_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      summary: Get ncn lifecycle hooks
+      tags:
+      - NCN Lifecycle Hooks
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: id of a hook
+        in: path
+        name: hook_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      summary: Update a ncn lifecycle hook
+      tags:
+      - NCN Lifecycle Hooks
+  /v1/ncns/reboot:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostnames to include
+        in: body
+        name: include
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateRebootWorkflowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CreateRebootWorkflowResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: End to end rolling reboot ncns
+      tags:
+      - NCN Lifecycle Events
   /v1/ncns/rebuild:
     post:
       consumes:
@@ -192,9 +305,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ResponseError'
-      summary: End to end rolling rebuild ncns (workers only)
+      summary: End to end rolling rebuild ncns
       tags:
-      - NCNs
+      - NCN Lifecycle Events
   /v1/readiness:
     get:
       consumes:
@@ -261,7 +374,7 @@ paths:
             $ref: '#/definitions/ResponseError'
       summary: Get status of a ncn workflow
       tags:
-      - Workflow
+      - Workflow Management
   /v1/workflows/{name}:
     delete:
       consumes:
@@ -293,7 +406,7 @@ paths:
             $ref: '#/definitions/ResponseError'
       summary: Delete a ncn workflow
       tags:
-      - Workflow
+      - Workflow Management
   /v1/workflows/{name}/rerun:
     put:
       consumes:
@@ -325,7 +438,7 @@ paths:
             $ref: '#/definitions/ResponseError'
       summary: Rerun a workflow, all steps will run
       tags:
-      - Workflow
+      - Workflow Management
   /v1/workflows/{name}/retry:
     put:
       consumes:
@@ -363,12 +476,33 @@ paths:
             $ref: '#/definitions/ResponseError'
       summary: Retry a failed ncn workflow, skip passed steps
       tags:
-      - Workflow
+      - Workflow Management
 swagger: "2.0"
 tags:
 - description: |
-    > > > > #### End to end rebuild of worker nodes
-  name: NCNs
+    #### Create Lifecycle Event
+  name: NCN Lifecycle Events
 - description: |
-    > > > #### Workflow management
-  name: Workflow
+    #### Workflow management
+  name: Workflow Management
+- description: |-
+    #### NCN Lifecycle Hooks
+
+    ##### Overview
+    this is an overview
+
+    ##### Supported Hooks
+    1. a
+    2. b
+
+    ##### Example
+    1. a
+    ```
+    asdf
+    ```
+
+    2. b
+    ```
+    qwe
+    ```
+  name: NCN Lifecycle Hooks

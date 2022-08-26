@@ -40,10 +40,13 @@ import (
 
 // @BasePath  /apis/nls
 
-// @tag.name  NCNs
+// @tag.name  NCN Lifecycle Events
 // @tag.description.markdown
 
-// @tag.name  Workflow
+// @tag.name  Workflow Management
+// @tag.description.markdown
+
+// @tag.name  NCN Lifecycle Hooks
 // @tag.description.markdown
 
 func main() {

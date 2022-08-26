@@ -64,6 +64,147 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/ncns/hooks": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN Lifecycle Hooks"
+                ],
+                "summary": "Get ncn lifecycle hooks",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN Lifecycle Hooks"
+                ],
+                "summary": "Get ncn lifecycle hooks",
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v1/ncns/hooks/{hook_id}": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN Lifecycle Hooks"
+                ],
+                "summary": "Update a ncn lifecycle hook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of a hook",
+                        "name": "hook_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN Lifecycle Hooks"
+                ],
+                "summary": "Get ncn lifecycle hooks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id of a hook",
+                        "name": "hook_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/v1/ncns/reboot": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NCN Lifecycle Events"
+                ],
+                "summary": "End to end rolling reboot ncns",
+                "parameters": [
+                    {
+                        "description": "hostnames to include",
+                        "name": "include",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRebootWorkflowRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateRebootWorkflowResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/ncns/rebuild": {
             "post": {
                 "consumes": [
@@ -73,9 +214,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "NCNs"
+                    "NCN Lifecycle Events"
                 ],
-                "summary": "End to end rolling rebuild ncns (workers only)",
+                "summary": "End to end rolling rebuild ncns",
                 "parameters": [
                     {
                         "description": "hostnames to include",
@@ -177,7 +318,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Workflow"
+                    "Workflow Management"
                 ],
                 "summary": "Get status of a ncn workflow",
                 "parameters": [
@@ -228,7 +369,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Workflow"
+                    "Workflow Management"
                 ],
                 "summary": "Delete a ncn workflow",
                 "parameters": [
@@ -277,7 +418,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Workflow"
+                    "Workflow Management"
                 ],
                 "summary": "Rerun a workflow, all steps will run",
                 "parameters": [
@@ -326,7 +467,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Workflow"
+                    "Workflow Management"
                 ],
                 "summary": "Retry a failed ncn workflow, skip passed steps",
                 "parameters": [
@@ -393,6 +534,40 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CreateRebootWorkflowRequest": {
+            "type": "object",
+            "properties": {
+                "dryRun": {
+                    "type": "boolean"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "switchPassword": {
+                    "type": "string"
+                },
+                "wipeOsd": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.CreateRebootWorkflowResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "targetNcns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.CreateRebuildWorkflowRequest": {
             "type": "object",
             "properties": {
@@ -455,12 +630,16 @@ const docTemplate = `{
     },
     "tags": [
         {
-            "description": "\u003e \u003e \u003e \u003e #### End to end rebuild of worker nodes\n",
-            "name": "NCNs"
+            "description": "#### Create Lifecycle Event\n",
+            "name": "NCN Lifecycle Events"
         },
         {
-            "description": "\u003e \u003e \u003e #### Workflow management\n",
-            "name": "Workflow"
+            "description": "#### Workflow management\n",
+            "name": "Workflow Management"
+        },
+        {
+            "description": "#### NCN Lifecycle Hooks\n\n##### Overview\nthis is an overview\n\n##### Supported Hooks\n1. a\n2. b\n\n##### Example\n1. a\n` + "`" + `` + "`" + `` + "`" + `\nasdf\n` + "`" + `` + "`" + `` + "`" + `\n\n2. b\n` + "`" + `` + "`" + `` + "`" + `\nqwe\n` + "`" + `` + "`" + `` + "`" + `",
+            "name": "NCN Lifecycle Hooks"
         }
     ]
 }`
