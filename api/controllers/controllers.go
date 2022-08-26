@@ -25,6 +25,7 @@ package controllers
 
 import (
 	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
+	misc_controllers "github.com/Cray-HPE/cray-nls/api/controllers/v1/misc"
 	"go.uber.org/fx"
 )
 
@@ -32,5 +33,5 @@ import (
 var Module = fx.Options(
 	fx.Provide(controllers_v1.NewNcnController),
 	fx.Provide(controllers_v1.NewWorkflowController),
-	fx.Provide(controllers_v1.NewMiscController),
+	fx.Provide(misc_controllers.NewMiscController),
 )
