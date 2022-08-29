@@ -49,7 +49,7 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 // GetWorkflows
 // @Summary  Get status of a ncn workflow
 // @Param    labelSelector  query  string  false  "Label Selector"
-// @Tags     Workflow
+// @Tags     Workflow Management
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []models.GetWorkflowResponse
@@ -81,7 +81,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // DeleteWorkflow
 // @Summary  Delete a ncn workflow
 // @Param    name          path  string                           true  "name of workflow"
-// @Tags     Workflow
+// @Tags     Workflow Management
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  utils.ResponseOk
@@ -103,7 +103,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // @Summary  Retry a failed ncn workflow, skip passed steps
 // @Param    name  path  string  true  "name of workflow"
 // @Param    retryOptions  body  models.RetryWorkflowRequestBody  true  "retry options"
-// @Tags     Workflow
+// @Tags     Workflow Management
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  utils.ResponseOk
@@ -124,7 +124,7 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 // RerunWorkflows
 // @Summary  Rerun a workflow, all steps will run
 // @Param    name  path  string  true  "name of workflow"
-// @Tags     Workflow
+// @Tags     Workflow Management
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  utils.ResponseOk

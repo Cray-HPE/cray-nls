@@ -48,9 +48,6 @@ func NewRequestHandler(logger Logger, env Env) RequestHandler {
 	engine := gin.New()
 
 	instanceName := "swagger"
-	if env.Environment == "development" {
-		instanceName = "Internal"
-	}
 
 	engine.GET(
 		"/apis/nls/openapi/*any",

@@ -50,9 +50,9 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 }
 
 // NcnsCreateRebuildWorkflow
-// @Summary  End to end rolling rebuild ncns (workers only)
+// @Summary  End to end rolling rebuild ncns
 // @Param    include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
-// @Tags     NCNs
+// @Tags     NCN Lifecycle Events
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  models.CreateRebuildWorkflowResponse
@@ -69,6 +69,74 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 		return
 	}
 	u.createRebuildWorkflow(requestBody, c)
+}
+
+// NcnsCreateRebootWorkflow
+// @Summary  End to end rolling reboot ncns
+// @Param    include  body  models.CreateRebootWorkflowRequest  true  "hostnames to include"
+// @Tags     NCN Lifecycle Events
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  models.CreateRebootWorkflowResponse
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/ncns/reboot [post]
+func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
+	var requestBody models.CreateRebootWorkflowRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(400, errResponse)
+		return
+	}
+	//u.createRebootWorkflow(requestBody, c)
+}
+
+// NcnsGetHooks
+// @Summary  Get ncn lifecycle hooks
+// @Tags     NCN Lifecycle Hooks
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/ncns/hooks [get]
+func (u NcnController) NcnsGetHooks(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// NcnsAddHooks
+// @Summary  Get ncn lifecycle hooks
+// @Tags     NCN Lifecycle Hooks
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/ncns/hooks [post]
+func (u NcnController) NcnsAddHooks(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// NcnsRemoveHook
+// @Summary  Get ncn lifecycle hooks
+// @Param    hook_id  path  string  true  "id of a hook"
+// @Tags     NCN Lifecycle Hooks
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/ncns/hooks/{hook_id} [delete]
+func (u NcnController) NcnsRemoveHook(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// NcnsUpdateHook
+// @Summary  Update a ncn lifecycle hook
+// @Param    hook_id  path  string  true  "id of a hook"
+// @Tags     NCN Lifecycle Hooks
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /v1/ncns/hooks/{hook_id} [put]
+func (u NcnController) NcnsUpdateHook(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }
 
 func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {

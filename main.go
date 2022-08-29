@@ -35,16 +35,7 @@ import (
 // @version  1.0
 // @description.markdown
 
-// @license.name  MIT
-// @license.url   https://github.com/Cray-HPE/cray-nls/blob/master/License
-
 // @BasePath  /apis/nls
-
-// @tag.name  NCNs
-// @tag.description.markdown
-
-// @tag.name  Workflow
-// @tag.description.markdown
 
 func main() {
 	godotenv.Load()
