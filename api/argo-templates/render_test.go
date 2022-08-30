@@ -38,7 +38,7 @@ import (
 
 const doDryRun bool = true
 
-//go:embed ncn/*
+//go:embed _test_data_/*
 var rebuildWorkflowFS embed.FS
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
@@ -106,7 +106,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 }
 
-//---- Storage Testing ----// 
+//---- Storage Testing ----//
 func TestRenderStorageRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of storage nodes", func(t *testing.T) {
 		req := models.CreateRebuildWorkflowRequest{
