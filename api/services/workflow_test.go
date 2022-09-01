@@ -89,7 +89,7 @@ func TestCreateWorkflow(t *testing.T) {
 			ctx:                   context.Background(),
 			workflowCient:         wfServiceClientMock,
 			workflowTemplateCient: wftServiceSclientMock,
-			env:                   utils.Env{},
+			env:                   utils.Env{WorkerRebuildWorkflowFiles: "../argo-templates/_test_data_"},
 		}
 		req := models.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001"},
@@ -98,7 +98,7 @@ func TestCreateWorkflow(t *testing.T) {
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
-		assert.Contains(t, err.Error(), "is an incomplete or empty template")
+		assert.Contains(t, err.Error(), "template: pattern matches no files: `**/*.yaml`")
 		wfServiceClientMock.AssertExpectations(t)
 	})
 	t.Run("It should NOT create a new workflow when there is a running one of same type", func(t *testing.T) {
