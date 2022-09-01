@@ -98,7 +98,7 @@ func TestCreateWorkflow(t *testing.T) {
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
-		assert.Contains(t, err.Error(), "template: pattern matches no files: `ncn/*.yaml`")
+		assert.Contains(t, err.Error(), "is an incomplete or empty template")
 		wfServiceClientMock.AssertExpectations(t)
 	})
 	t.Run("It should NOT create a new workflow when there is a running one of same type", func(t *testing.T) {
