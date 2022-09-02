@@ -23,99 +23,97 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
- package argo_templates
+package argo_templates
 
- import (
-	 "bytes"
-	 "embed"
-	 _ "embed"
-	 "fmt"
-	 "io/fs"
-	 "text/template"
- 
-	 "github.com/Cray-HPE/cray-nls/api/models"
-	 "github.com/Cray-HPE/cray-nls/utils"
-	 "github.com/Masterminds/sprig/v3"
- )
- 
- //go:embed base/*
- var argoWorkflowTemplateFS embed.FS
- 
- var validator utils.Validator = utils.NewValidator()
- 
- func GetWorkflowTemplate() ([][]byte, error) {
-	 list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
-	 if err != nil {
-		 return nil, err
-	 }
-	 if len(list) == 0 {
-		 return nil, fmt.Errorf("template: pattern matches no files")
-	 }
-	 var filenames []string
-	 filenames = append(filenames, list...)
- 
-	 var res [][]byte
-	 for _, filename := range filenames {
-		 tmpRes, err := fs.ReadFile(argoWorkflowTemplateFS, filename)
-		 if err != nil {
-			 return nil, err
-		 }
-		 res = append(res, tmpRes)
-	 }
- 
-	 return res, nil
- }
- 
- func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
-	 err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
-	 if err != nil {
-		 return nil, err
-	 }
- 
-	 tmpl := template.New("worker.rebuild.yaml")
- 
-	 return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest)
- }
- 
- func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
-	 err := validator.ValidateStorageHostnames(createRebuildWorkflowRequest.Hosts)
-	 if err != nil {
-		 return nil, err
-	 }
- 
-	 tmpl := template.New("storage.rebuild.yaml")
- 
-	 return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
- }
- 
- func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
-	 // add useful helm templating func: include
-	 var funcMap template.FuncMap = map[string]interface{}{}
-	 funcMap["include"] = func(name string, data interface{}) (string, error) {
-		 buf := bytes.NewBuffer(nil)
-		 if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
-			 return "", err
-		 }
-		 return buf.String(), nil
-	 }
- 
-	 // add sprig templating func
-	 tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "ncn/*.yaml")
-	 if err != nil {
-		 return nil, err
-	 }
- 
-	 var tmpRes bytes.Buffer
-	 err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		 "TargetNcns":     createRebuildWorkflowRequest.Hosts,
-		 "DryRun":         createRebuildWorkflowRequest.DryRun,
-		 "SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
-		 "WipeOsd":        createRebuildWorkflowRequest.WipeOsd,
-	 })
-	 if err != nil {
-		 return nil, err
-	 }
-	 return tmpRes.Bytes(), nil
- }
- 
- 
+import (
+	"bytes"
+	"embed"
+	_ "embed"
+	"fmt"
+	"io/fs"
+	"text/template"
+
+	"github.com/Cray-HPE/cray-nls/api/models"
+	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Masterminds/sprig/v3"
+)
+
+//go:embed base/*
+var argoWorkflowTemplateFS embed.FS
+
+var validator utils.Validator = utils.NewValidator()
+
+func GetWorkflowTemplate() ([][]byte, error) {
+	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, fmt.Errorf("template: pattern matches no files")
+	}
+	var filenames []string
+	filenames = append(filenames, list...)
+
+	var res [][]byte
+	for _, filename := range filenames {
+		tmpRes, err := fs.ReadFile(argoWorkflowTemplateFS, filename)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, tmpRes)
+	}
+
+	return res, nil
+}
+
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl := template.New("worker.rebuild.yaml")
+
+	return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest)
+}
+
+func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+	err := validator.ValidateStorageHostnames(createRebuildWorkflowRequest.Hosts)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl := template.New("storage.rebuild.yaml")
+
+	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
+}
+
+func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+	// add useful helm templating func: include
+	var funcMap template.FuncMap = map[string]interface{}{}
+	funcMap["include"] = func(name string, data interface{}) (string, error) {
+		buf := bytes.NewBuffer(nil)
+		if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	}
+
+	// add sprig templating func
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "**/*.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	var tmpRes bytes.Buffer
+	err = tmpl.Execute(&tmpRes, map[string]interface{}{
+		"TargetNcns":     createRebuildWorkflowRequest.Hosts,
+		"DryRun":         createRebuildWorkflowRequest.DryRun,
+		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
+		"WipeOsd":        createRebuildWorkflowRequest.WipeOsd,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tmpRes.Bytes(), nil
+}
