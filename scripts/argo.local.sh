@@ -34,7 +34,6 @@ if [[ $? -ne 0 ]]; then
         -a 3 \
         --agents-memory 1g \
         --servers-memory 1g \
-        --no-lb \
         --k3s-arg "--node-name=ncn-w001"@agent:0 \
         --k3s-arg "--node-name=ncn-w002"@agent:1 \
         --k3s-arg "--node-name=ncn-w003"@agent:2 \
@@ -53,7 +52,17 @@ docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c 
 kubectl create ns argo
 kubectl apply -n argo -f scripts/quick-start-postgres.yaml
 kubectl patch ClusterRoleBindings/cluster-admin --patch "$(cat cluster-admin-patch.yaml)"
+META_CHART_VERSION="v4.4.0"
+HELM_EXPERIMENTAL_OCI=1 helm pull oci://ghcr.io/metacontroller/metacontroller-helm --version=${META_CHART_VERSION}
+helm upgrade --install metacontroller "./metacontroller-helm-${META_CHART_VERSION}.tgz" -n argo
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=metacontroller-helm -n argo
 kubectl wait --for=condition=ready pod -l app=argo-server -n argo
+kubectl apply -f api/metacontroller/crd.yaml
+
+# modify controller for local development
+sed "s/cray-nls.argo.svc:80/host.k3d.internal:3000/g" api/metacontroller/controller.yaml > /tmp/controller.yaml
+kubectl apply -f /tmp/controller.yaml
+
 kubectl -n argo port-forward svc/argo-server 2746:2746
 
 

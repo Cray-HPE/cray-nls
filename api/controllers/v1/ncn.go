@@ -112,7 +112,15 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Failure  501  "Not Implemented"
 // @Router   /v1/ncns/hooks [post]
 func (u NcnController) NcnsAddHooks(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody interface{}
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(400, errResponse)
+		return
+	}
+	u.logger.Infof("%v", requestBody)
+	c.JSON(500, utils.ResponseOk{Message: "HELLO"})
 }
 
 // NcnsRemoveHook
@@ -124,18 +132,6 @@ func (u NcnController) NcnsAddHooks(c *gin.Context) {
 // @Failure  501  "Not Implemented"
 // @Router   /v1/ncns/hooks/{hook_id} [delete]
 func (u NcnController) NcnsRemoveHook(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsUpdateHook
-// @Summary  Update a ncn lifecycle hook
-// @Param    hook_id  path  string  true  "id of a hook"
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks/{hook_id} [put]
-func (u NcnController) NcnsUpdateHook(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
 

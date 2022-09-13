@@ -6,3 +6,4 @@ tmp
 gin-bin
 coverage.txt
 .vscode
+metacontroller-helm-v*.tgz
