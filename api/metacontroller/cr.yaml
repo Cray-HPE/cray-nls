@@ -1,7 +1,7 @@
 
 apiVersion: nls.shasta.io/v1
-kind: Hook
+kind: BeforeAllHook
 metadata:
-  name: thing-1
+  name: install-csi
 spec:
   message: Hello, World!

@@ -24,12 +24,54 @@
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
-  name: nls-hooks-controller
+  name: nls-before-all-controller
 spec:
   generateSelector: true
   parentResource:
     apiVersion: nls.shasta.io/v1
-    resource: hooks
+    resource: beforeallhooks
+  hooks:
+    sync:
+      webhook:
+        url: http://cray-nls.argo.svc:80/apis/nls/v1/ncns/hooks
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: nls-before-each-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: nls.shasta.io/v1
+    resource: beforeeachhooks
+  hooks:
+    sync:
+      webhook:
+        url: http://cray-nls.argo.svc:80/apis/nls/v1/ncns/hooks
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: nls-after-all-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: nls.shasta.io/v1
+    resource: afterallhooks
+  hooks:
+    sync:
+      webhook:
+        url: http://cray-nls.argo.svc:80/apis/nls/v1/ncns/hooks
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: nls-after-each-controller
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: nls.shasta.io/v1
+    resource: aftereachhooks
   hooks:
     sync:
       webhook:
