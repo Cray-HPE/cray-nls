@@ -36,11 +36,8 @@ spec:
             properties:
               hookName:
                 type: string
-              hookType:
-                type: string
             required:
             - hookName
-            - hookType
             type: object
           status:
             properties:

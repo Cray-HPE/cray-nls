@@ -84,7 +84,6 @@ type BeforeEachHook struct {
 
 type HookSpec struct {
 	hookName string `json:"hookName"`
-	hookType string `json:"hookType"`
 	// template    v1.PodTemplateSpec `json:"template"`
 }
 
