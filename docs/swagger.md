@@ -56,23 +56,6 @@ Get ncn lifecycle hooks
 | ---- | ----------- |
 | 501 | Not Implemented |
 
-#### PUT
-##### Summary
-
-Update a ncn lifecycle hook
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_id | path | id of a hook | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
 ### /v1/ncns/reboot
 
 #### POST

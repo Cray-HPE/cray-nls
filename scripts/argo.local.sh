@@ -57,7 +57,10 @@ HELM_EXPERIMENTAL_OCI=1 helm pull oci://ghcr.io/metacontroller/metacontroller-he
 helm upgrade --install metacontroller "./metacontroller-helm-${META_CHART_VERSION}.tgz" -n argo
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=metacontroller-helm -n argo
 kubectl wait --for=condition=ready pod -l app=argo-server -n argo
-kubectl apply -f api/metacontroller/crd.yaml
+kubectl apply -f api/metacontroller/nls.shasta.io_afterallhooks.yaml
+kubectl apply -f api/metacontroller/nls.shasta.io_beforeallhooks.yaml
+kubectl apply -f api/metacontroller/nls.shasta.io_aftereachhooks.yaml
+kubectl apply -f api/metacontroller/nls.shasta.io_beforeeachhooks.yaml
 
 # modify controller for local development
 sed "s/cray-nls.argo.svc:80/host.k3d.internal:3000/g" api/metacontroller/controller.yaml > /tmp/controller.yaml

@@ -78,32 +78,6 @@ const docTemplate = `{
             }
         },
         "/v1/ncns/hooks/{hook_id}": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN Lifecycle Hooks"
-                ],
-                "summary": "Update a ncn lifecycle hook",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of a hook",
-                        "name": "hook_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
             "delete": {
                 "consumes": [
                     "application/json"

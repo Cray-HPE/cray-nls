@@ -151,23 +151,6 @@ paths:
       summary: Get ncn lifecycle hooks
       tags:
       - NCN Lifecycle Hooks
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: id of a hook
-        in: path
-        name: hook_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Update a ncn lifecycle hook
-      tags:
-      - NCN Lifecycle Hooks
   /v1/ncns/reboot:
     post:
       consumes:
