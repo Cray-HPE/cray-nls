@@ -26,11 +26,11 @@ package bootstrap
 import (
 	"context"
 
-	"github.com/Cray-HPE/cray-nls/api/controllers"
-	"github.com/Cray-HPE/cray-nls/api/middlewares"
-	"github.com/Cray-HPE/cray-nls/api/routes"
-	"github.com/Cray-HPE/cray-nls/api/services"
-	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Cray-HPE/cray-nls/src/api/controllers"
+	"github.com/Cray-HPE/cray-nls/src/api/middlewares"
+	"github.com/Cray-HPE/cray-nls/src/api/routes"
+	"github.com/Cray-HPE/cray-nls/src/api/services"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"go.uber.org/fx"
 )
 

@@ -41,9 +41,9 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 
-	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
-	"github.com/Cray-HPE/cray-nls/api/models"
-	"github.com/Cray-HPE/cray-nls/utils"
+	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
+	"github.com/Cray-HPE/cray-nls/src/api/models"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"

@@ -30,8 +30,8 @@ import (
 	"strings"
 	"testing"
 
-	mocks "github.com/Cray-HPE/cray-nls/api/mocks/services"
-	"github.com/Cray-HPE/cray-nls/utils"
+	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"

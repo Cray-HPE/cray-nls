@@ -24,8 +24,8 @@
 package routes
 
 import (
-	misc_controllers "github.com/Cray-HPE/cray-nls/api/controllers/v1/misc"
-	"github.com/Cray-HPE/cray-nls/utils"
+	misc_controllers "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/misc"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
 // MiscRoutes struct

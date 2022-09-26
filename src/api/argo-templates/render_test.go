@@ -30,7 +30,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Cray-HPE/cray-nls/api/models"
+	"github.com/Cray-HPE/cray-nls/src/api/models"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"

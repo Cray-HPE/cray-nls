@@ -13,6 +13,19 @@ A set of REST APIs that allow system admin or developers to register customize h
 
 ## Version: 1.0
 
+### /v1/liveness
+
+#### GET
+##### Summary
+
+K8s Liveness endpoint
+
+##### Responses
+
+| Code | Description |
+| ---- | ----------- |
+| 204 |  |
+
 ### /v1/ncns/hooks
 
 #### GET
@@ -115,6 +128,34 @@ End to end rolling rebuild ncns
 | 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
 | 400 | Bad Request | [ResponseError](#responseerror) |
 | 404 | Not Found | [ResponseError](#responseerror) |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
+### /v1/readiness
+
+#### GET
+##### Summary
+
+K8s Readiness endpoint
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 204 |  |  |
+| 500 | Internal Server Error | [ResponseError](#responseerror) |
+
+### /v1/version
+
+#### GET
+##### Summary
+
+Get version of cray-nls service
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | OK | [ResponseOk](#responseok) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows

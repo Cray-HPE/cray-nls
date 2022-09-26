@@ -33,8 +33,8 @@ import (
 	"io/fs"
 	"text/template"
 
-	"github.com/Cray-HPE/cray-nls/api/models"
-	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Cray-HPE/cray-nls/src/api/models"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
 )
 

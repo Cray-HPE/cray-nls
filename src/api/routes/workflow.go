@@ -24,8 +24,8 @@
 package routes
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
-	"github.com/Cray-HPE/cray-nls/utils"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
 // WorkflowRoutes struct

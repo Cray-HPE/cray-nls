@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	models "github.com/Cray-HPE/cray-nls/api/models"
+	models "github.com/Cray-HPE/cray-nls/src/api/models"
 	v1alpha1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	gin "github.com/gin-gonic/gin"
 	gomock "github.com/golang/mock/gomock"

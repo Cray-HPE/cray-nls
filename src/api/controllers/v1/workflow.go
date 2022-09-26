@@ -26,9 +26,9 @@ package controllers_v1
 import (
 	"fmt"
 
-	"github.com/Cray-HPE/cray-nls/api/models"
-	"github.com/Cray-HPE/cray-nls/api/services"
-	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Cray-HPE/cray-nls/src/api/models"
+	"github.com/Cray-HPE/cray-nls/src/api/services"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 

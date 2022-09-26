@@ -26,7 +26,7 @@ package services
 import (
 	"context"
 
-	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient"
 )
 

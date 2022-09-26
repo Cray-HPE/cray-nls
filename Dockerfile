@@ -40,10 +40,10 @@ RUN go env -w GO111MODULE=auto
 # Copy all the necessary files to the image.
 COPY vendor $GOPATH/src/github.com/Cray-HPE/cray-nls/vendor
 
-COPY api $GOPATH/src/github.com/Cray-HPE/cray-nls/api
-COPY bootstrap $GOPATH/src/github.com/Cray-HPE/cray-nls/bootstrap
-COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/docs
-COPY utils $GOPATH/src/github.com/Cray-HPE/cray-nls/utils
+COPY api $GOPATH/src/github.com/Cray-HPE/cray-nls/src/api
+COPY bootstrap $GOPATH/src/github.com/Cray-HPE/cray-nls/src/bootstrap
+COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/src/docs
+COPY utils $GOPATH/src/github.com/Cray-HPE/cray-nls/src/utils
 COPY main.go $GOPATH/src/github.com/Cray-HPE/cray-nls/main.go
 COPY .version $GOPATH/src/github.com/Cray-HPE/cray-nls/.version
 

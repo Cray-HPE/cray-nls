@@ -29,9 +29,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	argo_templates "github.com/Cray-HPE/cray-nls/api/argo-templates"
-	"github.com/Cray-HPE/cray-nls/api/models"
-	"github.com/Cray-HPE/cray-nls/utils"
+	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
+	"github.com/Cray-HPE/cray-nls/src/api/models"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
 	wftemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"

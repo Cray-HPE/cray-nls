@@ -24,8 +24,8 @@
 package controllers
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/api/controllers/v1"
-	misc_controllers "github.com/Cray-HPE/cray-nls/api/controllers/v1/misc"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
+	misc_controllers "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/misc"
 	"go.uber.org/fx"
 )
 

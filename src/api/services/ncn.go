@@ -24,7 +24,7 @@
 package services
 
 import (
-	"github.com/Cray-HPE/cray-nls/utils"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
 // NcnService service layer
