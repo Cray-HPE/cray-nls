@@ -21,24 +21,35 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package services
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
+	"context"
+
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
-	"go.uber.org/fx"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
+type ArgoService struct {
+	Context context.Context
+	Client  apiclient.Client
+}
 
-// @BasePath  /apis/nls
-
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+func NewArgoService(env utils.Env) ArgoService {
+	var argoOps apiclient.Opts = apiclient.Opts{
+		ArgoServerOpts: apiclient.ArgoServerOpts{
+			URL:                env.ArgoServerURL,
+			InsecureSkipVerify: true,
+			Secure:             false,
+			HTTP1:              true,
+		},
+		AuthSupplier: func() string {
+			return env.ArgoToken
+		},
+	}
+	ctx, client, _ := apiclient.NewClientFromOpts(argoOps)
+	return ArgoService{
+		Context: ctx,
+		Client:  client,
+	}
 }

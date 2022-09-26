@@ -51,10 +51,20 @@ kubectl taint nodes ncn-m001 node-role.kubernetes.io/master=:NoSchedule
 docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh;mkdir -p /etc/kubernetes;mkdir -p /usr/bin"
 
 kubectl create ns argo
-kubectl apply -n argo -f scripts/quick-start-postgres.yaml
+
+helm repo add argo https://argoproj.github.io/argo-helm
+helm dependency build ./charts/v1.0/cray-nls
+helm upgrade --install argo-only ./charts/v1.0/cray-nls  -n argo \
+    --set cray-service.ingress.enabled=false \
+    --set cray-service-pg-only.ingress.enabled=false \
+    --set cray-service-pg-only.sqlCluster.enabled=false \
+    --set argo-workflows.controller.persistence=null \
+    --set ingress.enabled=false
+
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argo-workflows-server -n argo
 kubectl patch ClusterRoleBindings/cluster-admin --patch "$(cat cluster-admin-patch.yaml)"
-kubectl wait --for=condition=ready pod -l app=argo-server -n argo
-kubectl -n argo port-forward svc/argo-server 2746:2746
+
+kubectl -n argo port-forward svc/argo-only-argo-workflows-server 2746:2746
 
 
 #   TODO:  we need cluster role binding so argo can add/remove labels to a worker node

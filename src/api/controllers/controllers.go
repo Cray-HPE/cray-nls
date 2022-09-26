@@ -21,24 +21,17 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package controllers
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
+	misc_controllers "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/misc"
 	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
-
-// @BasePath  /apis/nls
-
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
-}
+// Module exported for initializing application
+var Module = fx.Options(
+	fx.Provide(controllers_v1.NewNcnController),
+	fx.Provide(controllers_v1.NewWorkflowController),
+	fx.Provide(misc_controllers.NewMiscController),
+)

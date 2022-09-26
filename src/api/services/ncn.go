@@ -21,24 +21,20 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package services
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
-	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
+// NcnService service layer
+type NcnService struct {
+	logger utils.Logger
+}
 
-// @BasePath  /apis/nls
-
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+// NewNcnService creates a new Ncnservice
+func NewNcnService(logger utils.Logger) NcnService {
+	return NcnService{
+		logger: logger,
+	}
 }

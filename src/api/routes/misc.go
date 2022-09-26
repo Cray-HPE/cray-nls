@@ -21,24 +21,41 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package routes
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
+	misc_controllers "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/misc"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
-	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
+// MiscRoutes struct
+type MiscRoutes struct {
+	logger         utils.Logger
+	handler        utils.RequestHandler
+	miscController misc_controllers.MiscController
+}
 
-// @BasePath  /apis/nls
+// Setup Misc routes
+func (s MiscRoutes) Setup() {
+	s.logger.Info("Setting up routes")
+	api := s.handler.Gin.Group("/apis/nls/v1")
+	{
+		api.GET("/liveness", s.miscController.GetLiveness)
+		api.GET("/readiness", s.miscController.GetReadiness)
+		api.GET("/version", s.miscController.GetVersion)
 
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+	}
+}
+
+// NewMiscRoutes creates new Misc controller
+func NewMiscRoutes(
+	logger utils.Logger,
+	handler utils.RequestHandler,
+	miscController misc_controllers.MiscController,
+) MiscRoutes {
+	return MiscRoutes{
+		handler:        handler,
+		logger:         logger,
+		miscController: miscController,
+	}
 }

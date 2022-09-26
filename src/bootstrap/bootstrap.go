@@ -21,24 +21,55 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package bootstrap
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
+	"context"
+
+	"github.com/Cray-HPE/cray-nls/src/api/controllers"
+	"github.com/Cray-HPE/cray-nls/src/api/middlewares"
+	"github.com/Cray-HPE/cray-nls/src/api/routes"
+	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
+// Module exported for initializing application
+var Module = fx.Options(
+	controllers.Module,
+	routes.Module,
+	utils.Module,
+	services.Module,
+	middlewares.Module,
+	fx.Invoke(bootstrap),
+)
 
-// @BasePath  /apis/nls
+func bootstrap(
+	lifecycle fx.Lifecycle,
+	handler utils.RequestHandler,
+	routes routes.Routes,
+	env utils.Env,
+	logger utils.Logger,
+	middlewares middlewares.Middlewares,
+) {
 
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+	lifecycle.Append(fx.Hook{
+		OnStart: func(context.Context) error {
+
+			go func() {
+				middlewares.Setup()
+				routes.Setup()
+				host := "0.0.0.0"
+				if env.Environment == "development" {
+					host = "127.0.0.1"
+				}
+				handler.Gin.Run(host + ":" + env.ServerPort)
+			}()
+			return nil
+		},
+		OnStop: func(context.Context) error {
+			logger.Info("Stopping Application")
+			return nil
+		},
+	})
 }

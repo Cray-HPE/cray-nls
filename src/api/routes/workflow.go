@@ -21,24 +21,41 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
-package main
+package routes
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
-	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
+// WorkflowRoutes struct
+type WorkflowRoutes struct {
+	logger             utils.Logger
+	handler            utils.RequestHandler
+	workflowController controllers_v1.WorkflowController
+}
 
-// @BasePath  /apis/nls
+// Setup Workflow routes
+func (s WorkflowRoutes) Setup() {
+	s.logger.Info("Setting up routes")
+	api := s.handler.Gin.Group("/apis/nls/v1")
+	{
+		api.GET("/workflows", s.workflowController.GetWorkflows)
+		api.PUT("/workflows/:name/retry", s.workflowController.RetryWorkflow)
+		api.PUT("/workflows/:name/rerun", s.workflowController.RerunWorkflow)
+		api.DELETE("/workflows/:name", s.workflowController.DeleteWorkflow)
+	}
+}
 
-func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+// NewWorkflowRoutes creates new Workflow controller
+func NewWorkflowRoutes(
+	logger utils.Logger,
+	handler utils.RequestHandler,
+	workflowController controllers_v1.WorkflowController,
+) WorkflowRoutes {
+	return WorkflowRoutes{
+		handler:            handler,
+		logger:             logger,
+		workflowController: workflowController,
+	}
 }
