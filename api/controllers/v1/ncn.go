@@ -29,6 +29,7 @@ import (
 	"fmt"
 
 	"github.com/Cray-HPE/cray-nls/api/models"
+	v1 "github.com/Cray-HPE/cray-nls/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/api/services"
 	"github.com/Cray-HPE/cray-nls/utils"
 	"github.com/gin-gonic/gin"
@@ -112,15 +113,34 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Failure  501  "Not Implemented"
 // @Router   /v1/ncns/hooks [post]
 func (u NcnController) NcnsAddHooks(c *gin.Context) {
-	var requestBody interface{}
+	var requestBody v1.SyncRequest
+	var response v1.SyncResponse
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
 	}
-	u.logger.Infof("%v", requestBody)
-	c.JSON(500, utils.ResponseOk{Message: "HELLO"})
+
+	u.logger.Infof("%d", requestBody.Parent.Status.ObservedGeneration)
+
+	if requestBody.Parent.Status.Phase == "" {
+		response = v1.SyncResponse{
+			Status:             v1.HookStatus{Phase: "processing"},
+			ResyncAfterSeconds: 5,
+		}
+		u.logger.Infof("%v", response)
+		c.JSON(200, response)
+	}
+
+	if requestBody.Parent.Status.Phase == "processing" {
+		response = v1.SyncResponse{
+			Status: v1.HookStatus{Phase: "created"},
+		}
+		u.logger.Infof("%v", response)
+		c.JSON(200, response)
+	}
+
 }
 
 // NcnsRemoveHook

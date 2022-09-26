@@ -82,11 +82,30 @@ type BeforeEachHook struct {
 	Status HookStatus `json:"status,omitempty"`
 }
 
+type SyncRequest struct {
+	Parent Hook `json:"parent"`
+}
+
+type SyncResponse struct {
+	Status             HookStatus    `json:"status,omitempty"`
+	Children           []interface{} `json:"children,omitempty"`
+	ResyncAfterSeconds int           `json:"resyncAfterSeconds,omitempty"`
+}
+
 type HookSpec struct {
-	hookName string `json:"hookName"`
-	// template    v1.PodTemplateSpec `json:"template"`
+	HookName string `json:"hookName"`
+	Template string `json:"template"`
 }
 
 type HookStatus struct {
-	phase string `json:"phase,omitempty"`
+	Phase              string `json:"phase,omitempty"`
+	ObservedGeneration int    `json:"observedGeneration"`
+}
+
+// +kubebuilder:skip
+type Hook struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata"`
+	Spec              HookSpec   `json:"spec"`
+	Status            HookStatus `json:"status,omitempty"`
 }

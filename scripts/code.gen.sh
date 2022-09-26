@@ -43,3 +43,4 @@ fi
 # 
 go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
 ~/go/bin/controller-gen crd webhook paths="api/models/v1/hooks.go" output:crd:artifacts:config="api/metacontroller"
+rm -rf api/metacontroller/nls.shasta.io_hooks.yaml

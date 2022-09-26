@@ -4,4 +4,7 @@ kind: BeforeAllHook
 metadata:
   name: install-csi
 spec:
-  message: Hello, World!
+  hookName: test before all hook
+  template: |
+    this is a template
+    that i am testing
