@@ -24,6 +24,9 @@
 global:
   appVersion: 0.0.1
 
+ingress:
+  enabled: true 
+  
 externalHostname: argo.local
 
 cray-service:

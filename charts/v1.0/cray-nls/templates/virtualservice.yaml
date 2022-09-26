@@ -23,6 +23,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+{{- if .Values.ingress.enabled -}}
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -43,3 +44,4 @@ spec:
         host: cray-nls-argo-workflows-server.argo.svc.cluster.local
         port:
           number: 2746
+{{- end -}}
