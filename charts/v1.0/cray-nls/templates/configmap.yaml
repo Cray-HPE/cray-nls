@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: worker-rebuild-workflow-files
+data:
+  readme: |
+    Config map to store worker rebuild workflow files    
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: storage-rebuild-workflow-files
+data:
+  readme: |
+    Config map to store storage rebuild workflow files
