@@ -254,5 +254,5 @@ argo-workflows:
 
 metacontroller-helm:
   image:
-    repository: metacontrollerio/metacontroller
+    repository: artifactory.algol60.net/csm-docker/stable/docker.io/metacontrollerio/metacontroller
     tag: v4.4.0
