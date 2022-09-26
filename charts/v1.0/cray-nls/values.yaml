@@ -25,8 +25,8 @@ global:
   appVersion: 0.0.1
 
 ingress:
-  enabled: true 
-  
+  enabled: true
+
 externalHostname: argo.local
 
 cray-service:
@@ -251,3 +251,8 @@ argo-workflows:
         passwordSecret:
           name: argouser.cray-nls-postgres.credentials
           key: password
+
+metacontroller-helm:
+  image:
+    repository: metacontrollerio/metacontroller
+    tag: v4.4.0
