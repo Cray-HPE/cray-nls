@@ -5,6 +5,8 @@ on:
       - master
       - release/**
   workflow_dispatch:
+env:
+  HELM_EXPERIMENTAL_OCI: 1
 jobs:
   lint-test-scan:
     uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v1
