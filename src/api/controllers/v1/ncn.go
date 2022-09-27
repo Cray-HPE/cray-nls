@@ -110,7 +110,7 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Tags     NCN Lifecycle Hooks
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  models.SyncResponse
+// @Success  200  {object}  v1.SyncResponse
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/ncns/hooks [post]
 func (u NcnController) NcnsAddHooks(c *gin.Context) {

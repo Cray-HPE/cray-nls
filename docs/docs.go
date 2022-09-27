@@ -41,25 +41,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/liveness": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Misc"
-                ],
-                "summary": "K8s Liveness endpoint",
-                "responses": {
-                    "204": {
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/v1/ncns/hooks": {
             "get": {
                 "consumes": [
@@ -90,8 +71,17 @@ const docTemplate = `{
                 ],
                 "summary": "Get ncn lifecycle hooks",
                 "responses": {
-                    "501": {
-                        "description": "Not Implemented"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.SyncResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -241,59 +231,6 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/ResponseError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/readiness": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Misc"
-                ],
-                "summary": "K8s Readiness endpoint",
-                "responses": {
-                    "204": {
-                        "description": ""
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/version": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Misc"
-                ],
-                "summary": "Get version of cray-nls service",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseOk"
                         }
                     },
                     "500": {
@@ -620,6 +557,28 @@ const docTemplate = `{
                 },
                 "stepName": {
                     "type": "string"
+                }
+            }
+        },
+        "v1.HookStatus": {
+            "type": "object",
+            "properties": {
+                "observedGeneration": {
+                    "type": "integer"
+                },
+                "phase": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.SyncResponse": {
+            "type": "object",
+            "properties": {
+                "resyncAfterSeconds": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/v1.HookStatus"
                 }
             }
         }
