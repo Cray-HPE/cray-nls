@@ -1,3 +1,4 @@
 # Collapse generated files on Github
 docs/**.* linguist-generated
-api/mocks/**.* linguist-generated
+src/api/mocks/**.* linguist-generated
+charts/v1.0/cray-nls/crds/cray-nls.hpe.com_*.yaml linguist-generated

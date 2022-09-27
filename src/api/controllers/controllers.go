@@ -34,4 +34,5 @@ var Module = fx.Options(
 	fx.Provide(controllers_v1.NewNcnController),
 	fx.Provide(controllers_v1.NewWorkflowController),
 	fx.Provide(misc_controllers.NewMiscController),
+	fx.Provide(controllers_v1.NewHookController),
 )

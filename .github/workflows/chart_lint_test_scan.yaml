@@ -5,6 +5,8 @@ on:
       - master
       - release/**
   workflow_dispatch:
+env:
+  HELM_EXPERIMENTAL_OCI: 1
 jobs:
   lint-test-scan:
     uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v1
@@ -16,5 +18,7 @@ jobs:
       scan-image-snyk-args: "--severity-threshold=high"
       scan-chart-snyk-args: "--severity-threshold=high"
       scan-images-ignore-prefix-list: ["artifactory.algol60.net/csm-docker/stable/cray-nls"]
+    env:
+      HELM_EXPERIMENTAL_OCI: 1
     secrets:
       snyk-token: ${{ secrets.SNYK_TOKEN }}

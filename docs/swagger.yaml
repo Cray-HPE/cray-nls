@@ -110,76 +110,6 @@ info:
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
-  /v1/liveness:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: ""
-      summary: K8s Liveness endpoint
-      tags:
-      - Misc
-  /v1/ncns/hooks:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-  /v1/ncns/hooks/{hook_id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: id of a hook
-        in: path
-        name: hook_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: id of a hook
-        in: path
-        name: hook_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Update a ncn lifecycle hook
-      tags:
-      - NCN Lifecycle Hooks
   /v1/ncns/reboot:
     post:
       consumes:
@@ -246,40 +176,6 @@ paths:
       summary: End to end rolling rebuild ncns
       tags:
       - NCN Lifecycle Events
-  /v1/readiness:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: ""
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseError'
-      summary: K8s Readiness endpoint
-      tags:
-      - Misc
-  /v1/version:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ResponseOk'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseError'
-      summary: Get version of cray-nls service
-      tags:
-      - Misc
   /v1/workflows:
     get:
       consumes:

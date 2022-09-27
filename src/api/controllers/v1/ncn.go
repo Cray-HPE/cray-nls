@@ -93,52 +93,6 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	//u.createRebootWorkflow(requestBody, c)
 }
 
-// NcnsGetHooks
-// @Summary  Get ncn lifecycle hooks
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks [get]
-func (u NcnController) NcnsGetHooks(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsAddHooks
-// @Summary  Get ncn lifecycle hooks
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks [post]
-func (u NcnController) NcnsAddHooks(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsRemoveHook
-// @Summary  Get ncn lifecycle hooks
-// @Param    hook_id  path  string  true  "id of a hook"
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks/{hook_id} [delete]
-func (u NcnController) NcnsRemoveHook(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsUpdateHook
-// @Summary  Update a ncn lifecycle hook
-// @Param    hook_id  path  string  true  "id of a hook"
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks/{hook_id} [put]
-func (u NcnController) NcnsUpdateHook(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
 func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {
 	req.Hosts = removeDuplicateHostnames(req.Hosts)
 

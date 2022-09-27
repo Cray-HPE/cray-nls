@@ -13,79 +13,6 @@ A set of REST APIs that allow system admin or developers to register customize h
 
 ## Version: 1.0
 
-### /v1/liveness
-
-#### GET
-##### Summary
-
-K8s Liveness endpoint
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 204 |  |
-
-### /v1/ncns/hooks
-
-#### GET
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-#### POST
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-### /v1/ncns/hooks/{hook_id}
-
-#### DELETE
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_id | path | id of a hook | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-#### PUT
-##### Summary
-
-Update a ncn lifecycle hook
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_id | path | id of a hook | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
 ### /v1/ncns/reboot
 
 #### POST
@@ -128,34 +55,6 @@ End to end rolling rebuild ncns
 | 200 | OK | [models.CreateRebuildWorkflowResponse](#modelscreaterebuildworkflowresponse) |
 | 400 | Bad Request | [ResponseError](#responseerror) |
 | 404 | Not Found | [ResponseError](#responseerror) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-### /v1/readiness
-
-#### GET
-##### Summary
-
-K8s Readiness endpoint
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 204 |  |  |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-### /v1/version
-
-#### GET
-##### Summary
-
-Get version of cray-nls service
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | OK | [ResponseOk](#responseok) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
 ### /v1/workflows

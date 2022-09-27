@@ -23,43 +23,40 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+// +groupName=cray-nls.hpe.com
+package v1
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NcnRoutes struct
-type NcnRoutes struct {
-	logger         utils.Logger
-	handler        utils.RequestHandler
-	ncnsController controllers_v1.NcnController
-	hookController controllers_v1.HookController
+type SyncRequest struct {
+	Parent Hook `json:"parent"`
 }
 
-// Setup Ncn routes
-func (s NcnRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/nls/v1")
-	{
-		api.POST("/ncns/rebuild", s.ncnsController.NcnsCreateRebuildWorkflow)
-		api.POST("/ncns/hooks", s.hookController.AddHooks)
-
-	}
+type SyncResponse struct {
+	Status             HookStatus `json:"status,omitempty"`
+	ResyncAfterSeconds int        `json:"resyncAfterSeconds,omitempty"`
 }
 
-// NewNcnRoutes creates new Ncn controller
-func NewNcnRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	ncnsController controllers_v1.NcnController,
-	hookController controllers_v1.HookController,
-) NcnRoutes {
-	return NcnRoutes{
-		handler:        handler,
-		logger:         logger,
-		ncnsController: ncnsController,
-		hookController: hookController,
-	}
+type HookSpec struct {
+	HookName string `json:"hookName"`
+	Template string `json:"template"`
+}
+
+type HookStatus struct {
+	Phase              string `json:"phase,omitempty"`
+	ObservedGeneration int    `json:"observedGeneration"`
+}
+
+// Hook
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=hooks,scope=Namespaced
+// +kubebuilder:storageversion
+type Hook struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata"`
+	Spec              HookSpec   `json:"spec"`
+	Status            HookStatus `json:"status,omitempty"`
 }

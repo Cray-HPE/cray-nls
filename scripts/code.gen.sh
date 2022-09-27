@@ -1,7 +1,8 @@
+#!/bin/bash
 #
 # MIT License
 #
-# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,33 +23,22 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
-apiVersion: v2
-name: "cray-nls"
-version: 1.4.3
-description: "Kubernetes resources for cray-nls"
-home: "https://github.com/Cray-HPE/cray-nls-charts"
-sources:
-  - "https://github.com/Cray-HPE/cray-nls"
-dependencies:
-  - name: cray-service
-    version: ~8.2.0
-    repository: https://artifactory.algol60.net/artifactory/csm-helm-charts
-    alias: cray-service-pg-only
-  - name: cray-service
-    version: ~8.2.0
-    repository: https://artifactory.algol60.net/artifactory/csm-helm-charts
-    alias: cray-service
-  - name: argo-workflows
-    # TODO: point to Alex argo workflow repo
-    # When his PR is merged
-    version: "0.16.2"
-    repository: https://argoproj.github.io/argo-helm
-  - name: metacontroller-helm
-    version: "v4.4.0"
-    repository: "oci://ghcr.io/metacontroller"
-maintainers:
-  - name: Platform Engineering
-    url: https://github.com/orgs/Cray-HPE/teams/platform-engineering
-appVersion: "0.0.1"
-annotations:
-  artifacthub.io/license: "MIT"
+# format swagger doc
+swag fmt
+
+# update swagger doc yaml
+swag init --md  docs/ --outputTypes go,yaml --exclude src/api/controllers/v1/misc
+
+# fix copyright headers
+docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs
+
+# update swagger.md
+if ! command -v swagger-markdown &> /dev/null
+then
+    npx swagger-markdown -i  docs/swagger.yaml || true
+else 
+    swagger-markdown -i  docs/swagger.yaml || true
+fi
+
+go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
+~/go/bin/controller-gen crd webhook paths="src/api/models/v1/hooks.go" output:crd:artifacts:config="charts/v1.0/cray-nls/crds"

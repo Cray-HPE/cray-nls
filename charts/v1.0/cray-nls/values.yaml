@@ -24,9 +24,11 @@
 global:
   appVersion: 0.0.1
 
+argo-host: cray-nls.argo.svc:80
+
 ingress:
-  enabled: true 
-  
+  enabled: true
+
 externalHostname: argo.local
 
 cray-service:
@@ -84,7 +86,7 @@ cray-service:
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.1.2
+        tag: 0.1.3
       resources:
         limits:
           cpu: 1
@@ -251,3 +253,26 @@ argo-workflows:
         passwordSecret:
           name: argouser.cray-nls-postgres.credentials
           key: password
+
+metacontroller-helm:
+  image:
+    repository: artifactory.algol60.net/csm-docker/stable/docker.io/metacontrollerio/metacontroller
+    tag: v4.4.0
+  replicas: 2
+  commandArgs:
+    - --zap-log-level=4
+    - --discovery-interval=20s
+    - --cache-flush-interval=30m
+    - --leader-election
+  podDisruptionBudget:
+    minAvailable: 1
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - metacontroller-helm
