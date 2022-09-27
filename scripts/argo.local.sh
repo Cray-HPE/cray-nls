@@ -59,6 +59,9 @@ helm upgrade --install argo-only ./charts/v1.0/cray-nls  -n argo \
     --set cray-service-pg-only.ingress.enabled=false \
     --set cray-service-pg-only.sqlCluster.enabled=false \
     --set argo-workflows.controller.persistence=null \
+    --set argo-workflows.useStaticCredentials=false \
+    --set argo-workflows.useDefaultArtifactRepo=false \
+    --set argo-workflows.artifactRepository=null \
     --set argo-host=host.k3d.internal:3000 \
     --set ingress.enabled=false
 
