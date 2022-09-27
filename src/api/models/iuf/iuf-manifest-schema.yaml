@@ -1,0 +1,119 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Product Manifest for HPE CSM Install-Upgrade Framework (IUF)"
+description: >
+  A manifest that defines the behavior of the IUF when it performs operations
+  against this product.
+# This is the version of the schema itself
+version: 0.1.0
+type: object
+required:
+- schema_version
+- name
+additionalProperties: false
+properties:
+
+  schema_version:
+    description: >
+      The version of the IUF product manifest schema used by this manifest. The
+      version of the schema should be a SemVer-like version number with three
+      components, major.minor.patch. 
+
+      This version will be checked against the current schema version understood
+      by the IUF.
+
+      Compatibility is defined as follows. Let us refer to the schema version
+      specified by the product manifest file as the "manifest version" and the
+      current schema version used by the IUF as the "current version".
+
+
+      - If the input version has an older major version than the current
+        version, it is incompatible.
+
+      - If the input version has an older minor version than the current
+        version, it may be incompatible, but will be accepted with a warning.
+
+      - If the input version has an older patch version than the current
+        version, it is compatible.
+
+      - If the input version is newer than the current version, it is
+        incompatible because it could contain new fields not understood by the
+        current version.
+
+      - If the input version matches the current version, it is compatible.
+    default: '1.0.0'
+    type: string
+
+  name:
+    description: >
+      The name of the product. This product name is the name under which the
+      product will be uploaded to the product catalog.
+    type: string
+    # TODO: Do we want to define a regular expression for allowed product names
+    # pattern: regex in ECMA-262 regular expression dialect goes here
+  
+  version:
+    description: >
+      The version of the product. The format of this version string must conform
+      to the Semantic Versioning 2.0.0 Spec. The version numbers do not need to
+      be assigned and incremented in accordance with the rules and requirements
+      dictated by SemVer, however.
+    type: string
+    # This regex is the official one from the FAQ on semver.org
+    pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+      
+  content:
+    type: object
+    description: >
+      The content delivered by this product, including container images, RPMs,
+      packages repositories, helm charts, loftsman manifests, VCS repositories,
+      IMS images and recipes, and S3 artifacts.
+
+        
+      Note that if the layout of the content is not specified in this manifest,
+      the IUF will assume a default layout as described in the properties here.
+
+    properties:
+      docker:
+        description: >
+          An array of directories containing docker images that should be
+          uploaded to the Docker image registry in Nexus at install/upgrade
+          time.
+
+        type: array
+        items:
+          type: object
+          properties:
+            path:
+              description: |
+                The path, relative to the top level of the release distribution
+                directory, containing the container images to be uploaded to the
+                Docker image registry in Nexus.
+
+                The directories contained within the directory specified here
+                must contain container images. The container images will be
+                uploaded to Nexus with names exactly matching the full path to
+                the directory containing the image manifest.json file.
+
+                For example, if this path contains the following file structure
+                
+                arti.hpc.amslabs.hpecorp.net/
+                └── my-container:1.2.4
+                    ├── 007c21b118030b56ce4c303c6ef668f6bdcf2e14f5e63f079b19e1d1883ac7a9
+                    ├── ...
+                    ├── manifest.json
+                    └── version
+
+                This container image would be uploaded to the Nexus registry as a
+                arti.hpc.amslabs.hpecorp.net/my-container:1.2.4
+              type: string
+
+            # TODO: Do we need the ability to strip components from the path?
+            strip_leading_components:
+              type: integer
+              default: 0
+              description: >
+                How many leading components of the path should be stripped off when
+                uploading the image to Nexus.
+
+  
