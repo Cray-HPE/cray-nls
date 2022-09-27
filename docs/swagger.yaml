@@ -93,20 +93,6 @@ definitions:
       stepName:
         type: string
     type: object
-  v1.HookStatus:
-    properties:
-      observedGeneration:
-        type: integer
-      phase:
-        type: string
-    type: object
-  v1.SyncResponse:
-    properties:
-      resyncAfterSeconds:
-        type: integer
-      status:
-        $ref: '#/definitions/v1.HookStatus'
-    type: object
 info:
   contact: {}
   description: |
@@ -124,70 +110,6 @@ info:
   title: NCN Lifecycle Management API
   version: "1.0"
 paths:
-  /v1/ncns/hooks:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-    post:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.SyncResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseError'
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-  /v1/ncns/hooks/{hook_id}:
-    delete:
-      consumes:
-      - application/json
-      parameters:
-      - description: id of a hook
-        in: path
-        name: hook_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Get ncn lifecycle hooks
-      tags:
-      - NCN Lifecycle Hooks
-    put:
-      consumes:
-      - application/json
-      parameters:
-      - description: id of a hook
-        in: path
-        name: hook_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "501":
-          description: Not Implemented
-      summary: Update a ncn lifecycle hook
-      tags:
-      - NCN Lifecycle Hooks
   /v1/ncns/reboot:
     post:
       consumes:

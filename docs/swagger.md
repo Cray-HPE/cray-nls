@@ -13,67 +13,6 @@ A set of REST APIs that allow system admin or developers to register customize h
 
 ## Version: 1.0
 
-### /v1/ncns/hooks
-
-#### GET
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-#### POST
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | OK | [v1.SyncResponse](#v1syncresponse) |
-| 500 | Internal Server Error | [ResponseError](#responseerror) |
-
-### /v1/ncns/hooks/{hook_id}
-
-#### DELETE
-##### Summary
-
-Get ncn lifecycle hooks
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_id | path | id of a hook | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
-#### PUT
-##### Summary
-
-Update a ncn lifecycle hook
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| hook_id | path | id of a hook | Yes | string |
-
-##### Responses
-
-| Code | Description |
-| ---- | ----------- |
-| 501 | Not Implemented |
-
 ### /v1/ncns/reboot
 
 #### POST
@@ -267,17 +206,3 @@ Retry a failed ncn workflow, skip passed steps
 | ---- | ---- | ----------- | -------- |
 | restartSuccessful | boolean |  | No |
 | stepName | string |  | No |
-
-#### v1.HookStatus
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| observedGeneration | integer |  | No |
-| phase | string |  | No |
-
-#### v1.SyncResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| resyncAfterSeconds | integer |  | No |
-| status | [v1.HookStatus](#v1hookstatus) |  | No |

@@ -41,105 +41,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/ncns/hooks": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN Lifecycle Hooks"
-                ],
-                "summary": "Get ncn lifecycle hooks",
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN Lifecycle Hooks"
-                ],
-                "summary": "Get ncn lifecycle hooks",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/v1.SyncResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/ncns/hooks/{hook_id}": {
-            "put": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN Lifecycle Hooks"
-                ],
-                "summary": "Update a ncn lifecycle hook",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of a hook",
-                        "name": "hook_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
-            "delete": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "NCN Lifecycle Hooks"
-                ],
-                "summary": "Get ncn lifecycle hooks",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "id of a hook",
-                        "name": "hook_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
         "/v1/ncns/reboot": {
             "post": {
                 "consumes": [
@@ -557,28 +458,6 @@ const docTemplate = `{
                 },
                 "stepName": {
                     "type": "string"
-                }
-            }
-        },
-        "v1.HookStatus": {
-            "type": "object",
-            "properties": {
-                "observedGeneration": {
-                    "type": "integer"
-                },
-                "phase": {
-                    "type": "string"
-                }
-            }
-        },
-        "v1.SyncResponse": {
-            "type": "object",
-            "properties": {
-                "resyncAfterSeconds": {
-                    "type": "integer"
-                },
-                "status": {
-                    "$ref": "#/definitions/v1.HookStatus"
                 }
             }
         }

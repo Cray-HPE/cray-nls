@@ -29,7 +29,6 @@ import (
 	"fmt"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models"
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -92,66 +91,6 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 		return
 	}
 	//u.createRebootWorkflow(requestBody, c)
-}
-
-// NcnsGetHooks
-// @Summary  Get ncn lifecycle hooks
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks [get]
-func (u NcnController) NcnsGetHooks(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsAddHooks
-// @Summary  Get ncn lifecycle hooks
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  v1.SyncResponse
-// @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/ncns/hooks [post]
-func (u NcnController) NcnsAddHooks(c *gin.Context) {
-	var requestBody v1.SyncRequest
-	var response v1.SyncResponse
-	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
-		c.JSON(400, errResponse)
-		return
-	}
-	response = v1.SyncResponse{
-		Status:             v1.HookStatus{Phase: "created"},
-		ResyncAfterSeconds: 0,
-	}
-	u.logger.Infof("Hook created, name: %s, namespace: %s, resourceVersion: %s", requestBody.Parent.Name, requestBody.Parent.Namespace, requestBody.Parent.ResourceVersion)
-	c.JSON(200, response)
-}
-
-// NcnsRemoveHook
-// @Summary  Get ncn lifecycle hooks
-// @Param    hook_id  path  string  true  "id of a hook"
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks/{hook_id} [delete]
-func (u NcnController) NcnsRemoveHook(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// NcnsUpdateHook
-// @Summary  Update a ncn lifecycle hook
-// @Param    hook_id  path  string  true  "id of a hook"
-// @Tags     NCN Lifecycle Hooks
-// @Accept   json
-// @Produce  json
-// @Failure  501  "Not Implemented"
-// @Router   /v1/ncns/hooks/{hook_id} [put]
-func (u NcnController) NcnsUpdateHook(c *gin.Context) {
-	c.JSON(501, "not implemented")
 }
 
 func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {
