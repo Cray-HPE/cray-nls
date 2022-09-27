@@ -29,6 +29,7 @@ import (
 	"fmt"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -109,10 +110,24 @@ func (u NcnController) NcnsGetHooks(c *gin.Context) {
 // @Tags     NCN Lifecycle Hooks
 // @Accept   json
 // @Produce  json
-// @Failure  501  "Not Implemented"
+// @Success  200  {object}  models.SyncResponse
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /v1/ncns/hooks [post]
 func (u NcnController) NcnsAddHooks(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody v1.SyncRequest
+	var response v1.SyncResponse
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(400, errResponse)
+		return
+	}
+	response = v1.SyncResponse{
+		Status:             v1.HookStatus{Phase: "created"},
+		ResyncAfterSeconds: 0,
+	}
+	u.logger.Infof("Hook created, name: %s, namespace: %s, resourceVersion: %s", requestBody.Parent.Name, requestBody.Parent.Namespace, requestBody.Parent.ResourceVersion)
+	c.JSON(200, response)
 }
 
 // NcnsRemoveHook

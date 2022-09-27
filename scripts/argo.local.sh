@@ -59,12 +59,10 @@ helm upgrade --install argo-only ./charts/v1.0/cray-nls  -n argo \
     --set cray-service-pg-only.ingress.enabled=false \
     --set cray-service-pg-only.sqlCluster.enabled=false \
     --set argo-workflows.controller.persistence=null \
+    --set argo-host=host.k3d.internal:3000 \
     --set ingress.enabled=false
 
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argo-workflows-server -n argo
 kubectl patch ClusterRoleBindings/cluster-admin --patch "$(cat cluster-admin-patch.yaml)"
 
 kubectl -n argo port-forward svc/argo-only-argo-workflows-server 2746:2746
-
-
-#   TODO:  we need cluster role binding so argo can add/remove labels to a worker node

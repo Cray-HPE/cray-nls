@@ -35,9 +35,8 @@ type SyncRequest struct {
 }
 
 type SyncResponse struct {
-	Status             HookStatus    `json:"status,omitempty"`
-	Children           []interface{} `json:"children,omitempty"`
-	ResyncAfterSeconds int           `json:"resyncAfterSeconds,omitempty"`
+	Status             HookStatus `json:"status,omitempty"`
+	ResyncAfterSeconds int        `json:"resyncAfterSeconds,omitempty"`
 }
 
 type HookSpec struct {

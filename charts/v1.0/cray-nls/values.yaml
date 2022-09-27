@@ -24,6 +24,8 @@
 global:
   appVersion: 0.0.1
 
+argo-host: cray-nls.argo.svc:80
+
 ingress:
   enabled: true
 

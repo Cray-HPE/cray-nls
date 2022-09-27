@@ -36,4 +36,4 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://cray-nls.argo.svc:80/apis/nls/v1/ncns/hooks
+        url: "http://{{ index .Values "argo-host" }}/apis/nls/v1/ncns/hooks"

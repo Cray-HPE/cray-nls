@@ -43,6 +43,7 @@ func (s NcnRoutes) Setup() {
 	api := s.handler.Gin.Group("/apis/nls/v1")
 	{
 		api.POST("/ncns/rebuild", s.ncnsController.NcnsCreateRebuildWorkflow)
+		api.POST("/ncns/hooks", s.ncnsController.NcnsAddHooks)
 
 	}
 }
