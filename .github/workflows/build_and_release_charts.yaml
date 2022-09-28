@@ -7,7 +7,5 @@ jobs:
     with:
       artifactory-component: cray-nls
       target-branch: master
-    env:
-      HELM_EXPERIMENTAL_OCI: 1
     secrets:
       jfrog-cli-configuration: ${{ secrets.ARTIFACTORY_ALGOL60_JFROG_CLI_CONFIGURATION }}
