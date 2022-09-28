@@ -36,6 +36,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/api/models"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 )
 
 //go:embed base/*
@@ -97,6 +98,24 @@ func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflo
 			return "", err
 		}
 		return buf.String(), nil
+	}
+
+	// add templating func: getHooks
+	funcMap["getHooks"] = func(name string, data interface{}) (string, error) {
+		dag := v1alpha1.DAGTemplate{}
+		dag.Tasks
+		req := `tasks:
+		- name: "validate-bss-ntp"
+		  templateRef:
+			name: ssh-template
+			template: shell-script
+		  arguments:
+			parameters:
+			  - name: scriptContent
+				value: |
+				  echo hello
+		`
+		return req, nil
 	}
 
 	// add sprig templating func
