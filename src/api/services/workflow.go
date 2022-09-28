@@ -287,6 +287,8 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		return nil, err
 	}
 
+	s.logger.Infof("%s", string(rebuildWorkflow))
+
 	jsonTmp, err := yaml.YAMLToJSONStrict(rebuildWorkflow)
 	if err != nil {
 		s.logger.Error(err)
