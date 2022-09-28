@@ -1,13 +1,12 @@
 name: Build and Publish Helm charts
 on: [push, workflow_dispatch]
-
+env:
+  HELM_EXPERIMENTAL_OCI: 1
 jobs:
   build_and_release:
     uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/build_and_release_charts.yaml@v1
     with:
       artifactory-component: cray-nls
       target-branch: master
-    env:
-      HELM_EXPERIMENTAL_OCI: 1
     secrets:
       jfrog-cli-configuration: ${{ secrets.ARTIFACTORY_ALGOL60_JFROG_CLI_CONFIGURATION }}
