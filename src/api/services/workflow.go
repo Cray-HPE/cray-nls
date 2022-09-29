@@ -293,6 +293,7 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 
 	s.logger.Infof("Creating workflow for: %v", req.Hosts)
 	var rebuildWorkflow []byte
+	var getWorkflowErr error
 	if workerNodeSet {
 		rebuildHooks, err := s.getRebuildHooks()
 		if err != nil {
@@ -301,15 +302,15 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		}
 		// rebuild worker nodes
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-		rebuildWorkflow, err = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req, rebuildHooks)
+		rebuildWorkflow, getWorkflowErr = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req, rebuildHooks)
 	} else {
 		// rebuild storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
-		rebuildWorkflow, err = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
+		rebuildWorkflow, getWorkflowErr = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
 	}
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
+	if getWorkflowErr != nil {
+		s.logger.Error(getWorkflowErr)
+		return nil, getWorkflowErr
 	}
 
 	jsonTmp, err := yaml.YAMLToJSONStrict(rebuildWorkflow)
@@ -454,6 +455,10 @@ func (s workflowService) getRebuildHooks() (models.RebuildHooks, error) {
 
 func (s workflowService) getHooksByLabel(label string) (unstructured.UnstructuredList, error) {
 	var myHooks unstructured.UnstructuredList
+	if s.k8sRestClientSet == nil {
+		return myHooks, nil
+	}
+
 	beforeAllHooks, err := s.k8sRestClientSet.
 		RESTClient().Get().
 		AbsPath("/apis/cray-nls.hpe.com/v1").
