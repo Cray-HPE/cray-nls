@@ -40,8 +40,8 @@ type SyncResponse struct {
 }
 
 type HookSpec struct {
-	HookName string `json:"hookName"`
-	Template string `json:"template"`
+	ScriptContent   string `json:"scriptContent"`
+	TemplateRefName string `json:"templateRefName"`
 }
 
 type HookStatus struct {
