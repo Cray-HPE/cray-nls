@@ -232,11 +232,76 @@ properties:
               type: boolean
               default: true
 
-      rpms:
-        description: TODO
+      blobstores_definition:
+        description: >
+          The path to a YAML file that defines the blobstores that should be
+          created for this product. The YAML file should consist of a series 
+          documents, each of which defines a blobstore.
 
+          The schema of each document is unchanged from the Papaya recipe
+          release.
+        type: string
+        default: nexus-blobstores.yaml
+
+      repositories_definition:
+        description: >
+          The path to a YAML file that defines the Nexus repositories that
+          should be create for this product. The YAML file should consist of a
+          series of documents, each of which defines a Nexus repository.
+
+          The schema of each document is unchanged from the Papaya recipe
+          release.
+        type: string
+        default: nexus-repositories.yaml
+
+      rpms:
+        description: >
+          An array of directories containing RPMs that should be uploaded to the
+          repositories defined by the "repositories_definition" property.
+        type: array
+        items:
+          type: object
+          required:
+          - path
+          properties:
+            path:
+              description: >
+                The path to a directory containing RPMs to upload to a package
+                repository in Nexus, relative to the top level of the release
+                distribution directory.
+              type: string
+            repository_name:
+              description: >
+                The name of the repository to which these RPMs should be uploaded.
+
+                # TODO: Should we support product name and version substitutions
+                # in this file at product install time? Currently, many products
+                # do this sort of variable substitution at packaging time in
+                # `release.sh` by templating their nexus-blobstores.yaml,
+                # nexus-repositories.yaml, and their install.sh files using sed.
+                # It would probably be simplest for Alice to just allow products
+                # to keep managing those substitutions themselves.
+
+      # TODO: A repositories key would be an alternative way to specify the
+      # Nexus repositories instead of having them defined in a separate file
+      # referenced by the value of the "repositories_definition" property.
+      # For example:
+      #
       repositories:
-        description: TODO
+        description: >
+          A list of repositories.
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              description: The name of the repo to create
+              type: string
+            # More properties defining the repo would go here.
+
+      # TODO: Similarly we could use a "blobstores" property instead of using
+      # the "blobstores_definition" property.
+      
 
       vcs:
         description: TODO
