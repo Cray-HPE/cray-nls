@@ -194,15 +194,15 @@ properties:
           manifest files provided by the product.
 
 
-          (TODO) What do we do with these files? Should they get uploaded
-          somewhere on the system (e.g. a Nexus repository of some type or a
-          bucket in S3)? Should they be processed with manifestgen (perhaps
-          optionally)? Should some be flagged as manifests which should be
-          deployed by the deploy\_product/deploy\_manifests stage while others
-          can be skipped? David Gloe has a question about that.
+          # TODO: Discuss with Atif where these manifests should be stored.
+          # Also decide whether we store pre- or post-manifestgen versions.
+          # This ties into the discussion about where we store hooks and any
+          # artifacts needed for any future product install/upgrade/uninstall
+          # operations.
 
-          (TODO) Is there a need to specify dependencies here? Either within a
-          single product's Loftsman manifests or between products?
+          # TODO: Is there a need to specify dependencies here? Either within a
+          # single product's Loftsman manifests or between products?
+          # Discuss with Atif how dependencies are declared.
         type: array
         default:
         - path: manifests
@@ -215,32 +215,60 @@ properties:
           properties:
             path:
               description: >
-                The path to a loftsman manifest file, relative to the top level
+                The path to a loftsman manifest file or directory, relative to the top level
                 of the release distribution directory.
               type: string
+
+            # TODO: Consider whether dependencies between loftsman manifests are needed here
+            # Jason suggests that perhaps they belong in a separate section.
+            # Example schema below
+            dependencies:
+              type: array
+              items:
+                type: object
+                properties:
+                  product:
+                    type: string
+                    description: name of product
+                  manifest_name:
+                    type: string
+                    description: name of manifest provided by product
+            # End of example
+
             use_manifestgen:
               description: >
                 Whether manifestgen needs to be called against the manifest(s).
+
+                manifestgen takes the customizations.yaml file and applies the customizations
+                to the Loftsman manifest file. Customizations to the manifest themselves or to
+                to the values that are passed through to the helm charts.
               type: boolean
               # TODO: Is it more common that products require this or do not require it?
-              # Is it harmless if they do not require it?
+              # Is it harmless if they do not require it? Should be harmless.
               default: true
             deploy:
               description: >
                 Whether this loftsman manifest should be deployed as part of the
                 deploy_manifests stage of the IUF.
+
+                # TODO: Reach out to David Gloe to ask for specifics on the WLM use case.
+                # Why would we ever not want to deploy manifests during the deploy_manifests stage?
               type: boolean
               default: true
 
       blobstores_definition:
         description: >
           The path to a YAML file that defines the blobstores that should be
-          created for this product. The YAML file should consist of a series 
+          created for this product. The YAML file should consist of a series
           documents, each of which defines a blobstore.
 
           The schema of each document is unchanged from the Papaya recipe
           release.
         type: string
+        # TODO: Do any products define more than one blobstore?
+        # It is possible to do this with a single nexus-blobstores.yaml file
+        # by specifying multiple documents. Check if any products define multiple
+        # blobstores in multiple files (possible SLE)
         default: nexus-blobstores.yaml
 
       repositories_definition:
@@ -251,6 +279,10 @@ properties:
 
           The schema of each document is unchanged from the Papaya recipe
           release.
+
+          # TODO: Define behavior when repositories defined here already exist in Nexus.
+          # Investigate why Slurm had to delete the old repos. Was it a way to ensure
+          # the type is modified.
         type: string
         default: nexus-repositories.yaml
 
@@ -301,7 +333,7 @@ properties:
 
       # TODO: Similarly we could use a "blobstores" property instead of using
       # the "blobstores_definition" property.
-      
+
 
       vcs:
         description: TODO
