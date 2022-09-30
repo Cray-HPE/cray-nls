@@ -48,6 +48,10 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 type WorkflowService interface {
@@ -65,6 +69,7 @@ type workflowService struct {
 	ctx                   context.Context
 	workflowCient         workflow.WorkflowServiceClient
 	workflowTemplateCient workflowtemplate.WorkflowTemplateServiceClient
+	k8sRestClientSet      *kubernetes.Clientset
 	env                   utils.Env
 }
 
@@ -72,12 +77,27 @@ type workflowService struct {
 func NewWorkflowService(logger utils.Logger, argoService ArgoService, env utils.Env) WorkflowService {
 
 	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
+	var config *rest.Config
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		// use k3d kubeconfig in development mode
+		home, _ := os.UserHomeDir()
+		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	k8sRestClientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	workflowSvc := workflowService{
 		logger:                logger,
 		ctx:                   argoService.Context,
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
+		k8sRestClientSet:      k8sRestClientSet,
 		env:                   env,
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
@@ -273,18 +293,24 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 
 	s.logger.Infof("Creating workflow for: %v", req.Hosts)
 	var rebuildWorkflow []byte
+	var getWorkflowErr error
 	if workerNodeSet {
+		rebuildHooks, err := s.getRebuildHooks()
+		if err != nil {
+			s.logger.Error(err)
+			return nil, err
+		}
 		// rebuild worker nodes
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-		rebuildWorkflow, err = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
+		rebuildWorkflow, getWorkflowErr = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req, rebuildHooks)
 	} else {
 		// rebuild storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
-		rebuildWorkflow, err = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
+		rebuildWorkflow, getWorkflowErr = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
 	}
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
+	if getWorkflowErr != nil {
+		s.logger.Error(getWorkflowErr)
+		return nil, getWorkflowErr
 	}
 
 	jsonTmp, err := yaml.YAMLToJSONStrict(rebuildWorkflow)
@@ -383,4 +409,71 @@ func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models.Rebuil
 	}
 
 	return workflows.Items, nil
+}
+
+func (s workflowService) getRebuildHooks() (models.RebuildHooks, error) {
+	var result models.RebuildHooks
+	// get all hooks
+	var beforeAllHooks unstructured.UnstructuredList
+	beforeAllHooks, err := s.getHooksByLabel("before-all=true")
+	if err != nil {
+		s.logger.Error(err)
+		return result, err
+	}
+	s.logger.Infof("Before All Hooks: %d", len(beforeAllHooks.Items))
+	result.BeforeAll = beforeAllHooks.Items
+
+	var beforeEachHooks unstructured.UnstructuredList
+	beforeEachHooks, err = s.getHooksByLabel("before-each=true")
+	if err != nil {
+		s.logger.Error(err)
+		return result, err
+	}
+	s.logger.Infof("Before Each Hooks: %d", len(beforeEachHooks.Items))
+	result.BeforeEach = beforeEachHooks.Items
+
+	var afterEachHooks unstructured.UnstructuredList
+	afterEachHooks, err = s.getHooksByLabel("after-each=true")
+	if err != nil {
+		s.logger.Error(err)
+		return result, err
+	}
+	s.logger.Infof("After Each Hooks: %d", len(afterEachHooks.Items))
+	result.AfterEach = afterEachHooks.Items
+
+	var afterAllHooks unstructured.UnstructuredList
+	afterAllHooks, err = s.getHooksByLabel("after-all=true")
+	if err != nil {
+		s.logger.Error(err)
+		return result, err
+	}
+	s.logger.Infof("After All Hooks: %d", len(afterAllHooks.Items))
+	result.AfterAll = afterAllHooks.Items
+
+	return result, nil
+}
+
+func (s workflowService) getHooksByLabel(label string) (unstructured.UnstructuredList, error) {
+	var myHooks unstructured.UnstructuredList
+	if s.k8sRestClientSet == nil {
+		return myHooks, nil
+	}
+
+	beforeAllHooks, err := s.k8sRestClientSet.
+		RESTClient().Get().
+		AbsPath("/apis/cray-nls.hpe.com/v1").
+		Resource("hooks").
+		Param("labelSelector", label).
+		DoRaw(context.TODO())
+	if err != nil {
+		s.logger.Error(err)
+		return myHooks, err
+	}
+
+	err = json.Unmarshal(beforeAllHooks, &myHooks)
+	if err != nil {
+		s.logger.Error(err)
+		return myHooks, err
+	}
+	return myHooks, nil
 }

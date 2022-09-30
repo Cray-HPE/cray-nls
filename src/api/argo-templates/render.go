@@ -36,6 +36,9 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/api/models"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 //go:embed base/*
@@ -66,7 +69,7 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
 	if err != nil {
 		return nil, err
@@ -74,7 +77,7 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 
 	tmpl := template.New("worker.rebuild.yaml")
 
-	return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest)
+	return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
 }
 
 func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
@@ -85,10 +88,10 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 
 	tmpl := template.New("storage.rebuild.yaml")
 
-	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
+	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models.RebuildHooks{})
 }
 
-func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -97,6 +100,68 @@ func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflo
 			return "", err
 		}
 		return buf.String(), nil
+	}
+
+	// add templating func: getHooks
+	funcMap["getHooks"] = func(name string, data interface{}) (string, error) {
+		dag := v1alpha1.DAGTemplate{}
+		var unstructuredHooks []unstructured.Unstructured
+		switch name {
+		case "before-all":
+			unstructuredHooks = rebuildHooks.BeforeAll
+		case "before-each":
+			unstructuredHooks = rebuildHooks.BeforeEach
+		case "after-each":
+			unstructuredHooks = rebuildHooks.AfterEach
+		case "after-all":
+			unstructuredHooks = rebuildHooks.AfterAll
+		}
+
+		for _, unstrunstructuredHook := range unstructuredHooks {
+			dag.Tasks = append(dag.Tasks, v1alpha1.DAGTask{
+				Name: unstrunstructuredHook.GetName(),
+				TemplateRef: &v1alpha1.TemplateRef{
+					Name:     fmt.Sprintf("%v", unstrunstructuredHook.Object["spec"].(map[string]interface{})["templateRefName"]),
+					Template: "shell-script",
+				},
+				Arguments: v1alpha1.Arguments{
+					Parameters: []v1alpha1.Parameter{
+						{
+							Name:  "scriptContent",
+							Value: v1alpha1.AnyStringPtr(fmt.Sprintf("%v", unstrunstructuredHook.Object["spec"].(map[string]interface{})["scriptContent"])),
+						},
+						{
+							Name:  "dryRun",
+							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
+						},
+					},
+				},
+			})
+		}
+
+		if len(dag.Tasks) == 0 {
+			dag.Tasks = append(dag.Tasks, v1alpha1.DAGTask{
+				Name: "dummy-hook",
+				TemplateRef: &v1alpha1.TemplateRef{
+					Name:     "ssh-template",
+					Template: "shell-script",
+				},
+				Arguments: v1alpha1.Arguments{
+					Parameters: []v1alpha1.Parameter{
+						{
+							Name:  "scriptContent",
+							Value: v1alpha1.AnyStringPtr("echo hello"),
+						},
+						{
+							Name:  "dryRun",
+							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
+						},
+					},
+				},
+			})
+		}
+		res, _ := yaml.Marshal(dag.Tasks)
+		return string(res), nil
 	}
 
 	// add sprig templating func

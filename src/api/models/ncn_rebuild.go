@@ -25,6 +25,10 @@
  */
 package models
 
+import (
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+)
+
 type CreateRebuildWorkflowRequest struct {
 	Hosts          []string `json:"hosts"`
 	DryRun         bool     `json:"dryRun"`
@@ -35,4 +39,11 @@ type CreateRebuildWorkflowRequest struct {
 type CreateRebuildWorkflowResponse struct {
 	Name       string   `json:"name"`
 	TargetNcns []string `json:"targetNcns"`
+}
+
+type RebuildHooks struct {
+	BeforeAll  []unstructured.Unstructured
+	BeforeEach []unstructured.Unstructured
+	AfterEach  []unstructured.Unstructured
+	AfterAll   []unstructured.Unstructured
 }
