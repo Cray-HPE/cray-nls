@@ -314,29 +314,69 @@ properties:
                 # It would probably be simplest for Alice to just allow products
                 # to keep managing those substitutions themselves.
 
-      # TODO: A repositories key would be an alternative way to specify the
-      # Nexus repositories instead of having them defined in a separate file
-      # referenced by the value of the "repositories_definition" property.
-      # For example:
-      #
+      # =======================================================================
+      # An alternative way to define Nexus repos under a repositories property
+      # instead of defining them in a separate file referenced by the value of
+      # the "repositories_definition" property.
+      # =======================================================================
       repositories:
         description: >
-          A list of repositories.
+          An array of package repositories.
         type: array
         items:
           type: object
+          required: name
           properties:
             name:
               description: The name of the repo to create
               type: string
             # More properties defining the repo would go here.
+      # =======================================================================
 
-      # TODO: Similarly we could use a "blobstores" property instead of using
-      # the "blobstores_definition" property.
-
+      # =======================================================================
+      # An alternative way to define Nexus blob stores under a blobstores
+      # property instead of defining them in a separate file referenced by the
+      # value of the "blobstores_definition" property.
+      # =======================================================================
+      blobstores:
+        description: >
+          An array of blobstores that should be created in Nexus for this
+          product.
+        type: array
+        items:
+          type: object
+          required:
+          - name
+          properties:
+            name:
+              description: The name of the blobstore to create
+              type: string
+            # More properties defining the blobstore would go here.
+      # =======================================================================
 
       vcs:
-        description: TODO
+        default: {}
+        description: >
+          Information about the VCS repository to be created for this product.
+        type: object
+        required:
+        - path
+        properties:
+          path:
+            description: >
+              The path, relative to the top level of the product release
+              distribution, to the directory containing the content to upload to
+              a repository in VCS.
+            type: string
+          import_branch:
+            description: >
+              The branch name to which the content in the given path should be
+              uploaded in VCS. If this is omitted, the default behavior is to upload
+              to a path of the form cray/${PRODUCT_NAME}/${PRODUCT_VERSION} where
+              PRODUCT_NAME and PRODUCT_VERSION are the name and version of the product,
+              respectively. It is recommended not to change this value unless it is
+              required to do so.
+            type: string
 
       ims:
         description: TODO
