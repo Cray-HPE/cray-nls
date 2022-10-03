@@ -81,6 +81,57 @@ properties:
     # This regex is the official one from the FAQ on semver.org
     pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
+
+  # ===========================================================================
+  # TODO: Another example of a way to do dependencies where each product can
+  # declare what it provides vs. requires (similar to RPM).
+  #
+  # Deferred in Alice timeframe
+  # ===========================================================================
+  provides:
+    type: array
+    items:
+      type: string
+      description: TBD. Some sort of string describing what it provides.
+
+  requires:
+    type: array
+    items:
+      type: string
+      description: TBD. Some sort of string describing what it requires.
+  # ===========================================================================
+
+  # ===========================================================================
+  # TODO: One way of specifying dependencies between products would be to have
+  # dependencies at the top level here.
+  #
+  # A lot of this is somewhat handled at the HPC CSM Software Recipe manifest
+  # level because this is a set of software that has been validated together.
+  # This doesn't handle one-off install dependency checking.
+  dependencies:
+    description: >
+      The other products on which this product depends. This would be overall
+      dependencies one product has on another, affecting all (?) stages/operations
+      of the product.
+
+      # TODO: Ask product teams about existing dependencies. Atif has not seen
+      # any of these so far. Especially in upload_content. Dean cautions against
+      # doing this at too high of a level because teams will get overly cautious
+      # here and specify dependencies that aren't really needed.
+    type: list
+    items:
+      type: object
+      required:
+      - product_name
+      properties:
+        product_name:
+          description: Name of product on which this one depends.
+          type: string
+        product_version:
+          description: Version of product on which this one depends.
+          type: string
+  # ===========================================================================
+
   content:
     # TODO: Consider whether defaults can/should be specified at this level (in case content property is omitted)
     default:
@@ -180,6 +231,10 @@ properties:
             # TODO: Investigate how loftsman knows which Helm repository to use from Nexus
             # Di says that loftsman needs local copies of the charts instead of going to Nexus.
             # We confirmed that loftsman uses local copies of charts (e.g. COS). File CASMTRIAGE for loftsman support of remote repos.
+            #
+            # Rob found that loftsman command can use remote chart repos.
+            # Unclear how this works. `--charts-repo` exists, but it is
+            # deprecated in favor of `spec.sources.charts` in the manifests.
             repository_name:
               description: >
                 The name of the repository to which the Helm charts should be
@@ -199,6 +254,8 @@ properties:
           # This ties into the discussion about where we store hooks and any
           # artifacts needed for any future product install/upgrade/uninstall
           # operations.
+          # Decision: they will be stored in S3 (pre- and post-manifestgen
+          # versions)
 
           # TODO: Is there a need to specify dependencies here? Either within a
           # single product's Loftsman manifests or between products?
@@ -208,6 +265,11 @@ properties:
         - path: manifests
           deploy: true
           manifestgen: true
+
+          # TODO: Example of dependencies
+          # dependencies:
+          # - product: cos
+          #   manifest_path: manifests
         items:
           type: object
           required:
@@ -221,6 +283,10 @@ properties:
 
             # TODO: Consider whether dependencies between loftsman manifests are needed here
             # Jason suggests that perhaps they belong in a separate section.
+            #
+            # Decision: let's not do this for Alice. We can ask product teams
+            # about whether this is required.
+            #
             # Example schema below
             dependencies:
               type: array
@@ -245,6 +311,13 @@ properties:
               type: boolean
               # TODO: Is it more common that products require this or do not require it?
               # Is it harmless if they do not require it? Should be harmless.
+              #
+              # Atif want to move away from specifying all config values in
+              # customizations.yaml and move towards having these be specified
+              # by the admin either in a file or in a wizard guiding them
+              # through answering required questions as part of starting an IUF
+              # session. We will keep this unchanged for Alice to minimize
+              # impact to product teams and improve in the future.
               default: true
             deploy:
               description: >
@@ -253,6 +326,9 @@ properties:
 
                 # TODO: Reach out to David Gloe to ask for specifics on the WLM use case.
                 # Why would we ever not want to deploy manifests during the deploy_manifests stage?
+                # Atif suggests asking this question at the next meeting with
+                # product teams. Atif hasn't seen any examples where this would
+                # be required. Assume they all need to be deployed.
               type: boolean
               default: true
 
@@ -283,6 +359,11 @@ properties:
           # TODO: Define behavior when repositories defined here already exist in Nexus.
           # Investigate why Slurm had to delete the old repos. Was it a way to ensure
           # the type is modified.
+          #
+          # Atif suggests that we must always back up old content if we would
+          # overwrite it. 
+          #
+          # This needs to be discussed further as part of the IUF spec.
         type: string
         default: nexus-repositories.yaml
 
@@ -295,6 +376,7 @@ properties:
           type: object
           required:
           - path
+          - repository_name
           properties:
             path:
               description: >
@@ -313,6 +395,10 @@ properties:
                 # nexus-repositories.yaml, and their install.sh files using sed.
                 # It would probably be simplest for Alice to just allow products
                 # to keep managing those substitutions themselves.
+                #
+                # Decision: For Alice, we won't worry about this. Post-Alice, we
+                # could offer release-generation libraries to simplify across
+                # products.
 
       # =======================================================================
       # An alternative way to define Nexus repos under a repositories property
@@ -355,6 +441,8 @@ properties:
       # =======================================================================
 
       vcs:
+        # TODO: Ask product teams if any product provides more than one VCS
+        # repo.
         default: {}
         description: >
           Information about the VCS repository to be created for this product.
@@ -377,9 +465,59 @@ properties:
               respectively. It is recommended not to change this value unless it is
               required to do so.
             type: string
+          # The following property is one we want to allow the admin to
+          # override. For Alice, let's not add this property. Let's just worry
+          # about the content upload.
+          site_branch:
+            type: string
+            description: >
+              The branch name to use as the branch for site customizations.
+              cpe-integration-22.09
 
       ims:
-        description: TODO
+        description: >
+          Information about the IMS images and/or recipes to be uploaded into
+          IMS for this product.
+        type: object
+        properties:
+          recipes:
+            type: array
+            items:
+              type: object
+              required:
+              - path
+              properties:
+                path:
+                  description: >
+                    The path, relative to the top level of the product release
+                    distribution, to the recipe as a gzipped tar file.
+
+                    # TODO: Still trying to understand the structure here and
+                    # how products will be able to build and package recipes.
+                  type: string
+                name:
+                  description: >
+                    Name of the recipe. Or we could default to the name of the tar file.
+                  type: string
+          images:
+            type: array
+            items:
+              type: object
+              required:
+              - path
+              properties:
+                path:
+                  description: >
+                    The path, relative to the top level of the product release
+                    distribution, to the directory containing the image artifacts.
+
+                    # TODO: Still trying to understand the structure here and
+                    # how products will be able to build and package images.
+                  type: string
+                name:
+                  description: >
+                    The name of the image to create.
+                  type: string
 
       s3:
         description: TODO
