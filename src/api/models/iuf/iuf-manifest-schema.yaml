@@ -247,40 +247,49 @@ properties:
               type: boolean
               default: true
 
-      blobstores_definition:
+      # =======================================================================
+      # =============== Question for review session with teams ================
+      # =======================================================================
+      #
+      # Do any products currently have more than one "nexus-repositories.yaml"
+      # file in their product stream?
+      #
+      # =======================================================================
+      nexus_blob_stores:
         description: >
-          The path to a YAML file that defines the blobstores that should be
-          created for this product. The YAML file should consist of a series
-          documents, each of which defines a blobstore.
+          The Nexus blob stores that should be defined for this product.
+        type: object
+        required:
+        - yaml_path
+        properties:
+          yaml_path:
+            description: >
+              The relative path to a YAML file that defines the Nexus blob
+              stores that should be created for this product. The YAML file
+              should consist of a series of documents, each of which defines a
+              blobstore.
 
-          The schema of each document is unchanged from the Papaya recipe
-          release.
-        type: string
-        # TODO: Do any products define more than one blobstore?
-        # It is possible to do this with a single nexus-blobstores.yaml file
-        # by specifying multiple documents. Check if any products define multiple
-        # blobstores in multiple files (possible SLE)
-        default: nexus-blobstores.yaml
+              The schema of this file is unchanged from the Papaya recipe.
+            type: string
+            default: nexus-blobstores.yaml
 
-      repositories_definition:
+      nexus_repositories:
         description: >
-          The path to a YAML file that defines the Nexus repositories that
-          should be create for this product. The YAML file should consist of a
-          series of documents, each of which defines a Nexus repository.
+          The Nexus repositories that should be defined for this product.
+        type: object
+        required:
+        - yaml_path
+        properties:
+          yaml_path:
+            description: >
+              The relative path to a YAML file that defines the Nexus
+              repositories that should be created for this product. The YAML
+              file should consist of a series of documents, each of which
+              defines a Nexus repository.
 
-          The schema of each document is unchanged from the Papaya recipe
-          release.
-
-          # TODO: Define behavior when repositories defined here already exist in Nexus.
-          # Investigate why Slurm had to delete the old repos. Was it a way to ensure
-          # the type is modified.
-          #
-          # Atif suggests that we must always back up old content if we would
-          # overwrite it. 
-          #
-          # This needs to be discussed further as part of the IUF spec.
-        type: string
-        default: nexus-repositories.yaml
+              The schema of this file is unchanged from the Papaya recipe.
+          type: string
+          default: nexus-repositories.yaml
 
       rpms:
         description: >
@@ -314,46 +323,6 @@ properties:
                 # Decision: For Alice, we won't worry about this. Post-Alice, we
                 # could offer release-generation libraries to simplify across
                 # products.
-
-      # =======================================================================
-      # An alternative way to define Nexus repos under a repositories property
-      # instead of defining them in a separate file referenced by the value of
-      # the "repositories_definition" property.
-      # =======================================================================
-      repositories:
-        description: >
-          An array of package repositories.
-        type: array
-        items:
-          type: object
-          required: name
-          properties:
-            name:
-              description: The name of the repo to create
-              type: string
-            # More properties defining the repo would go here.
-      # =======================================================================
-
-      # =======================================================================
-      # An alternative way to define Nexus blob stores under a blobstores
-      # property instead of defining them in a separate file referenced by the
-      # value of the "blobstores_definition" property.
-      # =======================================================================
-      blobstores:
-        description: >
-          An array of blobstores that should be created in Nexus for this
-          product.
-        type: array
-        items:
-          type: object
-          required:
-          - name
-          properties:
-            name:
-              description: The name of the blobstore to create
-              type: string
-            # More properties defining the blobstore would go here.
-      # =======================================================================
 
       vcs:
         # TODO: Ask product teams if any product provides more than one VCS
