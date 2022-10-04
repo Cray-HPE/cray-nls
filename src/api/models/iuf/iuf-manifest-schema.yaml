@@ -252,7 +252,7 @@ properties:
       # =======================================================================
       #
       # Do any products currently have more than one "nexus-repositories.yaml"
-      # file in their product stream?
+      # or "nexus-blobstores.yaml" file in their product stream?
       #
       # =======================================================================
       nexus_blob_stores:
@@ -288,8 +288,8 @@ properties:
               defines a Nexus repository.
 
               The schema of this file is unchanged from the Papaya recipe.
-          type: string
-          default: nexus-repositories.yaml
+            type: string
+            default: nexus-repositories.yaml
 
       rpms:
         description: >
