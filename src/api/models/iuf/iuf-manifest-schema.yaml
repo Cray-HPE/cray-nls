@@ -50,37 +50,47 @@ properties:
 
   name:
     description: >
-      The name of the product. This product name is the name under which the
-      product will be uploaded to the product catalog.
+      The abbreviated name of the product. This product name is the name under
+      which the product will be uploaded to the product catalog.
     type: string
-    # TODO: Do we want to define a regular expression for allowed product names
-    # pattern: regex in ECMA-262 regular expression dialect goes here
+    examples:
+    - cos
+    - sat
+    - analytics
+    # TODO: Consider a regular expression for allowed product names
+    # pattern: <regex in ECMA-262 regular expression dialect goes here>
 
   # TODO: Do we want a long name in a description too?
   description:
     description: >
-      A longer name for the product. This is for humans to read and understand.
-      E.g. slingshot-host-software could say what SHS stands for.
+      A description of the product.
     type: string
 
   version:
     description: >
-      The version of the product. The format of this version string must conform
-      to the Semantic Versioning 2.0.0 Spec. The version numbers do not need to
-      be assigned and incremented in accordance with the rules and requirements
-      dictated by SemVer, however.
+      The version of the product. If not specified, the IUF will look for a
+      file named ".version" in the top level of the release distribution
+      directory.  If the version is not specified in the manifest, and there is
+      no ".version" file, an attempt to install the product using the IUF will
+      fail.
 
-      # TODO: Consider whether we want to fall back on the `.version` file that some products
-      # deliver in the release distribution tar file. E.g. Slurm provides one. We don't want
-      # to make the build process more complicated. Or provide a path to the version file. In
-      # this case, we could use a oneOf in the schema.
+      It is recommended that products use a version string format which
+      conforms to the Semantic Versioning 2.0.0 Spec. This does not require
+      that the version numbers be assigned and incremented in accordance with
+      the rules and requirements dictated by SemVer.
 
-      # TODO: Need to look at SLE, CPE, and other products to see if they can fit into SemVer
-      # Note that SemVer is pretty flexible (e.g. should be able to support SLE date strings).
-      # Product like CPE already have to conform to use cray-import-config/cf-gitea-import
+      If the product provides Ansible configuration content which is uploaded to a
+      vcs repository (see the "vcs" property), then the version here must be a
+      valid semantic version.
     type: string
-    # This regex is the official one from the FAQ on semver.org
-    pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+    examples:
+    - 2.4.76
+    - 22.9.4
+    - 1.3.0-rc.3
+    - 2.5.8-20221004160837-9746d6e
+    # If we can enforce that every product uses SemVer, then we can use the
+    # following official regex from the FAQ on semver.org.
+    # pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 
 
   # ===========================================================================
