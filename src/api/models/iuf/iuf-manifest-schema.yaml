@@ -135,12 +135,8 @@ properties:
           An array of directories containing docker images that should be
           uploaded to the Docker image registry in Nexus at install/upgrade
           time.
-
         default:
         - path: "docker"
-        # TODO: do we want this as opposed to objects.
-        # - "docker"
-
         type: array
         items:
           type: object
@@ -149,9 +145,8 @@ properties:
           properties:
             path:
               description: |
-                The path, relative to the top level of the release distribution
-                directory, containing the container images to be uploaded to the
-                Docker image registry in Nexus.
+                The relative path to a directory containing the container
+                images to be uploaded to the Docker image registry in Nexus.
 
                 The directories contained within the directory specified here
                 must contain container images. The container images will be
@@ -160,29 +155,17 @@ properties:
 
                 For example, if this path contains the following file structure
 
-                arti.hpc.amslabs.hpecorp.net/
-                └── my-container:1.2.4
-                    ├── 007c21b118030b56ce4c303c6ef668f6bdcf2e14f5e63f079b19e1d1883ac7a9
-                    ├── ...
-                    ├── manifest.json
-                    └── version
+                .
+                |-- arti.hpc.amslabs.hpecorp.net
+                    `-- my-container:1.2.4
+                        |-- 1054448d81575250985471206b1c4654b0262d337f1a52ddac9a21208665656e
+                        |-- ...
+                        |-- manifest.json
+                        `-- version
 
-                This container image would be uploaded to the Nexus registry as a
-                arti.hpc.amslabs.hpecorp.net/my-container:1.2.4
+                A single container image would be uploaded to the Nexus Docker
+                registry as arti.hpc.amslabs.hpecorp.net/my-container:1.2.4
               type: string
-
-            # TODO: Do we need the ability to strip components from the path?
-            # Maybe this needs a spike to see how product teams are storing their docker images.
-            # E.g. SAT puts them all under cray/ prefix. COS mixes that approach with using
-            # arti.hpc.../ prefix.
-            # Maybe we don't need to worry about this. Make the product mirror the naming in the nexus
-            # registry with their file structure.
-            strip_leading_components:
-              type: integer
-              default: 0
-              description: >
-                How many leading components of the path should be stripped off when
-                uploading the image to Nexus.
 
       helm:
         description: >
