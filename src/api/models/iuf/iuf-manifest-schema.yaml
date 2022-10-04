@@ -175,9 +175,6 @@ properties:
         type: array
         default:
         - path: helm
-          repository_name: charts
-        # TODO: Consider simplifying this to just a list of strings like "docker" above
-        # - "helm"
         items:
           type: object
           required:
@@ -185,55 +182,43 @@ properties:
           properties:
             path:
               description: >
-                The path, relative to the top level of the release distribution
-                directory, containing the helm charts to be uploaded to a Helm
-                chart repository in Nexus.
+                The relative path to a directory containing the helm charts to
+                be uploaded to a Helm chart repository in Nexus. The directory
+                should contain Helm charts as gzipped tar files. The helm charts
+                will be uploaded to the "charts" Helm chart repository in Nexus.
               type: string
 
-            # TODO: We can probably simplify here for now. Everybody is using "charts".
-            # Putting charts in their own repository for each product is out of scope for IUF.
-            # TODO: Investigate how loftsman knows which Helm repository to use from Nexus
-            # Di says that loftsman needs local copies of the charts instead of going to Nexus.
-            # We confirmed that loftsman uses local copies of charts (e.g. COS). File CASMTRIAGE for loftsman support of remote repos.
-            #
-            # Rob found that loftsman command can use remote chart repos.
-            # Unclear how this works. `--charts-repo` exists, but it is
-            # deprecated in favor of `spec.sources.charts` in the manifests.
-            repository_name:
-              description: >
-                The name of the repository to which the Helm charts should be
-                uploaded in Nexus.
-              type: string
-              default: charts
-
-
+      # =======================================================================
+      # =============== Question for review session with teams ================
+      # =======================================================================
+      #
+      # Will Loftsman manifests need a way to declare dependencies on other
+      # Loftsman manifests, either within a single product or across products?
+      #
+      # Which teams use manifestgen, and which don't?
+      #
+      # Do any products provide Loftsman manifests that they don't want to
+      # deploy as part of the product install and deployment? E.g. WLM?
+      #
+      # =======================================================================
       loftsman:
         description: >
           An array of Loftsman manifest files or directories containing Lofstman
           manifest files provided by the product.
 
+          Loftsman manifests will be uploaded to S3 storage during the
+          upload_content stage of the install/upgrade. They will be used from
+          this S3 location during the deploy_manifests stage of the install.
 
-          # TODO: Discuss with Atif where these manifests should be stored.
-          # Also decide whether we store pre- or post-manifestgen versions.
-          # This ties into the discussion about where we store hooks and any
-          # artifacts needed for any future product install/upgrade/uninstall
-          # operations.
-          # Decision: they will be stored in S3 (pre- and post-manifestgen
-          # versions)
-
-          # TODO: Is there a need to specify dependencies here? Either within a
-          # single product's Loftsman manifests or between products?
-          # Discuss with Atif how dependencies are declared.
+          If the loftsman manifests are customized with the contents of
+          customizations.yaml using manifestgen, then both the pre-customization
+          and post-customization versions of the manifests will be stored in S3.
         type: array
         default:
         - path: manifests
           deploy: true
           manifestgen: true
 
-          # TODO: Example of dependencies
-          # dependencies:
-          # - product: cos
-          #   manifest_path: manifests
         items:
           type: object
           required:
@@ -241,58 +226,24 @@ properties:
           properties:
             path:
               description: >
-                The path to a loftsman manifest file or directory, relative to the top level
-                of the release distribution directory.
+                The relative path to a loftsman manifest file or a directory
+                containing multiple loftsman manifest files.
               type: string
-
-            # TODO: Consider whether dependencies between loftsman manifests are needed here
-            # Jason suggests that perhaps they belong in a separate section.
-            #
-            # Decision: let's not do this for Alice. We can ask product teams
-            # about whether this is required.
-            #
-            # Example schema below
-            dependencies:
-              type: array
-              items:
-                type: object
-                properties:
-                  product:
-                    type: string
-                    description: name of product
-                  manifest_name:
-                    type: string
-                    description: name of manifest provided by product
-            # End of example
 
             use_manifestgen:
               description: >
                 Whether manifestgen needs to be called against the manifest(s).
 
-                manifestgen takes the customizations.yaml file and applies the customizations
-                to the Loftsman manifest file. Customizations to the manifest themselves or to
-                to the values that are passed through to the helm charts.
+                The manifestgen command applies values from customizations.yaml
+                to the Loftsman manifest. These generally affect values in the
+                Loftsman manifest file that are passed through to the Helm
+                charts when they are deployed.
               type: boolean
-              # TODO: Is it more common that products require this or do not require it?
-              # Is it harmless if they do not require it? Should be harmless.
-              #
-              # Atif want to move away from specifying all config values in
-              # customizations.yaml and move towards having these be specified
-              # by the admin either in a file or in a wizard guiding them
-              # through answering required questions as part of starting an IUF
-              # session. We will keep this unchanged for Alice to minimize
-              # impact to product teams and improve in the future.
               default: true
             deploy:
               description: >
                 Whether this loftsman manifest should be deployed as part of the
                 deploy_manifests stage of the IUF.
-
-                # TODO: Reach out to David Gloe to ask for specifics on the WLM use case.
-                # Why would we ever not want to deploy manifests during the deploy_manifests stage?
-                # Atif suggests asking this question at the next meeting with
-                # product teams. Atif hasn't seen any examples where this would
-                # be required. Assume they all need to be deployed.
               type: boolean
               default: true
 
