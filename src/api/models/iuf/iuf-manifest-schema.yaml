@@ -4,48 +4,49 @@ title: "Product Manifest for HPE CSM Install-Upgrade Framework (IUF)"
 description: >
   A manifest that defines the behavior of the IUF when it performs operations
   against this product.
-# This is the version of the schema itself
+# This is the version of the IUF manifest schema itself
 version: 0.1.0
 type: object
 required:
-- schema_version
+- iuf_version
 - name
 # TODO: Generally would like this throughout all objects as it provides more
 # guarantee of backwards compatibility of old manifests with newer schema.
+#
+# Using additionalProperties false helps ensure backwards compatibility of old
+# IUF manifest files with newer schema versions because old manifest files will
+# not be able to use additional properties which are then later added to the IUF
+# manifest schema.
 additionalProperties: false
 properties:
 
-  schema_version:
+  iuf_version:
     description: >
-      The version of the IUF product manifest schema used by this manifest. The
-      version of the schema should be a SemVer-like version number with three
-      components, major.minor.patch.
-
-      This version will be checked against the current schema version understood
-      by the IUF.
-
-      Compatibility is defined as follows. Let us refer to the schema version
-      specified by the product manifest file as the "manifest version" and the
-      current schema version used by the IUF as the "current version".
+      The semantic version of the IUF with which this manifest file is expected
+      to be compatible. Version constraints can be specified using ">", ">=",
+      "==", "<", and "<=" comparison operators. Multiple comparison operators
+      can be used to specify a range.
 
 
-      - If the input version has an older major version than the current
-        version, it is incompatible.
+      Version constraints can also be specified with "~" (tilde) and "^" (caret)
+      operators. A full version prefixed with "~" means that all versions with the
+      same major and minor versions are compatible. That is, the patch version
+      is allowed to differ. A full version prefixed with "^" means that all versions
+      with the same major version are compatible. That is, the minor and patch
+      versions are allowed to differ.
 
-      - If the input version has an older minor version than the current
-        version, it may be incompatible, but will be accepted with a warning.
 
-      - If the input version has an older patch version than the current
-        version, it is compatible.
-
-      - If the input version is newer than the current version, it is
-        incompatible because it could contain new fields not understood by the
-        current version.
-
-      - If the input version matches the current version, it is compatible.
-    # TODO: Atif want to see this with a range, e.g. ^1.0.0 or ~1.0.0
-    default: '1.0.0'
+      It is recommended that products specify a caret range matching the
+      current version of the IUF against which the manifest is developed. This
+      will allow the manifest to continue working with new minor and patch
+      versions of the IUF.
     type: string
+    examples:
+    - 1.0.0
+    - ">= 1.0.0 < 2.0"
+    - "< 2.0"
+    - "~1.0.0"
+    - "^1.0.0"
 
   name:
     description: >
