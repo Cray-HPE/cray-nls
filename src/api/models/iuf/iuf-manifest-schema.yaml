@@ -203,8 +203,8 @@ properties:
           manifest files provided by the product.
 
           Loftsman manifests will be uploaded to S3 storage during the
-          upload_content stage of the install/upgrade. They will be used from
-          this S3 location during the deploy_manifests stage of the install.
+          upload\_content stage of the install/upgrade. They will be used from
+          this S3 location during the deploy\_manifests stage of the install.
 
           If the loftsman manifests are customized with the contents of
           customizations.yaml using manifestgen, then both the pre-customization
