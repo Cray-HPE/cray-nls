@@ -290,7 +290,7 @@ properties:
       rpms:
         description: >
           An array of directories containing RPMs that should be uploaded to the
-          repositories defined by the "repositories_definition" property.
+          repositories defined by the "nexus_repositories" property.
         type: array
         items:
           type: object
@@ -300,25 +300,26 @@ properties:
           properties:
             path:
               description: >
-                The path to a directory containing RPMs to upload to a package
-                repository in Nexus, relative to the top level of the release
-                distribution directory.
+                The relative path to a directory containing RPMs to upload to a
+                repository in Nexus. This directory may also contain yum
+                repository metadata files, and they will also be uploaded to
+                the repository in Nexus.
               type: string
             repository_name:
               description: >
-                The name of the repository to which these RPMs should be uploaded.
-
-                # TODO: Should we support product name and version substitutions
-                # in this file at product install time? Currently, many products
-                # do this sort of variable substitution at packaging time in
-                # `release.sh` by templating their nexus-blobstores.yaml,
-                # nexus-repositories.yaml, and their install.sh files using sed.
-                # It would probably be simplest for Alice to just allow products
-                # to keep managing those substitutions themselves.
-                #
-                # Decision: For Alice, we won't worry about this. Post-Alice, we
-                # could offer release-generation libraries to simplify across
-                # products.
+                The name of the repository to which these RPMs should be
+                uploaded. This repository should have been defined in the file
+                referenced by the "nexus_repositories" property.
+              type: string
+            repository_type:
+              description: >
+                The type of the Nexus repository to which the RPMs should be
+                uploaded.
+              type: string
+              default: raw
+              enum:
+              - raw
+              - yum
 
       vcs:
         # TODO: Ask product teams if any product provides more than one VCS
