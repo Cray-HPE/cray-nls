@@ -409,5 +409,33 @@ properties:
                     artifacts.
                   type: string
 
+      # =======================================================================
+      # =============== Question for review session with teams ================
+      # =======================================================================
+      #
+      # Analytics and CPE do this today. Do any other products do this?
+      #
+      # =======================================================================
       s3:
-        description: TODO
+        description: >
+          Information about additional artifacts that should be uploaded to S3
+        type: array
+        items:
+          required:
+          - path
+          - bucket
+          - key
+          properties:
+            path:
+              description: >
+                The relative path to the file that should be uploaded to S3.
+              type: string
+            bucket:
+              description: >
+                The S3 bucket to which this file should be uploaded.
+              type: string
+            key:
+              description: >
+                The key of the object to be created in S3.
+          type: object
+
