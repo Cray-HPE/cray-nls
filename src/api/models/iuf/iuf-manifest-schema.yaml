@@ -358,6 +358,8 @@ properties:
               "PRODUCT_VERSION" is the version of the product.
             type: string
 
+      # TODO: Need to understand how products will build and package recipes and
+      # images for inclusion in their product release distribution files.
       ims:
         description: >
           Information about the IMS images and/or recipes to be uploaded into
@@ -373,15 +375,13 @@ properties:
               properties:
                 path:
                   description: >
-                    The path, relative to the top level of the product release
-                    distribution, to the recipe as a gzipped tar file.
-
-                    # TODO: Still trying to understand the structure here and
-                    # how products will be able to build and package recipes.
+                    The relative path to the recipe as a gzipped tar file.
                   type: string
                 name:
                   description: >
-                    Name of the recipe. Or we could default to the name of the tar file.
+                    The name of the recipe to be created in IMS. If omitted,
+                    this will default to the name of the tar file without the
+                    ".tar.gz" extension.
                   type: string
           images:
             type: array
@@ -392,15 +392,21 @@ properties:
               properties:
                 path:
                   description: >
-                    The path, relative to the top level of the product release
-                    distribution, to the directory containing the image artifacts.
+                    The relative path to the directory containing the image
+                    artifacts. The directory should contain a root filesystem
+                    image the squashfs format, a kernel file, and an initrd.
 
-                    # TODO: Still trying to understand the structure here and
-                    # how products will be able to build and package images.
+                    An IMS image record will be created, the image artifacts
+                    will be uploaded to the appropriate paths in S3, an IMS
+                    manifest that references those artifacts will be constructed
+                    and uploaded to S3, and the IMS image record will be updated
+                    with that manifest.
                   type: string
                 name:
                   description: >
-                    The name of the image to create.
+                    The name of the image to create. If omitted, this will
+                    default to the name of the directory containing the image
+                    artifacts.
                   type: string
 
       s3:
