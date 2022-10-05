@@ -31,6 +31,7 @@ var Module = fx.Options(
 	fx.Provide(NewWorkflowRoutes),
 	fx.Provide(NewRoutes),
 	fx.Provide(NewMiscRoutes),
+	fx.Provide(NewIufRoutes),
 )
 
 // Routes contains multiple routes
@@ -46,11 +47,13 @@ func NewRoutes(
 	ncnRoutes NcnRoutes,
 	workflowRoutes WorkflowRoutes,
 	miscRoutes MiscRoutes,
+	iufRoutes IufRoutes,
 ) Routes {
 	return Routes{
 		ncnRoutes,
 		workflowRoutes,
 		miscRoutes,
+		iufRoutes,
 	}
 }
 

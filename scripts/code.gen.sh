@@ -42,3 +42,4 @@ fi
 
 go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
 ~/go/bin/controller-gen crd webhook paths="src/api/models/v1/hooks.go" output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
+~/go/bin/controller-gen crd webhook paths="src/api/models/v1/iuf_sessions.go" output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
