@@ -111,10 +111,6 @@ properties:
 
 
   content:
-    # TODO: Consider whether defaults can/should be specified at this level (in case content property is omitted)
-    default:
-      docker:
-      - path: docker
     type: object
     description: >
       The content delivered by this product, including container images, RPMs,
