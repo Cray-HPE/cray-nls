@@ -2,3 +2,4 @@
 docs/**.* linguist-generated
 src/api/mocks/**.* linguist-generated
 charts/v1.0/cray-nls/crds/cray-nls.hpe.com_*.yaml linguist-generated
+charts/v1.0/cray-nls/crds/iuf.hpe.com_*.yaml linguist-generated
