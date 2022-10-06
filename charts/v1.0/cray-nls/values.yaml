@@ -83,10 +83,13 @@ cray-service:
         - name: storage-rebuild-workflow-files
           readOnly: true
           mountPath: /workflows/storage/ncn
+        - name: iuf-install-workflow-files
+          readOnly: true
+          mountPath: /workflows/iuf
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.2.0
+        tag: 0.2.1
       resources:
         limits:
           cpu: 1
@@ -112,6 +115,8 @@ cray-service:
           value: "/workflows/worker"
         - name: STORAGE_REBUILD_WORKFLOW_FILES
           value: "/workflows/storage"
+        - name: IUF_INSTALL_WORKFLOW_FILES
+          value: "/workflows/iuf"
       ports:
         - name: http
           containerPort: 3000

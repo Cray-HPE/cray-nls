@@ -37,10 +37,6 @@ spec:
               an install-upgrade workflow. It contains both input data, as well as
               any intermediary data that is needed to generate the final Argo workflow.
             properties:
-              argo_workflow:
-                description: 'The unique name of the Argo workflow that is created
-                  from all the input parameters above. TODO: use argo struct here'
-                type: string
               input_params:
                 description: The input parameters supplied by the Admin.
                 properties:
@@ -58,18 +54,6 @@ spec:
                       product.
                     type: object
                 type: object
-              operations:
-                description: A 2-level DAG of Operations derived from stages that
-                  would be executed for each of the products that are specified. This
-                  is not specified by the Admin -- it is computed from the list of
-                  stages above.  This is an array of array of CR names of Operations
-                  that are installed as part of IUF, and determined by the Stages
-                  supplied.
-                items:
-                  items:
-                    type: string
-                  type: array
-                type: array
               products:
                 description: The products that need to be installed, as specified
                   by the Admin.
@@ -122,32 +106,53 @@ spec:
                 type: array
               stages:
                 description: The stages that need to be executed. This is either explicitly
-                  specified by the Admin, or it is computed from the workflow type.  An
-                  Stage is a group of Operations. Stages represent the overall workflow
-                  at a high-level, and executing a stage means executing a bunch of
-                  Operations in a predefined manner.  An Admin can specify the stages
-                  that must be executed for an install-upgrade workflow. And Product
-                  Developers can extend each stage with custom hook scripts that they
-                  would like to run before and after the stage's execution.  The high-level
-                  stages allow their configuration would revealing too many details
-                  to the consumers of IUF.
+                  specified by the Admin, or it is computed from the workflow type.
+                  An Stage is a group of Operations. Stages represent the overall
+                  workflow at a high-level, and executing a stage means executing
+                  a bunch of Operations in a predefined manner.  An Admin can specify
+                  the stages that must be executed for an install-upgrade workflow.
+                  And Product Developers can extend each stage with custom hook scripts
+                  that they would like to run before and after the stage's execution.  The
+                  high-level stages allow their configuration would revealing too
+                  many details to the consumers of IUF. if not specified, we apply
+                  all stages
                 items:
                   type: string
                 type: array
               workflow_type:
-                description: What type of workflow are we executing?
+                description: What type of workflow are we executing? install or upgrade
+                enum:
+                - install
+                - upgrade
                 type: string
             required:
             - input_params
-            - operations
             - products
             - stages
             - workflow_type
             type: object
           status:
             properties:
+              argo_workflow:
+                description: The unique name of the Argo workflow that is created
+                  from all the input parameters above.
+                type: string
+              message:
+                type: string
               observedGeneration:
                 type: integer
+              operations:
+                description: A 2-level DAG of Operations derived from stages that
+                  would be executed for each of the products that are specified. This
+                  is not specified by the Admin -- it is computed from the list of
+                  stages above.  This is an array of array of CR names of Operations
+                  that are installed as part of IUF, and determined by the Stages
+                  supplied.
+                items:
+                  items:
+                    type: string
+                  type: array
+                type: array
               phase:
                 type: string
             required:

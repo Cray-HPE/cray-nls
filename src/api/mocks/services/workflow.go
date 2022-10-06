@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/Cray-HPE/cray-nls/src/api/models"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	v1alpha1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	gin "github.com/gin-gonic/gin"
 	gomock "github.com/golang/mock/gomock"
@@ -34,6 +35,21 @@ func NewMockWorkflowService(ctrl *gomock.Controller) *MockWorkflowService {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 	return m.recorder
+}
+
+// CreateIufWorkflow mocks base method.
+func (m *MockWorkflowService) CreateIufWorkflow(req v1.IufSessionSpec) (*v1alpha1.Workflow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
+	ret0, _ := ret[0].(*v1alpha1.Workflow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateIufWorkflow indicates an expected call of CreateIufWorkflow.
+func (mr *MockWorkflowServiceMockRecorder) CreateIufWorkflow(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIufWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateIufWorkflow), req)
 }
 
 // CreateRebuildWorkflow mocks base method.
@@ -63,6 +79,21 @@ func (m *MockWorkflowService) DeleteWorkflow(ctx *gin.Context) error {
 func (mr *MockWorkflowServiceMockRecorder) DeleteWorkflow(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).DeleteWorkflow), ctx)
+}
+
+// GetWorkflowByName mocks base method.
+func (m *MockWorkflowService) GetWorkflowByName(name string, ctx *gin.Context) (*v1alpha1.Workflow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWorkflowByName", name, ctx)
+	ret0, _ := ret[0].(*v1alpha1.Workflow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWorkflowByName indicates an expected call of GetWorkflowByName.
+func (mr *MockWorkflowServiceMockRecorder) GetWorkflowByName(name, ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWorkflowByName", reflect.TypeOf((*MockWorkflowService)(nil).GetWorkflowByName), name, ctx)
 }
 
 // GetWorkflows mocks base method.

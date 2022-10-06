@@ -40,8 +40,13 @@ type IufSyncResponse struct {
 }
 
 type IufStatus struct {
-	Phase              string `json:"phase,omitempty"`
+	Phase string `json:"phase,omitempty"`
+	// A 2-level DAG of Operations derived from stages that would be executed for each of the products that are specified. This is not specified by the Admin -- it is computed from the list of stages above.  This is an array of array of CR names of Operations that are installed as part of IUF, and determined by the Stages supplied.
+	Operations [][]string `json:"operations,omitempty"`
+	// The unique name of the Argo workflow that is created from all the input parameters above.
+	ArgoWorkflow       string `json:"argo_workflow,omitempty"`
 	ObservedGeneration int    `json:"observedGeneration"`
+	Message            string `json:"message,omitempty"`
 }
 
 // IufSession
@@ -79,19 +84,34 @@ type IufSessionInputParams struct {
 	VcsWorkingBranchPerProduct map[string]string `json:"vcs_working_branch_per_product,omitempty"`
 }
 
+// +kubebuilder:validation:Enum=install;upgrade
+type WorkflowType string
+
+// Node types
+const (
+	WorkflowTypeInstall WorkflowType = "install"
+	WorkflowTypeUpgrade WorkflowType = "upgrade"
+)
+
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
 type IufSessionSpec struct {
-	// What type of workflow are we executing?
-	WorkflowType string `json:"workflow_type"`
+	// What type of workflow are we executing? install or upgrade
+	WorkflowType WorkflowType `json:"workflow_type"`
 	// The products that need to be installed, as specified by the Admin.
 	Products []IufSessionProducts `json:"products"`
-	// The stages that need to be executed. This is either explicitly specified by the Admin, or it is computed from the workflow type.  An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
+	// The stages that need to be executed.
+	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
+	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
+	// if not specified, we apply all stages
 	Stages []string `json:"stages"`
 
 	InputParams *IufSessionInputParams `json:"input_params"`
-	// A 2-level DAG of Operations derived from stages that would be executed for each of the products that are specified. This is not specified by the Admin -- it is computed from the list of stages above.  This is an array of array of CR names of Operations that are installed as part of IUF, and determined by the Stages supplied.
-	Operations [][]string `json:"operations"`
-	// The unique name of the Argo workflow that is created from all the input parameters above.
-	// TODO: use argo struct here
-	ArgoWorkflow string `json:"argo_workflow,omitempty"`
+}
+
+func (s IufSessionSpec) GetProductsName() []string {
+	res := []string{}
+	for _, product := range s.Products {
+		res = append(res, product.Name)
+	}
+	return res
 }
