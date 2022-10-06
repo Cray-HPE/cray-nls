@@ -71,6 +71,25 @@ properties:
       A description of the product.
     type: string
 
+  # ===========================================================================
+  # ================= Question for review session with teams ==================
+  # ===========================================================================
+  #
+  # Come back to this question at the end.
+  #
+  # This file is static and must be constructed at the product release
+  # distribution build time. Do any products require dynamic construction of
+  # this file?
+  #
+  # ===========================================================================
+
+  # ===========================================================================
+  # ================= Question for review session with teams ==================
+  # ===========================================================================
+  #
+  # Can teams use SemVer for their product versions?
+  #
+  # ===========================================================================
   version:
     description: >
       The version of the product. If not specified, the IUF will look for a
@@ -191,10 +210,11 @@ properties:
       # Will Loftsman manifests need a way to declare dependencies on other
       # Loftsman manifests, either within a single product or across products?
       #
-      # Which teams use manifestgen, and which don't?
+      # We plan to manifestgen all loftsman manifests by default. Is that a problem
+      # for any product teams? We can provide an option to disable it.
       #
       # Do any products provide Loftsman manifests that they don't want to
-      # deploy as part of the product install and deployment? E.g. WLM?
+      # deploy as part of the product_deploy stage? E.g. WLM?
       #
       # =======================================================================
       loftsman:
