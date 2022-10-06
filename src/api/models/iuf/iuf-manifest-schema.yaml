@@ -126,6 +126,10 @@ properties:
   # dependencies, particularly in the install stages responsible for uploading
   # content, deploying services?
   #
+  # Don: CSM-diags is dependent on CPE. This is a functional dependency?
+  # James: COS dependencies are at image build time (operational)
+  # Sarah: SDU has an operational dependency
+  #
   # ===========================================================================
 
 
@@ -213,8 +217,15 @@ properties:
       # We plan to manifestgen all loftsman manifests by default. Is that a problem
       # for any product teams? We can provide an option to disable it.
       #
+      # SMA would pull customizations at run-time and modify it without pushing
+      # it back up and then use it to control size of something in S3.
+      #
       # Do any products provide Loftsman manifests that they don't want to
       # deploy as part of the product_deploy stage? E.g. WLM?
+      #
+      # Slurm has an operator that depends on some CSM multitenancy stuff in
+      # CSM 1.3 so you don't want to deploy unless on CSM 1.3, so it's been
+      # separated out.
       #
       # =======================================================================
       loftsman:
@@ -269,6 +280,8 @@ properties:
       #
       # Do any products currently have more than one "nexus-repositories.yaml"
       # or "nexus-blobstores.yaml" file in their product stream?
+      #
+      # Question from Erik: how do we handle SLE with its multiple tar files?
       #
       # =======================================================================
       nexus_blob_stores:
@@ -434,6 +447,8 @@ properties:
       # =======================================================================
       #
       # Analytics and CPE do this today. Do any other products do this?
+      #
+      # Slingshot fabric manager does this for switch firmware with FAS.
       #
       # =======================================================================
       s3:
