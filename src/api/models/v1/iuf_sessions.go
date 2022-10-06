@@ -40,7 +40,7 @@ type IufSyncResponse struct {
 }
 
 type IufStatus struct {
-	Phase string `json:"phase,omitempty"`
+	Phase IufSessionPhase `json:"phase,omitempty"`
 	// A 2-level DAG of Operations derived from stages that would be executed for each of the products that are specified. This is not specified by the Admin -- it is computed from the list of stages above.  This is an array of array of CR names of Operations that are installed as part of IUF, and determined by the Stages supplied.
 	Operations [][]string `json:"operations,omitempty"`
 	// The unique name of the Argo workflow that is created from all the input parameters above.
@@ -91,6 +91,18 @@ type WorkflowType string
 const (
 	WorkflowTypeInstall WorkflowType = "install"
 	WorkflowTypeUpgrade WorkflowType = "upgrade"
+)
+
+// +kubebuilder:validation:Enum=Pending;Running;Succeeded;Failed;Error
+type IufSessionPhase string
+
+const (
+	IufSessionUnknown   IufSessionPhase = ""
+	IufSessionPending   IufSessionPhase = "Pending" // pending some set-up - rarely used
+	IufSessionRunning   IufSessionPhase = "Running" // any node has started; pods might not be running yet, the workflow maybe suspended too
+	IufSessionSucceeded IufSessionPhase = "Succeeded"
+	IufSessionFailed    IufSessionPhase = "Failed" // it maybe that the the workflow was terminated
+	IufSessionError     IufSessionPhase = "Error"
 )
 
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.

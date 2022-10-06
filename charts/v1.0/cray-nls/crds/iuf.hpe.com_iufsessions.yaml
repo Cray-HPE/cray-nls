@@ -154,6 +154,12 @@ spec:
                   type: array
                 type: array
               phase:
+                enum:
+                - Pending
+                - Running
+                - Succeeded
+                - Failed
+                - Error
                 type: string
             required:
             - observedGeneration
