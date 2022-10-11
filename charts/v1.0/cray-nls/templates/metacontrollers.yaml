@@ -37,3 +37,21 @@ spec:
     sync:
       webhook:
         url: "http://{{ index .Values "argo-host" }}/apis/nls/v1/ncns/hooks"
+# iuf sessions
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: iuf-sessions
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: iuf.hpe.com/v1
+    resource: iufsessions
+  hooks:
+    sync:
+      webhook:
+        url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/sessions/sync"
+
+
+        

@@ -34,6 +34,7 @@ import (
 	"text/template"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -77,7 +78,13 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 
 	tmpl := template.New("worker.rebuild.yaml")
 
-	return GetWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
+	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
+}
+
+func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_v1.IufSessionSpec) ([]byte, error) {
+	tmpl := template.New("install.yaml")
+
+	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req)
 }
 
 func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
@@ -88,10 +95,10 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 
 	tmpl := template.New("storage.rebuild.yaml")
 
-	return GetWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models.RebuildHooks{})
+	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models.RebuildHooks{})
 }
 
-func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
+func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -176,6 +183,35 @@ func GetWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflo
 		"DryRun":         createRebuildWorkflowRequest.DryRun,
 		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
 		"WipeOsd":        createRebuildWorkflowRequest.WipeOsd,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tmpRes.Bytes(), nil
+}
+
+func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_v1.IufSessionSpec) ([]byte, error) {
+	// add useful helm templating func: include
+	var funcMap template.FuncMap = map[string]interface{}{}
+	funcMap["include"] = func(name string, data interface{}) (string, error) {
+		buf := bytes.NewBuffer(nil)
+		if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	}
+
+	// add sprig templating func
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	var tmpRes bytes.Buffer
+	err = tmpl.Execute(&tmpRes, map[string]interface{}{
+		"Products": req.GetProductsName(),
+		"Stages":   req.Stages,
+		"DryRun":   "true", //todo
 	})
 	if err != nil {
 		return nil, err

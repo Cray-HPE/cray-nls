@@ -31,6 +31,7 @@ import (
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
 	"github.com/Cray-HPE/cray-nls/src/api/models"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
@@ -72,7 +73,7 @@ func TestInitializeWorkflowTemplate(t *testing.T) {
 	})
 }
 
-func TestCreateWorkflow(t *testing.T) {
+func TestCreateRebuildWorkflow(t *testing.T) {
 
 	t.Run("It can create a new workflow", func(t *testing.T) {
 		// setup mocks
@@ -193,4 +194,60 @@ func TestGetWorkflows(t *testing.T) {
 		wfServiceClientMock.AssertExpectations(t)
 	})
 
+}
+
+func TestGetWorkflowByName(t *testing.T) {
+	// setup mocks
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+	wfServiceClientMock.On(
+		"GetWorkflow",
+		mock.Anything,
+		mock.Anything,
+	).Return(nil, nil)
+
+	workflowSvc := workflowService{
+		logger:                utils.GetLogger(),
+		ctx:                   context.Background(),
+		workflowCient:         wfServiceClientMock,
+		workflowTemplateCient: wftServiceSclientMock,
+		env:                   utils.Env{},
+	}
+	t.Run("It should get workflow", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		context, _ := gin.CreateTestContext(response)
+
+		context.Request, _ = http.NewRequest("GET", "/", nil)
+		_, err := workflowSvc.GetWorkflowByName("test", context)
+		assert.Nil(t, err)
+		wfServiceClientMock.AssertExpectations(t)
+	})
+
+}
+
+func TestCreateIufWorkflow(t *testing.T) {
+
+	t.Run("It can create a new iuf workflow", func(t *testing.T) {
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
+		wfServiceClientMock.On(
+			"CreateWorkflow",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.Workflow), nil)
+
+		workflowSvc := workflowService{
+			logger:                utils.GetLogger(),
+			ctx:                   context.Background(),
+			workflowCient:         wfServiceClientMock,
+			workflowTemplateCient: wftServiceSclientMock,
+			env:                   utils.Env{WorkerRebuildWorkflowFiles: "badname"},
+		}
+		_, err := workflowSvc.CreateIufWorkflow(v1.IufSessionSpec{WorkflowType: "install"})
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.Contains(t, err.Error(), "template: pattern matches no files: `*.yaml`")
+	})
 }
