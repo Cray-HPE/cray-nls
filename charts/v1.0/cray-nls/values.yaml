@@ -44,6 +44,12 @@ cray-service:
     - name: storage-rebuild-workflow-files
       configMap:
         name: storage-rebuild-workflow-files
+    - name: iuf-install-workflow-files
+      configMap:
+        name: iuf-install-workflow-files
+    - name: iuf-install-workflow-stages-files
+      configMap:
+        name: iuf-install-workflow-stages-files
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -86,10 +92,13 @@ cray-service:
         - name: iuf-install-workflow-files
           readOnly: true
           mountPath: /workflows/iuf
+        - name: iuf-install-workflow-stages-files
+          readOnly: true
+          mountPath: /workflows/iuf/stages
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.2.1
+        tag: 0.2.2
       resources:
         limits:
           cpu: 1

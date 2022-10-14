@@ -202,7 +202,7 @@ func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_v1.Iuf
 	}
 
 	// add sprig templating func
-	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml")
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml", "stages/*.yaml")
 	if err != nil {
 		return nil, err
 	}
