@@ -61,7 +61,7 @@ type IufSession struct {
 	Status            IufStatus      `json:"status,omitempty"`
 }
 
-type IufSessionProducts struct {
+type IufSessionProduct struct {
 	// The name of the product
 	Name string `json:"name"`
 	// The version of the product.
@@ -110,7 +110,7 @@ type IufSessionSpec struct {
 	// What type of workflow are we executing? install or upgrade
 	WorkflowType WorkflowType `json:"workflow_type"`
 	// The products that need to be installed, as specified by the Admin.
-	Products []IufSessionProducts `json:"products"`
+	Products []IufSessionProduct `json:"products"`
 	// The stages that need to be executed.
 	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
 	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
