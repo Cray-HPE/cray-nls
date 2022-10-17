@@ -35,6 +35,7 @@ import (
 
 	"github.com/Cray-HPE/cray-nls/src/api/models"
 	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -202,16 +203,20 @@ func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_v1.Iuf
 	}
 
 	// add sprig templating func
-	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml")
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml", "stages/*.yaml")
 	if err != nil {
 		return nil, err
 	}
 
 	var tmpRes bytes.Buffer
-	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"Products": req.GetProductsName(),
-		"Stages":   req.Stages,
-		"DryRun":   "true", //todo
+	err = tmpl.Execute(&tmpRes, struct {
+		Products []v1.IufSessionProduct
+		Stages   []string
+		DryRun   string
+	}{
+		Products: req.Products,
+		Stages:   req.Stages,
+		DryRun:   "true", //todo
 	})
 	if err != nil {
 		return nil, err
