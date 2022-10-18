@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # MIT License
 #
@@ -22,29 +21,26 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-
-# format swagger doc
-swag fmt
-
-# update swagger doc yaml
-swag init --md  docs/ --outputTypes go,yaml --exclude src/api/controllers/v1/misc,src/api/controllers/v1/iuf
-
-# update iuf swagger doc yaml
-swag init --md docs/ --outputTypes go,yaml --instanceName IUF  --exclude src/api/controllers/v1/misc,src/api/controllers/v1/nls
-
-# fix copyright headers
-docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs
-
-# update swagger.md
-if ! command -v swagger-markdown &> /dev/null
-then
-    npx swagger-markdown -i  docs/swagger.yaml || true
-    npx swagger-markdown -i  docs/IUF_swagger.yaml || true
-else 
-    swagger-markdown -i  docs/swagger.yaml || true
-    swagger-markdown -i  docs/IUF_swagger.yaml || true
-fi
-
-go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
-~/go/bin/controller-gen crd webhook paths="src/api/models/v1/hooks.go" output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
-~/go/bin/controller-gen crd webhook paths="src/api/models/v1/iuf_sessions.go" output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
+basePath: /apis
+info:
+  contact: {}
+paths:
+  /iuf/v1/install:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: hostname
+        in: path
+        name: hostname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "501":
+          description: Not Implemented
+      summary: This is a summary
+      tags:
+      - This_IS_A_TAG
+swagger: "2.0"

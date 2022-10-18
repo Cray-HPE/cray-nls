@@ -58,5 +58,14 @@ func NewRequestHandler(logger Logger, env Env) RequestHandler {
 		),
 	)
 
+	engine.GET(
+		"/apis/iuf/openapi/*any",
+		ginSwagger.WrapHandler(
+			swaggerFiles.Handler,
+			ginSwagger.DocExpansion("none"),
+			ginSwagger.InstanceName("IUF"),
+		),
+	)
+
 	return RequestHandler{Gin: engine}
 }

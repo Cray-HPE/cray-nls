@@ -56,7 +56,7 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows [get]
+// @Router   /nls/v1/workflows [get]
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	workflowList, err := u.service.GetWorkflows(c)
 	if err != nil {
@@ -88,7 +88,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name} [delete]
+// @Router   /nls/v1/workflows/{name} [delete]
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	err := u.service.DeleteWorkflow(c)
 	if err != nil {
@@ -110,7 +110,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name}/retry [put]
+// @Router   /nls/v1/workflows/{name}/retry [put]
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 	err := u.service.RetryWorkflow(c)
 	if err != nil {
@@ -131,7 +131,7 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name}/rerun [put]
+// @Router   /nls/v1/workflows/{name}/rerun [put]
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	err := u.service.RerunWorkflow(c)
 	if err != nil {

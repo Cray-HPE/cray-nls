@@ -59,7 +59,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/ncns/rebuild [post]
+// @Router   /nls/v1/ncns/rebuild [post]
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
@@ -81,7 +81,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/ncns/reboot [post]
+// @Router   /nls/v1/ncns/reboot [post]
 func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	var requestBody models.CreateRebootWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {

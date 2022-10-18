@@ -23,32 +23,17 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package controllers_v1
+package iuf
 
 import (
 	"fmt"
 	"sort"
 
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 )
-
-// IufController data type
-type IufController struct {
-	workflowService services.WorkflowService
-	logger          utils.Logger
-}
-
-// NewIufController creates new Ncn controller
-func NewIufController(workflowService services.WorkflowService, logger utils.Logger) IufController {
-	return IufController{
-		workflowService: workflowService,
-		logger:          logger,
-	}
-}
 
 // AddIufSession
 func (u IufController) AddIufSession(c *gin.Context) {

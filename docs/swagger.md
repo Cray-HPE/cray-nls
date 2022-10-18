@@ -1,19 +1,5 @@
-# NCN Lifecycle Management API
-## NCN Lifecycle Events
 
-A set of REST APIs that allow system admin to create ncn lifecycle event such as reboot/rebuild. It uses argo workflow to run defined procedures for each event.
-
-## NCN Lifecycle Hooks [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/NCN%20Lifecycle%20Hooks.md)
-
-A set of REST APIs that allow system admin or developers to register customize hooks as part of argo workflow.
-
-## Security [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/security.md)
-
-## Argo UI [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/argo.md)
-
-## Version: 1.0
-
-### /v1/ncns/reboot
+### /nls/v1/ncns/reboot
 
 #### POST
 ##### Summary
@@ -35,7 +21,7 @@ End to end rolling reboot ncns
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-### /v1/ncns/rebuild
+### /nls/v1/ncns/rebuild
 
 #### POST
 ##### Summary
@@ -57,7 +43,7 @@ End to end rolling rebuild ncns
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-### /v1/workflows
+### /nls/v1/workflows
 
 #### GET
 ##### Summary
@@ -79,7 +65,7 @@ Get status of a ncn workflow
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-### /v1/workflows/{name}
+### /nls/v1/workflows/{name}
 
 #### DELETE
 ##### Summary
@@ -101,7 +87,7 @@ Delete a ncn workflow
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-### /v1/workflows/{name}/rerun
+### /nls/v1/workflows/{name}/rerun
 
 #### PUT
 ##### Summary
@@ -123,7 +109,7 @@ Rerun a workflow, all steps will run
 | 404 | Not Found | [ResponseError](#responseerror) |
 | 500 | Internal Server Error | [ResponseError](#responseerror) |
 
-### /v1/workflows/{name}/retry
+### /nls/v1/workflows/{name}/retry
 
 #### PUT
 ##### Summary

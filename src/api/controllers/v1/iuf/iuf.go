@@ -23,43 +23,36 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/nls"
+	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/gin-gonic/gin"
 )
 
-// NcnRoutes struct
-type NcnRoutes struct {
-	logger         utils.Logger
-	handler        utils.RequestHandler
-	ncnsController controllers_v1.NcnController
-	hookController controllers_v1.HookController
+// IufController data type
+type IufController struct {
+	workflowService services.WorkflowService
+	logger          utils.Logger
 }
 
-// Setup Ncn routes
-func (s NcnRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/nls/v1")
-	{
-		api.POST("/ncns/rebuild", s.ncnsController.NcnsCreateRebuildWorkflow)
-		api.POST("/ncns/hooks", s.hookController.AddHooks)
-
+// NewIufController creates new Ncn controller
+func NewIufController(workflowService services.WorkflowService, logger utils.Logger) IufController {
+	return IufController{
+		workflowService: workflowService,
+		logger:          logger,
 	}
 }
 
-// NewNcnRoutes creates new Ncn controller
-func NewNcnRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	ncnsController controllers_v1.NcnController,
-	hookController controllers_v1.HookController,
-) NcnRoutes {
-	return NcnRoutes{
-		handler:        handler,
-		logger:         logger,
-		ncnsController: ncnsController,
-		hookController: hookController,
-	}
+// IufCreateInstall
+// @Summary  This is a summary
+// @Param    hostname  path  string  true  "hostname"
+// @Tags     This_IS_A_TAG
+// @Accept   json
+// @Produce  json
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/install [post]
+func (u IufController) IufCreateInstall(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }
