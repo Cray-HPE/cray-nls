@@ -29,7 +29,7 @@ package docs
 
 import "github.com/swaggo/swag"
 
-const docTemplate = `{
+const docTemplateNLS = `{
     "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
@@ -464,18 +464,18 @@ const docTemplate = `{
     }
 }`
 
-// SwaggerInfo holds exported Swagger Info so clients can modify it
-var SwaggerInfo = &swag.Spec{
+// SwaggerInfoNLS holds exported Swagger Info so clients can modify it
+var SwaggerInfoNLS = &swag.Spec{
 	Version:          "",
 	Host:             "",
 	BasePath:         "/apis",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",
-	InfoInstanceName: "swagger",
-	SwaggerTemplate:  docTemplate,
+	InfoInstanceName: "NLS",
+	SwaggerTemplate:  docTemplateNLS,
 }
 
 func init() {
-	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+	swag.Register(SwaggerInfoNLS.InstanceName(), SwaggerInfoNLS)
 }

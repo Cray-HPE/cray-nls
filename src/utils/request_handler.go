@@ -47,14 +47,12 @@ func NewRequestHandler(logger Logger, env Env) RequestHandler {
 	gin.DefaultWriter = logger.GetGinLogger()
 	engine := gin.New()
 
-	instanceName := "swagger"
-
 	engine.GET(
 		"/apis/nls/openapi/*any",
 		ginSwagger.WrapHandler(
 			swaggerFiles.Handler,
 			ginSwagger.DocExpansion("none"),
-			ginSwagger.InstanceName(instanceName),
+			ginSwagger.InstanceName("NLS"),
 		),
 	)
 

@@ -33,7 +33,7 @@ import (
 	"io/fs"
 	"text/template"
 
-	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"

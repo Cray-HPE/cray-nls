@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"

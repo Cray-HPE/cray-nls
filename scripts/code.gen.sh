@@ -27,10 +27,14 @@
 swag fmt
 
 # update swagger doc yaml
-swag init --md  docs/ --outputTypes go,yaml --exclude src/api/controllers/v1/misc,src/api/controllers/v1/iuf
+swag init --md  docs/ --outputTypes go,yaml \
+    --exclude src/api/controllers/v1/misc,src/api/controllers/v1/iuf \
+    --instanceName NLS
 
 # update iuf swagger doc yaml
-swag init --md docs/ --outputTypes go,yaml --instanceName IUF  --exclude src/api/controllers/v1/misc,src/api/controllers/v1/nls
+swag init --md docs/ --outputTypes go,yaml \
+    --exclude src/api/controllers/v1/misc,src/api/controllers/v1/nls \
+    --instanceName IUF
 
 # fix copyright headers
 docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs
@@ -38,10 +42,10 @@ docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-dock
 # update swagger.md
 if ! command -v swagger-markdown &> /dev/null
 then
-    npx swagger-markdown -i  docs/swagger.yaml || true
+    npx swagger-markdown -i  docs/NLS_swagger.yaml || true
     npx swagger-markdown -i  docs/IUF_swagger.yaml || true
 else 
-    swagger-markdown -i  docs/swagger.yaml || true
+    swagger-markdown -i  docs/NLS_swagger.yaml || true
     swagger-markdown -i  docs/IUF_swagger.yaml || true
 fi
 

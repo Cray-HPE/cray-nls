@@ -42,7 +42,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
