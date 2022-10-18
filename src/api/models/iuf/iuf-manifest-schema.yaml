@@ -427,7 +427,7 @@ properties:
                   description: >
                     The relative path to the directory containing the image
                     artifacts. The directory should contain a root filesystem
-                    image the squashfs format, a kernel file, and an initrd.
+                    image in the squashfs format, a kernel file, and an initrd.
 
                     An IMS image record will be created, the image artifacts
                     will be uploaded to the appropriate paths in S3, an IMS
@@ -441,6 +441,22 @@ properties:
                     default to the name of the directory containing the image
                     artifacts.
                   type: string
+                rootfs_file:
+                  description: >
+                    The name of the squashfs file defining the root filesystem for
+                    the image.
+                  type: string
+                  default: rootfs
+                kernel_file:
+                  description: >
+                    The name of the kernel file for the image.
+                  type: string
+                  default: kernel
+                initrd_file:
+                  description: >
+                    The name of the initrd file for the image.
+                  type: string
+                  default: initrd
 
       # =======================================================================
       # =============== Question for review session with teams ================
