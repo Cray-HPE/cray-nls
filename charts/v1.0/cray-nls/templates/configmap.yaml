@@ -13,3 +13,19 @@ metadata:
 data:
   readme: |
     Config map to store storage rebuild workflow files
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iuf-install-workflow-files
+data:
+  readme: |
+    Config map to store iuf install workflow files
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iuf-install-workflow-stages-files
+data:
+  readme: |
+    Config map to store iuf install workflow stages files
