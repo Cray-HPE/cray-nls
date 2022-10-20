@@ -72,7 +72,7 @@ func (u IufController) ListIufActivities(c *gin.Context) {
 }
 
 // GetIufActivity
-// @Summary  Get an IUF activities
+// @Summary  Get an IUF activity
 // @Param    id                path  string                            true  "activity id"
 // @Tags     IUF
 // @Accept   json
@@ -85,7 +85,7 @@ func (u IufController) GetIufActivity(c *gin.Context) {
 }
 
 // PatchIufActivity
-// @Summary  Patch an IUF activities
+// @Summary  Patch an IUF activity
 // @Param    id  path  string  true  "activity id"
 // @Param    partial_activity  body  iuf.CreateOrPatchActivityRequest  true  "partial IUF activity"
 // @Tags     IUF

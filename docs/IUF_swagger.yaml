@@ -27,6 +27,8 @@ definitions:
     properties:
       inputs:
         $ref: '#/definitions/IufSession.InputParams'
+      media-dir:
+        type: string
       name:
         type: string
       products:
@@ -44,15 +46,26 @@ definitions:
               $ref: '#/definitions/IufSession.Status'
           type: object
         type: array
+    required:
+    - inputs
+    - media-dir
+    - name
+    - products
     type: object
   Iuf.CreateOrPatchActivityRequest:
     properties:
       inputs:
         $ref: '#/definitions/IufSession.InputParams'
+      media-dir:
+        type: string
       products:
         items:
           $ref: '#/definitions/Iuf.Product'
         type: array
+    required:
+    - inputs
+    - media-dir
+    - products
     type: object
   Iuf.Product:
     properties:
@@ -60,6 +73,9 @@ definitions:
         type: string
       version:
         type: string
+    required:
+    - name
+    - version
     type: object
   IufSession.InputParams:
     properties:
@@ -196,7 +212,7 @@ paths:
             $ref: '#/definitions/Iuf.Activity'
         "501":
           description: Not Implemented
-      summary: Get an IUF activities
+      summary: Get an IUF activity
       tags:
       - IUF
     patch:
@@ -223,7 +239,7 @@ paths:
             $ref: '#/definitions/Iuf.Activity'
         "501":
           description: Not Implemented
-      summary: Patch an IUF activities
+      summary: Patch an IUF activity
       tags:
       - IUF
   /iuf/v1/activity:

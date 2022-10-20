@@ -18,7 +18,7 @@ List IUF activities
 #### GET
 ##### Summary
 
-Get an IUF activities
+Get an IUF activity
 
 ##### Parameters
 
@@ -36,7 +36,7 @@ Get an IUF activities
 #### PATCH
 ##### Summary
 
-Patch an IUF activities
+Patch an IUF activity
 
 ##### Parameters
 
@@ -78,24 +78,26 @@ Create an IUF activity
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| inputs | [IufSession.InputParams](#iufsessioninputparams) |  | No |
-| name | string |  | No |
-| products | [ [Iuf.Product](#iufproduct) ] |  | No |
+| inputs | [IufSession.InputParams](#iufsessioninputparams) |  | Yes |
+| media-dir | string |  | Yes |
+| name | string |  | Yes |
+| products | [ [Iuf.Product](#iufproduct) ] |  | Yes |
 | sessions | [ object ] |  | No |
 
 #### Iuf.CreateOrPatchActivityRequest
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| inputs | [IufSession.InputParams](#iufsessioninputparams) |  | No |
-| products | [ [Iuf.Product](#iufproduct) ] |  | No |
+| inputs | [IufSession.InputParams](#iufsessioninputparams) |  | Yes |
+| media-dir | string |  | Yes |
+| products | [ [Iuf.Product](#iufproduct) ] |  | Yes |
 
 #### Iuf.Product
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| name | string |  | No |
-| version | string |  | No |
+| name | string |  | Yes |
+| version | string |  | Yes |
 
 #### IufSession.InputParams
 

@@ -80,7 +80,7 @@ const docTemplateIUF = `{
                 "tags": [
                     "IUF"
                 ],
-                "summary": "Get an IUF activities",
+                "summary": "Get an IUF activity",
                 "parameters": [
                     {
                         "type": "string",
@@ -112,7 +112,7 @@ const docTemplateIUF = `{
                 "tags": [
                     "IUF"
                 ],
-                "summary": "Patch an IUF activities",
+                "summary": "Patch an IUF activity",
                 "parameters": [
                     {
                         "type": "string",
@@ -184,9 +184,18 @@ const docTemplateIUF = `{
     "definitions": {
         "Iuf.Activity": {
             "type": "object",
+            "required": [
+                "inputs",
+                "media-dir",
+                "name",
+                "products"
+            ],
             "properties": {
                 "inputs": {
                     "$ref": "#/definitions/IufSession.InputParams"
+                },
+                "media-dir": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -218,9 +227,17 @@ const docTemplateIUF = `{
         },
         "Iuf.CreateOrPatchActivityRequest": {
             "type": "object",
+            "required": [
+                "inputs",
+                "media-dir",
+                "products"
+            ],
             "properties": {
                 "inputs": {
                     "$ref": "#/definitions/IufSession.InputParams"
+                },
+                "media-dir": {
+                    "type": "string"
                 },
                 "products": {
                     "type": "array",
@@ -232,6 +249,10 @@ const docTemplateIUF = `{
         },
         "Iuf.Product": {
             "type": "object",
+            "required": [
+                "name",
+                "version"
+            ],
             "properties": {
                 "name": {
                     "type": "string"

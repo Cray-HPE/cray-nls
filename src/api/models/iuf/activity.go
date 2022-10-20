@@ -28,19 +28,19 @@ package iuf
 import v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 
 type CreateOrPatchActivityRequest struct {
-	Products []Product `json:"products"`
-	Inputs   v1.IufSessionInputParams
+	Products []Product                `json:"products" validate:"required"`
+	MediaDir string                   `json:"media-dir"  validate:"required"`
+	Inputs   v1.IufSessionInputParams `json:"inputs"  validate:"required"`
 } // @name Iuf.CreateOrPatchActivityRequest
 
 type Product struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
+	Name    string `json:"name" validate:"required"`
+	Version string `json:"version" validate:"required"`
 } // @name Iuf.Product
 
 type Activity struct {
-	Name     string                   `json:"name"`
-	Products []Product                `json:"products"`
-	Inputs   v1.IufSessionInputParams `json:"inputs"`
+	Name string `json:"name" validate:"required"`
+	CreateOrPatchActivityRequest
 	Sessions []struct {
 		Name string
 		v1.IufSession
