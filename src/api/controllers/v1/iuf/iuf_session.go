@@ -54,7 +54,7 @@ func (u IufController) AddIufSession(c *gin.Context) {
 			u.logger.Warn("Failed to create argo workflow")
 			u.logger.Warn(err)
 			response = v1.IufSyncResponse{
-				Status: v1.IufStatus{
+				Status: v1.IufSessionStatus{
 					Phase:        v1.IufSessionError,
 					Operations:   [][]string{},
 					ArgoWorkflow: wf.GetName(),
@@ -65,7 +65,7 @@ func (u IufController) AddIufSession(c *gin.Context) {
 		}
 		u.logger.Infof("Argo workflow created: %s", wf.GetName())
 		response = v1.IufSyncResponse{
-			Status: v1.IufStatus{
+			Status: v1.IufSessionStatus{
 				Phase:        v1.IufSessionPending,
 				Operations:   [][]string{},
 				ArgoWorkflow: wf.GetName(),

@@ -41,7 +41,110 @@ const docTemplateIUF = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/iuf/v1/install": {
+        "/iuf/v1/activities": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IUF"
+                ],
+                "summary": "List IUF activities",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Iuf.Activity"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IUF"
+                ],
+                "summary": "Get an IUF activities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Iuf.Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "IUF"
+                ],
+                "summary": "Patch an IUF activities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "partial IUF activity",
+                        "name": "partial_activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Iuf.CreateOrPatchActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Iuf.Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activity": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -50,22 +153,192 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "This_IS_A_TAG"
+                    "IUF"
                 ],
-                "summary": "This is a summary",
+                "summary": "Create an IUF activity",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "hostname",
-                        "in": "path",
-                        "required": true
+                        "description": "IUF activity",
+                        "name": "activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Iuf.CreateOrPatchActivityRequest"
+                        }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Iuf.Activity"
+                        }
+                    },
                     "501": {
                         "description": "Not Implemented"
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Iuf.Activity": {
+            "type": "object",
+            "properties": {
+                "inputs": {
+                    "$ref": "#/definitions/IufSession.InputParams"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Iuf.Product"
+                    }
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "spec": {
+                                "$ref": "#/definitions/IufSession.Spec"
+                            },
+                            "status": {
+                                "$ref": "#/definitions/IufSession.Status"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Iuf.CreateOrPatchActivityRequest": {
+            "type": "object",
+            "properties": {
+                "inputs": {
+                    "$ref": "#/definitions/IufSession.InputParams"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Iuf.Product"
+                    }
+                }
+            }
+        },
+        "Iuf.Product": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "IufSession.InputParams": {
+            "type": "object",
+            "properties": {
+                "vcs_working_branch_pattern": {
+                    "description": "The pattern to use for all products. Use the following variables in braces {} to specify the pattern:  {product_name} {product_version}  E.g.  {product_name}-{product_version}-test-branch",
+                    "type": "string"
+                },
+                "vcs_working_branch_per_product": {
+                    "description": "Specify the working branch name per product. This is an object where the key is the product name, and the value is the exact name (not a pattern) of the VCS branch for that product.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "IufSession.Product": {
+            "type": "object",
+            "properties": {
+                "after_hook_scripts": {
+                    "description": "Any after hook scripts for this product. This is an object where the key is operation name, and value is the CR name of the hook script for this product.  Hook scripts are executed either before or after an execution of a operation. They are specified in each product's distribution file, as part of the iuf-manifest.yaml.  The hook scripts are initially taken from the product distribution file and stored in S3, so that they can later be referenced.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "before_hook_scripts": {
+                    "description": "Any before hook scripts for this product. This is an object where the key is operation name, and value is the CR name of the hook script for this product.  Hook scripts are executed either before or after an execution of a operation. They are specified in each product's distribution file, as part of the iuf-manifest.yaml.  The hook scripts are initially taken from the product distribution file and stored in S3, so that they can later be referenced.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "The name of the product",
+                    "type": "string"
+                },
+                "original_location": {
+                    "description": "The original location of the extracted tar in on the physical storage.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
+        "IufSession.Spec": {
+            "type": "object",
+            "properties": {
+                "input_params": {
+                    "$ref": "#/definitions/IufSession.InputParams"
+                },
+                "products": {
+                    "description": "The products that need to be installed, as specified by the Admin.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/IufSession.Product"
+                    }
+                },
+                "stages": {
+                    "description": "The stages that need to be executed.\nThis is either explicitly specified by the Admin, or it is computed from the workflow type.\nAn Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.\nif not specified, we apply all stages",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "workflow_type": {
+                    "description": "What type of workflow are we executing? install or upgrade",
+                    "type": "string"
+                }
+            }
+        },
+        "IufSession.Status": {
+            "type": "object",
+            "properties": {
+                "argo_workflow": {
+                    "description": "The unique name of the Argo workflow that is created from all the input parameters above.",
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "observedGeneration": {
+                    "type": "integer"
+                },
+                "operations": {
+                    "description": "A 2-level DAG of Operations derived from stages that would be executed for each of the products that are specified. This is not specified by the Admin -- it is computed from the list of stages above.  This is an array of array of CR names of Operations that are installed as part of IUF, and determined by the Stages supplied.",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "phase": {
+                    "type": "string"
                 }
             }
         }

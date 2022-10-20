@@ -35,11 +35,11 @@ type IufSyncRequest struct {
 }
 
 type IufSyncResponse struct {
-	Status             IufStatus `json:"status,omitempty"`
-	ResyncAfterSeconds int       `json:"resyncAfterSeconds,omitempty"`
+	Status             IufSessionStatus `json:"status,omitempty"`
+	ResyncAfterSeconds int              `json:"resyncAfterSeconds,omitempty"`
 }
 
-type IufStatus struct {
+type IufSessionStatus struct {
 	Phase IufSessionPhase `json:"phase,omitempty"`
 	// A 2-level DAG of Operations derived from stages that would be executed for each of the products that are specified. This is not specified by the Admin -- it is computed from the list of stages above.  This is an array of array of CR names of Operations that are installed as part of IUF, and determined by the Stages supplied.
 	Operations [][]string `json:"operations,omitempty"`
@@ -47,7 +47,7 @@ type IufStatus struct {
 	ArgoWorkflow       string `json:"argo_workflow,omitempty"`
 	ObservedGeneration int    `json:"observedGeneration"`
 	Message            string `json:"message,omitempty"`
-}
+} // @name IufSession.Status
 
 // IufSession
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -55,10 +55,10 @@ type IufStatus struct {
 // +kubebuilder:resource:path=iufsessions,scope=Namespaced
 // +kubebuilder:storageversion
 type IufSession struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata"`
-	Spec              IufSessionSpec `json:"spec"`
-	Status            IufStatus      `json:"status,omitempty"`
+	metav1.TypeMeta   `json:",inline" swaggerignore:"true"`
+	metav1.ObjectMeta `json:"metadata" swaggerignore:"true"`
+	Spec              IufSessionSpec   `json:"spec"`
+	Status            IufSessionStatus `json:"status,omitempty"`
 }
 
 type IufSessionProduct struct {
@@ -68,13 +68,11 @@ type IufSessionProduct struct {
 	Version string `json:"version"`
 	// The original location of the extracted tar in on the physical storage.
 	OriginalLocation string `json:"original_location"`
-	// The location of the product manifest uploaded into s3
-	IufManifestS3Location string `json:"iuf_manifest_s3_location"`
 	// Any before hook scripts for this product. This is an object where the key is operation name, and value is the CR name of the hook script for this product.  Hook scripts are executed either before or after an execution of a operation. They are specified in each product's distribution file, as part of the iuf-manifest.yaml.  The hook scripts are initially taken from the product distribution file and stored in S3, so that they can later be referenced.
 	BeforeHookScripts map[string]string `json:"before_hook_scripts,omitempty"`
 	// Any after hook scripts for this product. This is an object where the key is operation name, and value is the CR name of the hook script for this product.  Hook scripts are executed either before or after an execution of a operation. They are specified in each product's distribution file, as part of the iuf-manifest.yaml.  The hook scripts are initially taken from the product distribution file and stored in S3, so that they can later be referenced.
 	AfterHookScripts map[string]string `json:"after_hook_scripts,omitempty"`
-}
+} // @name IufSession.Product
 
 // The input parameters supplied by the Admin.
 type IufSessionInputParams struct {
@@ -82,7 +80,7 @@ type IufSessionInputParams struct {
 	VcsWorkingBranchPattern string `json:"vcs_working_branch_pattern,omitempty"`
 	// Specify the working branch name per product. This is an object where the key is the product name, and the value is the exact name (not a pattern) of the VCS branch for that product.
 	VcsWorkingBranchPerProduct map[string]string `json:"vcs_working_branch_per_product,omitempty"`
-}
+} // @name IufSession.InputParams
 
 // +kubebuilder:validation:Enum=install;upgrade
 type WorkflowType string
@@ -118,7 +116,7 @@ type IufSessionSpec struct {
 	Stages []string `json:"stages"`
 
 	InputParams *IufSessionInputParams `json:"input_params"`
-}
+} // @name IufSession.Spec
 
 func (s IufSessionSpec) GetProductsName() []string {
 	res := []string{}
