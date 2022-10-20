@@ -30,7 +30,7 @@ import (
 	"testing"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
@@ -97,7 +97,7 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 			workflowTemplateCient: wftServiceSclientMock,
 			env:                   utils.Env{WorkerRebuildWorkflowFiles: "../argo-templates/_test_data_"},
 		}
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001"},
 		}
 		_, err := workflowSvc.CreateRebuildWorkflow(req)
@@ -123,7 +123,7 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 			workflowTemplateCient: wftServiceSclientMock,
 			env:                   utils.Env{},
 		}
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001"},
 		}
 		_, err := workflowSvc.CreateRebuildWorkflow(req)
@@ -145,7 +145,7 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 			workflowTemplateCient: nil,
 			env:                   utils.Env{},
 		}
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001", "ncn-s001"},
 		}
 		_, err := workflowSvc.CreateRebuildWorkflow(req)
@@ -159,7 +159,7 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 			workflowTemplateCient: nil,
 			env:                   utils.Env{},
 		}
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-ws1", "ncn-s001"},
 		}
 		_, err := workflowSvc.CreateRebuildWorkflow(req)

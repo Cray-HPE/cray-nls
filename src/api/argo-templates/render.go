@@ -33,7 +33,7 @@ import (
 	"io/fs"
 	"text/template"
 
-	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -71,7 +71,7 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_v1.IufSessionS
 	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req)
 }
 
-func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest) ([]byte, error) {
+func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
 	err := validator.ValidateStorageHostnames(createRebuildWorkflowRequest.Hosts)
 	if err != nil {
 		return nil, err
@@ -96,10 +96,10 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 
 	tmpl := template.New("storage.rebuild.yaml")
 
-	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models.RebuildHooks{})
+	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models_nls.RebuildHooks{})
 }
 
-func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models.CreateRebuildWorkflowRequest, rebuildHooks models.RebuildHooks) ([]byte, error) {
+func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {

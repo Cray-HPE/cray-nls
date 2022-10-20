@@ -26,7 +26,7 @@ package controllers_v1
 import (
 	"fmt"
 
-	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -64,11 +64,11 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 		c.JSON(500, errResponse)
 		return
 	}
-	var workflows []models.GetWorkflowResponse
+	var workflows []models_nls.GetWorkflowResponse
 	for _, workflow := range workflowList.Items {
 		workflow.Status.StoredTemplates = nil
 		workflow.Status.ArtifactRepositoryRef = nil
-		tmp := models.GetWorkflowResponse{
+		tmp := models_nls.GetWorkflowResponse{
 			Name:   workflow.Name,
 			Labels: workflow.Labels,
 			Status: workflow.Status,

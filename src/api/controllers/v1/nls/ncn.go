@@ -28,7 +28,7 @@ package controllers_v1
 import (
 	"fmt"
 
-	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -61,7 +61,7 @@ func NewNcnController(workflowService services.WorkflowService, logger utils.Log
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /nls/v1/ncns/rebuild [post]
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
-	var requestBody models.CreateRebuildWorkflowRequest
+	var requestBody models_nls.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -83,7 +83,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /nls/v1/ncns/reboot [post]
 func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
-	var requestBody models.CreateRebootWorkflowRequest
+	var requestBody models_nls.CreateRebootWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -93,7 +93,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	//u.createRebootWorkflow(requestBody, c)
 }
 
-func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowRequest, c *gin.Context) {
+func (u NcnController) createRebuildWorkflow(req models_nls.CreateRebuildWorkflowRequest, c *gin.Context) {
 	req.Hosts = removeDuplicateHostnames(req.Hosts)
 
 	err := u.validator.ValidateHostnames(req.Hosts)
@@ -113,7 +113,7 @@ func (u NcnController) createRebuildWorkflow(req models.CreateRebuildWorkflowReq
 		c.JSON(500, errResponse)
 		return
 	} else {
-		myWorkflow := models.CreateRebuildWorkflowResponse{
+		myWorkflow := models_nls.CreateRebuildWorkflowResponse{
 			Name:       workflow.Name,
 			TargetNcns: req.Hosts,
 		}

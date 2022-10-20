@@ -42,7 +42,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -61,7 +61,7 @@ type WorkflowService interface {
 	DeleteWorkflow(ctx *gin.Context) error
 	RerunWorkflow(ctx *gin.Context) error
 	RetryWorkflow(ctx *gin.Context) error
-	CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error)
+	CreateRebuildWorkflow(req models_nls.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error)
 	CreateIufWorkflow(req models_v1.IufSessionSpec) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
@@ -161,7 +161,7 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 		s.logger.Error(err)
 		return err
 	}
-	workflows, err := s.checkRunningOrFailedWorkflows(models.RebuildWorkflowType(wf.Labels["node-type"]))
+	workflows, err := s.checkRunningOrFailedWorkflows(models_nls.RebuildWorkflowType(wf.Labels["node-type"]))
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -200,7 +200,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 		s.logger.Error(err)
 		return err
 	}
-	workflows, err := s.checkRunningOrFailedWorkflows(models.RebuildWorkflowType(wf.Labels["node-type"]))
+	workflows, err := s.checkRunningOrFailedWorkflows(models_nls.RebuildWorkflowType(wf.Labels["node-type"]))
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -212,7 +212,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 		return err
 	}
 
-	var requestBody models.RetryWorkflowRequestBody
+	var requestBody models_nls.RetryWorkflowRequestBody
 	if err := ctx.BindJSON(&requestBody); err != nil {
 		s.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -260,10 +260,10 @@ func (s workflowService) GetWorkflowByName(name string, ctx *gin.Context) (*v1al
 	)
 }
 
-func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error) {
 	// support worker rebuild and storage rebuild for now
 	workerNodeSet, storageNodeSet := false, false
-	var rebuildType models.RebuildWorkflowType
+	var rebuildType models_nls.RebuildWorkflowType
 	workerRegEx, err := regexp.Compile(`^ncn-w[0-9]*$`)
 	if err != nil {
 		s.logger.Error(err)
@@ -278,12 +278,12 @@ func (s workflowService) CreateRebuildWorkflow(req models.CreateRebuildWorkflowR
 		isWorker := workerRegEx.Match([]byte(hostname))
 		if isWorker {
 			workerNodeSet = true
-			rebuildType = models.WORKER
+			rebuildType = models_nls.WORKER
 		}
 		isStorage := storageRegEx.Match([]byte(hostname))
 		if isStorage {
 			storageNodeSet = true
-			rebuildType = models.STORAGE
+			rebuildType = models_nls.STORAGE
 		}
 		if !isWorker && !isStorage {
 			err = fmt.Errorf("invalid worker or storage node hostname: %s", hostname)
@@ -443,7 +443,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	return nil
 }
 
-func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models.RebuildWorkflowType) (v1alpha1.Workflows, error) {
+func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models_nls.RebuildWorkflowType) (v1alpha1.Workflows, error) {
 	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
@@ -464,8 +464,8 @@ func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models.Rebuil
 	return workflows.Items, nil
 }
 
-func (s workflowService) getRebuildHooks() (models.RebuildHooks, error) {
-	var result models.RebuildHooks
+func (s workflowService) getRebuildHooks() (models_nls.RebuildHooks, error) {
+	var result models_nls.RebuildHooks
 	// get all hooks
 	var beforeAllHooks unstructured.UnstructuredList
 	beforeAllHooks, err := s.getHooksByLabel("before-all=true")
