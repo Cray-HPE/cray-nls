@@ -65,7 +65,6 @@ properties:
     # TODO: Consider a regular expression for allowed product names
     # pattern: <regex in ECMA-262 regular expression dialect goes here>
 
-  # TODO: Do we want a long name in a description too?
   description:
     description: >
       A description of the product.
@@ -112,6 +111,7 @@ properties:
       beneath "content", it means a path relative to the top level of the
       product release distribution file.
 
+    additionalProperties: false
     properties:
       docker:
         description: >
@@ -125,6 +125,7 @@ properties:
           type: object
           required:
           - path
+          additionalProperties: false
           properties:
             path:
               description: |
@@ -162,6 +163,7 @@ properties:
           type: object
           required:
           - path
+          additionalProperties: false
           properties:
             path:
               description: >
@@ -193,6 +195,7 @@ properties:
           type: object
           required:
           - path
+          additionalProperties: false
           properties:
             path:
               description: >
@@ -223,6 +226,7 @@ properties:
         type: object
         required:
         - yaml_path
+        additionalProperties: false
         properties:
           yaml_path:
             description: >
@@ -241,6 +245,7 @@ properties:
         type: object
         required:
         - yaml_path
+        additionalProperties: false
         properties:
           yaml_path:
             description: >
@@ -263,6 +268,7 @@ properties:
           required:
           - path
           - repository_name
+          additionalProperties: false
           properties:
             path:
               description: >
@@ -295,6 +301,7 @@ properties:
         type: object
         required:
         - path
+        additionalProperties: false
         properties:
           path:
             description: >
@@ -317,13 +324,12 @@ properties:
               "PRODUCT_VERSION" is the version of the product.
             type: string
 
-      # TODO: Need to understand how products will build and package recipes and
-      # images for inclusion in their product release distribution files.
       ims:
         description: >
           Information about the IMS images and/or recipes to be uploaded into
           IMS for this product.
         type: object
+        additionalProperties: false
         properties:
           recipes:
             type: array
@@ -331,6 +337,7 @@ properties:
               type: object
               required:
               - path
+              additionalProperties: false
               properties:
                 path:
                   description: >
@@ -348,6 +355,7 @@ properties:
               type: object
               required:
               - path
+              additionalProperties: false
               properties:
                 path:
                   description: >
@@ -386,10 +394,12 @@ properties:
           Information about additional artifacts that should be uploaded to S3
         type: array
         items:
+          type: object
           required:
           - path
           - bucket
           - key
+          additionalProperties: false
           properties:
             path:
               description: >
@@ -402,5 +412,4 @@ properties:
             key:
               description: >
                 The key of the object to be created in S3.
-          type: object
 
