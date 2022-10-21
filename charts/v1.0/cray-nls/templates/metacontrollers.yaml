@@ -23,35 +23,35 @@
 #
 
 # rebuild hooks
----
-apiVersion: metacontroller.k8s.io/v1alpha1
-kind: CompositeController
-metadata:
-  name: nls-hooks
-spec:
-  generateSelector: true
-  parentResource:
-    apiVersion: cray-nls.hpe.com/v1
-    resource: hooks
-  hooks:
-    sync:
-      webhook:
-        url: "http://{{ index .Values "argo-host" }}/apis/nls/v1/ncns/hooks"
-# iuf sessions
----
-apiVersion: metacontroller.k8s.io/v1alpha1
-kind: CompositeController
-metadata:
-  name: iuf-sessions
-spec:
-  generateSelector: true
-  parentResource:
-    apiVersion: iuf.hpe.com/v1
-    resource: iufsessions
-  hooks:
-    sync:
-      webhook:
-        url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/sessions/sync"
+# ---
+# apiVersion: metacontroller.k8s.io/v1alpha1
+# kind: CompositeController
+# metadata:
+#   name: nls-hooks
+# spec:
+#   generateSelector: true
+#   parentResource:
+#     apiVersion: cray-nls.hpe.com/v1
+#     resource: hooks
+#   hooks:
+#     sync:
+#       webhook:
+#         url: "http://{{ index .Values "argo-host" }}/apis/nls/v1/ncns/hooks"
+# # iuf sessions
+# ---
+# apiVersion: metacontroller.k8s.io/v1alpha1
+# kind: CompositeController
+# metadata:
+#   name: iuf-sessions
+# spec:
+#   generateSelector: true
+#   parentResource:
+#     apiVersion: iuf.hpe.com/v1
+#     resource: iufsessions
+#   hooks:
+#     sync:
+#       webhook:
+#         url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/sessions/sync"
 
 
         
