@@ -71,25 +71,6 @@ properties:
       A description of the product.
     type: string
 
-  # ===========================================================================
-  # ================= Question for review session with teams ==================
-  # ===========================================================================
-  #
-  # Come back to this question at the end.
-  #
-  # This file is static and must be constructed at the product release
-  # distribution build time. Do any products require dynamic construction of
-  # this file?
-  #
-  # ===========================================================================
-
-  # ===========================================================================
-  # ================= Question for review session with teams ==================
-  # ===========================================================================
-  #
-  # Can teams use SemVer for their product versions?
-  #
-  # ===========================================================================
   version:
     description: >
       The version of the product. If not specified, the IUF will look for a
@@ -115,23 +96,6 @@ properties:
     # If we can enforce that every product uses SemVer, then we can use the
     # following official regex from the FAQ on semver.org.
     # pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
-
-
-  # ===========================================================================
-  # ================= Question for review session with teams ==================
-  # ===========================================================================
-  #
-  # We are not providing a way to declare dependencies for the initial release
-  # of the IUF in Alice. Do any product teams have examples of product install
-  # dependencies, particularly in the install stages responsible for uploading
-  # content, deploying services?
-  #
-  # Don: CSM-diags is dependent on CPE. This is a functional dependency?
-  # James: COS dependencies are at image build time (operational)
-  # Sarah: SDU has an operational dependency
-  #
-  # ===========================================================================
-
 
   content:
     type: object
@@ -207,27 +171,6 @@ properties:
                 will be uploaded to the "charts" Helm chart repository in Nexus.
               type: string
 
-      # =======================================================================
-      # =============== Question for review session with teams ================
-      # =======================================================================
-      #
-      # Will Loftsman manifests need a way to declare dependencies on other
-      # Loftsman manifests, either within a single product or across products?
-      #
-      # We plan to manifestgen all loftsman manifests by default. Is that a problem
-      # for any product teams? We can provide an option to disable it.
-      #
-      # SMA would pull customizations at run-time and modify it without pushing
-      # it back up and then use it to control size of something in S3.
-      #
-      # Do any products provide Loftsman manifests that they don't want to
-      # deploy as part of the product_deploy stage? E.g. WLM?
-      #
-      # Slurm has an operator that depends on some CSM multitenancy stuff in
-      # CSM 1.3 so you don't want to deploy unless on CSM 1.3, so it's been
-      # separated out.
-      #
-      # =======================================================================
       loftsman:
         description: >
           An array of Loftsman manifest files or directories containing Lofstman
@@ -274,16 +217,6 @@ properties:
               type: boolean
               default: true
 
-      # =======================================================================
-      # =============== Question for review session with teams ================
-      # =======================================================================
-      #
-      # Do any products currently have more than one "nexus-repositories.yaml"
-      # or "nexus-blobstores.yaml" file in their product stream?
-      #
-      # Question from Erik: how do we handle SLE with its multiple tar files?
-      #
-      # =======================================================================
       nexus_blob_stores:
         description: >
           The Nexus blob stores that should be defined for this product.
@@ -354,13 +287,6 @@ properties:
               - raw
               - yum
 
-      # =======================================================================
-      # =============== Question for review session with teams ================
-      # =======================================================================
-      #
-      # Do any products need to provide more than one VCS repo?
-      #
-      # =======================================================================
       vcs:
         default: {}
         description: >
@@ -455,15 +381,6 @@ properties:
                     The name of the initrd file for the image.
                   type: string
 
-      # =======================================================================
-      # =============== Question for review session with teams ================
-      # =======================================================================
-      #
-      # Analytics and CPE do this today. Do any other products do this?
-      #
-      # Slingshot fabric manager does this for switch firmware with FAS.
-      #
-      # =======================================================================
       s3:
         description: >
           Information about additional artifacts that should be uploaded to S3
