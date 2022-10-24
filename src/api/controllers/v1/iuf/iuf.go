@@ -35,13 +35,15 @@ import (
 // IufController data type
 type IufController struct {
 	workflowService services.WorkflowService
+	iufService      services.IufService
 	logger          utils.Logger
 }
 
 // NewIufController creates new Ncn controller
-func NewIufController(workflowService services.WorkflowService, logger utils.Logger) IufController {
+func NewIufController(workflowService services.WorkflowService, iufService services.IufService, logger utils.Logger) IufController {
 	return IufController{
 		workflowService: workflowService,
+		iufService:      iufService,
 		logger:          logger,
 	}
 }

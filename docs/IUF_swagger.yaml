@@ -42,6 +42,8 @@ definitions:
         type: string
       is_blocked:
         type: boolean
+      is_completed:
+        type: boolean
       limit_nodes:
         items:
           type: string

@@ -45,16 +45,6 @@ spec:
                 items:
                   type: string
                 type: array
-              current_state:
-                properties:
-                  comment:
-                    type: string
-                  type:
-                    type: string
-                required:
-                - comment
-                - type
-                type: object
               limit_nodes:
                 items:
                   type: string
@@ -102,7 +92,6 @@ spec:
             required:
             - bootprep_config_managed
             - bootprep_config_management
-            - current_state
             - limit_nodes
             - media_dir
             - products
@@ -111,6 +100,21 @@ spec:
             type: object
           status:
             properties:
+              current_state:
+                properties:
+                  comment:
+                    type: string
+                  type:
+                    enum:
+                    - not_started
+                    - in_progress
+                    - error
+                    - complete
+                    type: string
+                required:
+                - comment
+                - type
+                type: object
               products:
                 items:
                   properties:
@@ -137,6 +141,7 @@ spec:
                   type: object
                 type: array
             required:
+            - current_state
             - products
             type: object
         required:

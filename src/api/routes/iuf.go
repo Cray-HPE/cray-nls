@@ -43,6 +43,7 @@ func (s IufRoutes) Setup() {
 	api := s.handler.Gin.Group("/apis/iuf/v1")
 	{
 		api.POST("/sessions/sync", s.iufController.AddIufSession)
+		api.POST("/activities/sync", s.iufController.IufActivitySync)
 
 	}
 }

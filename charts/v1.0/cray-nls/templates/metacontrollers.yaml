@@ -23,7 +23,7 @@
 #
 
 # rebuild hooks
----
+# ---
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
@@ -36,7 +36,7 @@ spec:
   hooks:
     sync:
       webhook:
-        url: "http://{{ index .Values "argo-host" }}/apis/nls/v1/ncns/hooks"
+        url: "http://cray-nls.argo.svc:80/apis/nls/v1/ncns/hooks"
 # iuf sessions
 ---
 apiVersion: metacontroller.k8s.io/v1alpha1
@@ -51,7 +51,21 @@ spec:
   hooks:
     sync:
       webhook:
-        url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/sessions/sync"
-
+        url: "http://cray-nls.argo.svc:80/apis/iuf/v1/sessions/sync"
+# iuf activities
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: iuf-activities
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: iuf.hpe.com/v1
+    resource: iufactivities
+  hooks:
+    sync:
+      webhook:
+        url: "http://cray-nls.argo.svc:80/apis/iuf/v1/activities/sync"
 
         

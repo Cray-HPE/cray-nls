@@ -52,8 +52,8 @@ type IufSession struct {
 }
 
 type IufSessionCurrentState struct {
-	Type    string `json:"type" validate:"required"`
-	Comment string `json:"comment"  validate:"optional"`
+	Type    IufSessionStageState `json:"type" validate:"required"`
+	Comment string               `json:"comment"  validate:"optional"`
 } // @name IufSession.CurrentState
 
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
@@ -63,8 +63,7 @@ type IufSessionSpec struct {
 	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
 	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
 	// if not specified, we apply all stages
-	Stages       []string               `json:"stages"`
-	CurrentState IufSessionCurrentState `json:"current_state"`
+	Stages []string `json:"stages"`
 
 	Products []IufProduct `json:"products" validate:"required"`
 } // @name IufSession.Spec
@@ -88,5 +87,6 @@ type IufSessionStage struct {
 } // @name IufSession.Stage
 
 type IufSessionStatus struct {
-	Stages []IufSessionStage `json:"products" validate:"optional"`
+	CurrentState IufSessionCurrentState `json:"current_state"`
+	Stages       []IufSessionStage      `json:"products" validate:"optional"`
 }

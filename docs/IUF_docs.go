@@ -217,6 +217,9 @@ const docTemplateIUF = `{
                 "is_blocked": {
                     "type": "boolean"
                 },
+                "is_completed": {
+                    "type": "boolean"
+                },
                 "limit_nodes": {
                     "type": "array",
                     "items": {

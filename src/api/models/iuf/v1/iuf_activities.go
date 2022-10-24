@@ -30,13 +30,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type IufActivitiesyncRequest struct {
+type IufActivitiesSyncRequest struct {
 	Parent IufActivity `json:"parent"`
 }
 
-type IufActivitiesyncResponse struct {
-	Status             IufActivitiestatus `json:"status,omitempty"`
-	ResyncAfterSeconds int                `json:"resyncAfterSeconds,omitempty"`
+type IufActivitiesSyncResponse struct {
+	Status             IufActivitiesStatus `json:"status,omitempty"`
+	ResyncAfterSeconds int                 `json:"resyncAfterSeconds,omitempty"`
 }
 
 // IufActivity
@@ -47,8 +47,8 @@ type IufActivitiesyncResponse struct {
 type IufActivity struct {
 	metav1.TypeMeta   `json:",inline" swaggerignore:"true"`
 	metav1.ObjectMeta `json:"metadata" swaggerignore:"true"`
-	Spec              IufActivitiespec   `json:"spec"`
-	Status            IufActivitiestatus `json:"status,omitempty" swaggerignore:"true"`
+	Spec              IufActivitiesSpec   `json:"spec"`
+	Status            IufActivitiesStatus `json:"status,omitempty" swaggerignore:"true"`
 } // @name IufActivity
 
 type IufActivityCurrentState struct {
@@ -57,15 +57,15 @@ type IufActivityCurrentState struct {
 } // @name IufActivity.CurrentState
 
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
-type IufActivitiespec struct {
+type IufActivitiesSpec struct {
 	SharedInput    `json:",inline"`
 	IsBlocked      bool   `json:"is_blocked"`
+	IsCompleted    bool   `json:"is_completed"`
 	CurrentComment string `json:"current_comment"`
 } // @name IufActivity.Spec
 
-type IufActivitiestatus struct {
-	BootprepConfigManaged    []string     `json:"bootprep_config_managed" validate:"required"`
-	BootprepConfigManagement []string     `json:"bootprep_config_management" validate:"required"`
-	Sessions                 []IufSession `json:"sessions" validate:"optional"`
-	Products                 []IufProduct `json:"products" validate:"optional"`
+type IufActivitiesStatus struct {
+	SharedInput `json:",inline"`
+	Sessions    []IufSession `json:"sessions" validate:"optional"`
+	Products    []IufProduct `json:"products" validate:"optional"`
 }
