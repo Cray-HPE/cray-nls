@@ -31,11 +31,7 @@ import (
 	"go.uber.org/fx"
 )
 
-// @title    NCN Lifecycle Management API
-// @version  1.0
-// @description.markdown
-
-// @BasePath  /apis/nls
+// @BasePath  /apis
 
 func main() {
 	godotenv.Load()

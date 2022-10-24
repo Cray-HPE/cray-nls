@@ -26,7 +26,7 @@
 package routes
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
+	"github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
@@ -34,7 +34,7 @@ import (
 type IufRoutes struct {
 	logger        utils.Logger
 	handler       utils.RequestHandler
-	iufController controllers_v1.IufController
+	iufController iuf.IufController
 }
 
 // Setup Iuf routes
@@ -51,7 +51,7 @@ func (s IufRoutes) Setup() {
 func NewIufRoutes(
 	logger utils.Logger,
 	handler utils.RequestHandler,
-	iufController controllers_v1.IufController,
+	iufController iuf.IufController,
 ) IufRoutes {
 	return IufRoutes{
 		handler:       handler,

@@ -8,7 +8,6 @@
    go get github.com/pilu/fresh
    ```
 1. [K3D](https://k3d.io/) (required for running locally)
-1. [NodeJS](https://nodejs.org/en/download/) (required for markdown version of swagger doc)
 
 ### Start
 

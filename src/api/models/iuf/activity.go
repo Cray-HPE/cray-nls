@@ -23,43 +23,26 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
-import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/nls"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-)
+import v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 
-// NcnRoutes struct
-type NcnRoutes struct {
-	logger         utils.Logger
-	handler        utils.RequestHandler
-	ncnsController controllers_v1.NcnController
-	hookController controllers_v1.HookController
-}
+type CreateOrPatchActivityRequest struct {
+	Products []Product                `json:"products" validate:"required"`
+	MediaDir string                   `json:"media-dir"  validate:"required"`
+	Inputs   v1.IufSessionInputParams `json:"inputs"  validate:"required"`
+} // @name Iuf.CreateOrPatchActivityRequest
 
-// Setup Ncn routes
-func (s NcnRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/nls/v1")
-	{
-		api.POST("/ncns/rebuild", s.ncnsController.NcnsCreateRebuildWorkflow)
-		api.POST("/ncns/hooks", s.hookController.AddHooks)
+type Product struct {
+	Name    string `json:"name" validate:"required"`
+	Version string `json:"version" validate:"required"`
+} // @name Iuf.Product
 
-	}
-}
-
-// NewNcnRoutes creates new Ncn controller
-func NewNcnRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	ncnsController controllers_v1.NcnController,
-	hookController controllers_v1.HookController,
-) NcnRoutes {
-	return NcnRoutes{
-		handler:        handler,
-		logger:         logger,
-		ncnsController: ncnsController,
-		hookController: hookController,
-	}
-}
+type Activity struct {
+	Name string `json:"name" validate:"required"`
+	CreateOrPatchActivityRequest
+	Sessions []struct {
+		Name string
+		v1.IufSession
+	} `json:"sessions,omitempty"`
+} // @name Iuf.Activity

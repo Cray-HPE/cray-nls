@@ -24,7 +24,7 @@
 package routes
 
 import (
-	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1"
+	controllers_v1 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/nls"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 

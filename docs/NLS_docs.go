@@ -29,7 +29,7 @@ package docs
 
 import "github.com/swaggo/swag"
 
-const docTemplate = `{
+const docTemplateNLS = `{
     "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
@@ -41,7 +41,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/ncns/reboot": {
+        "/nls/v1/ncns/reboot": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -92,7 +92,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/ncns/rebuild": {
+        "/nls/v1/ncns/rebuild": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -143,7 +143,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/workflows": {
+        "/nls/v1/workflows": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -194,7 +194,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/workflows/{name}": {
+        "/nls/v1/workflows/{name}": {
             "delete": {
                 "consumes": [
                     "application/json"
@@ -243,7 +243,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/workflows/{name}/rerun": {
+        "/nls/v1/workflows/{name}/rerun": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -292,7 +292,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/workflows/{name}/retry": {
+        "/nls/v1/workflows/{name}/retry": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -464,18 +464,18 @@ const docTemplate = `{
     }
 }`
 
-// SwaggerInfo holds exported Swagger Info so clients can modify it
-var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+// SwaggerInfoNLS holds exported Swagger Info so clients can modify it
+var SwaggerInfoNLS = &swag.Spec{
+	Version:          "",
 	Host:             "",
-	BasePath:         "/apis/nls",
+	BasePath:         "/apis",
 	Schemes:          []string{},
-	Title:            "NCN Lifecycle Management API",
-	Description:      "## NCN Lifecycle Events\n\nA set of REST APIs that allow system admin to create ncn lifecycle event such as reboot/rebuild. It uses argo workflow to run defined procedures for each event.\n\n## NCN Lifecycle Hooks [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/NCN%20Lifecycle%20Hooks.md)\n\nA set of REST APIs that allow system admin or developers to register customize hooks as part of argo workflow.\n\n## Security [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/security.md)\n\n## Argo UI [details](https://github.com/Cray-HPE/cray-nls/blob/master/docs/argo.md)\n",
-	InfoInstanceName: "swagger",
-	SwaggerTemplate:  docTemplate,
+	Title:            "",
+	Description:      "",
+	InfoInstanceName: "NLS",
+	SwaggerTemplate:  docTemplateNLS,
 }
 
 func init() {
-	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
+	swag.Register(SwaggerInfoNLS.InstanceName(), SwaggerInfoNLS)
 }

@@ -45,7 +45,7 @@ jobs:
         if: steps.swagger-ui.outputs.current_tag != steps.swagger-ui.outputs.release_tag
         env:
           RELEASE_TAG: "v4.8.0"
-          SWAGGER_YAML: "docs/swagger.yaml"
+          SWAGGER_YAML: "docs/IUF_swagger.yaml"
         run: |
           # Delete the dist directory and index.html
           rm -fr dist index.html

@@ -26,7 +26,7 @@ package controllers_v1
 import (
 	"fmt"
 
-	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -56,7 +56,7 @@ func NewWorkflowController(Service services.WorkflowService, logger utils.Logger
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows [get]
+// @Router   /nls/v1/workflows [get]
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	workflowList, err := u.service.GetWorkflows(c)
 	if err != nil {
@@ -64,11 +64,11 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 		c.JSON(500, errResponse)
 		return
 	}
-	var workflows []models.GetWorkflowResponse
+	var workflows []models_nls.GetWorkflowResponse
 	for _, workflow := range workflowList.Items {
 		workflow.Status.StoredTemplates = nil
 		workflow.Status.ArtifactRepositoryRef = nil
-		tmp := models.GetWorkflowResponse{
+		tmp := models_nls.GetWorkflowResponse{
 			Name:   workflow.Name,
 			Labels: workflow.Labels,
 			Status: workflow.Status,
@@ -88,7 +88,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name} [delete]
+// @Router   /nls/v1/workflows/{name} [delete]
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	err := u.service.DeleteWorkflow(c)
 	if err != nil {
@@ -110,7 +110,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name}/retry [put]
+// @Router   /nls/v1/workflows/{name}/retry [put]
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 	err := u.service.RetryWorkflow(c)
 	if err != nil {
@@ -131,7 +131,7 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
-// @Router   /v1/workflows/{name}/rerun [put]
+// @Router   /nls/v1/workflows/{name}/rerun [put]
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	err := u.service.RerunWorkflow(c)
 	if err != nil {

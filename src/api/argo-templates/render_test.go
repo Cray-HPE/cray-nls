@@ -30,7 +30,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Cray-HPE/cray-nls/src/api/models"
+	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"sigs.k8s.io/yaml"
@@ -43,12 +43,12 @@ var rebuildWorkflowFS embed.FS
 
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts:          []string{"ncn-w006", "ncn-w005"},
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models.RebuildHooks{})
+		_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 		assert.Equal(t, true, err == nil)
 	})
 	t.Run("Render with valid/invalid hostnames", func(t *testing.T) {
@@ -68,12 +68,12 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				req := models.CreateRebuildWorkflowRequest{
+				req := models_nls.CreateRebuildWorkflowRequest{
 					Hosts:          tt.hostnames,
 					DryRun:         doDryRun,
 					SwitchPassword: "thisIsApassword",
 				}
-				_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models.RebuildHooks{})
+				_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 				if (err != nil) != tt.wantErr {
 					t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 					return
@@ -83,12 +83,12 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts:          []string{"ncn-w99999"},
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models.RebuildHooks{})
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
 		var myWorkflow v1alpha1.Workflow
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
@@ -96,12 +96,12 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 
 	t.Run("It should render switch password", func(t *testing.T) {
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts:          []string{"ncn-w99999"},
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
 		}
-		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models.RebuildHooks{})
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 		assert.Contains(t, string(workerRebuildWorkflow), "thisIsApassword")
 	})
 }
@@ -109,7 +109,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 //---- Storage Testing ----//
 func TestRenderStorageRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of storage nodes", func(t *testing.T) {
-		req := models.CreateRebuildWorkflowRequest{
+		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts:          []string{"ncn-s006", "ncn-s005"},
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
@@ -134,7 +134,7 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 		}
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
-				req := models.CreateRebuildWorkflowRequest{
+				req := models_nls.CreateRebuildWorkflowRequest{
 					Hosts:          tt.hostnames,
 					DryRun:         doDryRun,
 					SwitchPassword: "thisIsApassword",

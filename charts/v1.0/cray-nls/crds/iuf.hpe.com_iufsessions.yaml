@@ -83,10 +83,6 @@ spec:
                         taken from the product distribution file and stored in S3,
                         so that they can later be referenced.
                       type: object
-                    iuf_manifest_s3_location:
-                      description: The location of the product manifest uploaded into
-                        s3
-                      type: string
                     name:
                       description: The name of the product
                       type: string
@@ -98,7 +94,6 @@ spec:
                       description: The version of the product.
                       type: string
                   required:
-                  - iuf_manifest_s3_location
                   - name
                   - original_location
                   - version
