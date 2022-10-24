@@ -42,8 +42,8 @@ import (
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
+	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
-	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
@@ -354,13 +354,8 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 func (s workflowService) CreateIufWorkflow(req models_v1.IufSessionSpec) (*v1alpha1.Workflow, error) {
 	var installWorkflow []byte
 	var getWorkflowErr error
-	if req.WorkflowType == models_v1.WorkflowTypeInstall {
-		// install workflow
-		installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)
-		installWorkflow, getWorkflowErr = argo_templates.GetIufInstallWorkflow(installWorkflowFS, req)
-	} else {
-		getWorkflowErr = fmt.Errorf("Unsupported workflow type: %s", req.WorkflowType)
-	}
+	installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)
+	installWorkflow, getWorkflowErr = argo_templates.GetIufInstallWorkflow(installWorkflowFS, req)
 	if getWorkflowErr != nil {
 		s.logger.Error(getWorkflowErr)
 		return nil, getWorkflowErr

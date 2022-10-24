@@ -23,26 +23,24 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package iuf
+// +groupName=iuf.hpe.com
+package v1
 
-import v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
-
-type CreateOrPatchActivityRequest struct {
-	Products []Product                `json:"products" validate:"required"`
-	MediaDir string                   `json:"media-dir"  validate:"required"`
-	Inputs   v1.IufSessionInputParams `json:"inputs"  validate:"required"`
-} // @name Iuf.CreateOrPatchActivityRequest
-
-type Product struct {
-	Name    string `json:"name" validate:"required"`
+type IufProduct struct {
+	// The name of the product
+	Name string `json:"name" validate:"required"`
+	// The version of the product.
 	Version string `json:"version" validate:"required"`
+	// The original location of the extracted tar in on the physical storage.
+	OriginalLocation string `json:"original_location"  validate:"required"`
 } // @name Iuf.Product
 
-type Activity struct {
-	Name string `json:"name" validate:"required"`
-	CreateOrPatchActivityRequest
-	Sessions []struct {
-		Name string
-		v1.IufSession
-	} `json:"sessions,omitempty"`
-} // @name Iuf.Activity
+type SharedInput struct {
+	// location of media
+	MediaDir string `json:"media_dir" validate:"required"`
+	// json string
+	SiteParameters           string   `json:"site_parameters" validate:"required"`
+	BootprepConfigManaged    []string `json:"bootprep_config_managed" validate:"required"`
+	BootprepConfigManagement []string `json:"bootprep_config_management" validate:"required"`
+	LimitNodes               []string `json:"limit_nodes" validate:"optional"`
+}

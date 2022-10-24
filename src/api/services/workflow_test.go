@@ -30,8 +30,8 @@ import (
 	"testing"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
@@ -244,7 +244,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			workflowTemplateCient: wftServiceSclientMock,
 			env:                   utils.Env{WorkerRebuildWorkflowFiles: "badname"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(v1.IufSessionSpec{WorkflowType: "install"})
+		_, err := workflowSvc.CreateIufWorkflow(v1.IufSessionSpec{})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package

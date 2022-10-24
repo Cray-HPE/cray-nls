@@ -26,7 +26,7 @@
 package iuf
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -48,11 +48,11 @@ func NewIufController(workflowService services.WorkflowService, logger utils.Log
 
 // CreateIufActivity
 // @Summary  Create an IUF activity
-// @Param    activity  body  iuf.CreateOrPatchActivityRequest  true  "IUF activity"
+// @Param    activity  body  v1.IufActivity  true  "IUF activity"
 // @Tags     IUF
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  iuf.Activity
+// @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activity [post]
 func (u IufController) CreateIufActivity(c *gin.Context) {
@@ -64,7 +64,7 @@ func (u IufController) CreateIufActivity(c *gin.Context) {
 // @Tags     IUF
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  []iuf.Activity
+// @Success  200  {object}  []v1.IufActivity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities [GET]
 func (u IufController) ListIufActivities(c *gin.Context) {
@@ -73,11 +73,11 @@ func (u IufController) ListIufActivities(c *gin.Context) {
 
 // GetIufActivity
 // @Summary  Get an IUF activity
-// @Param    id                path  string                            true  "activity id"
+// @Param    id                path  string          true  "activity id"
 // @Tags     IUF
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  iuf.Activity
+// @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{id} [get]
 func (u IufController) GetIufActivity(c *gin.Context) {
@@ -87,11 +87,11 @@ func (u IufController) GetIufActivity(c *gin.Context) {
 // PatchIufActivity
 // @Summary  Patch an IUF activity
 // @Param    id  path  string  true  "activity id"
-// @Param    partial_activity  body  iuf.CreateOrPatchActivityRequest  true  "partial IUF activity"
+// @Param    partial_activity  body  v1.IufActivity  true  "partial IUF activity"
 // @Tags     IUF
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  iuf.Activity
+// @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{id} [patch]
 func (u IufController) PatchIufActivity(c *gin.Context) {

@@ -37,52 +37,34 @@ spec:
               an install-upgrade workflow. It contains both input data, as well as
               any intermediary data that is needed to generate the final Argo workflow.
             properties:
-              input_params:
-                description: The input parameters supplied by the Admin.
+              bootprep_config_managed:
+                items:
+                  type: string
+                type: array
+              bootprep_config_management:
+                items:
+                  type: string
+                type: array
+              current_state:
                 properties:
-                  vcs_working_branch_pattern:
-                    description: 'The pattern to use for all products. Use the following
-                      variables in braces {} to specify the pattern:  {product_name}
-                      {product_version}  E.g.  {product_name}-{product_version}-test-branch'
+                  comment:
                     type: string
-                  vcs_working_branch_per_product:
-                    additionalProperties:
-                      type: string
-                    description: Specify the working branch name per product. This
-                      is an object where the key is the product name, and the value
-                      is the exact name (not a pattern) of the VCS branch for that
-                      product.
-                    type: object
+                  type:
+                    type: string
+                required:
+                - comment
+                - type
                 type: object
+              limit_nodes:
+                items:
+                  type: string
+                type: array
+              media_dir:
+                description: location of media
+                type: string
               products:
-                description: The products that need to be installed, as specified
-                  by the Admin.
                 items:
                   properties:
-                    after_hook_scripts:
-                      additionalProperties:
-                        type: string
-                      description: Any after hook scripts for this product. This is
-                        an object where the key is operation name, and value is the
-                        CR name of the hook script for this product.  Hook scripts
-                        are executed either before or after an execution of a operation.
-                        They are specified in each product's distribution file, as
-                        part of the iuf-manifest.yaml.  The hook scripts are initially
-                        taken from the product distribution file and stored in S3,
-                        so that they can later be referenced.
-                      type: object
-                    before_hook_scripts:
-                      additionalProperties:
-                        type: string
-                      description: Any before hook scripts for this product. This
-                        is an object where the key is operation name, and value is
-                        the CR name of the hook script for this product.  Hook scripts
-                        are executed either before or after an execution of a operation.
-                        They are specified in each product's distribution file, as
-                        part of the iuf-manifest.yaml.  The hook scripts are initially
-                        taken from the product distribution file and stored in S3,
-                        so that they can later be referenced.
-                      type: object
                     name:
                       description: The name of the product
                       type: string
@@ -99,6 +81,9 @@ spec:
                   - version
                   type: object
                 type: array
+              site_parameters:
+                description: json string
+                type: string
               stages:
                 description: The stages that need to be executed. This is either explicitly
                   specified by the Admin, or it is computed from the workflow type.
@@ -114,50 +99,45 @@ spec:
                 items:
                   type: string
                 type: array
-              workflow_type:
-                description: What type of workflow are we executing? install or upgrade
-                enum:
-                - install
-                - upgrade
-                type: string
             required:
-            - input_params
+            - bootprep_config_managed
+            - bootprep_config_management
+            - current_state
+            - limit_nodes
+            - media_dir
             - products
+            - site_parameters
             - stages
-            - workflow_type
             type: object
           status:
             properties:
-              argo_workflow:
-                description: The unique name of the Argo workflow that is created
-                  from all the input parameters above.
-                type: string
-              message:
-                type: string
-              observedGeneration:
-                type: integer
-              operations:
-                description: A 2-level DAG of Operations derived from stages that
-                  would be executed for each of the products that are specified. This
-                  is not specified by the Admin -- it is computed from the list of
-                  stages above.  This is an array of array of CR names of Operations
-                  that are installed as part of IUF, and determined by the Stages
-                  supplied.
+              products:
                 items:
-                  items:
-                    type: string
-                  type: array
+                  properties:
+                    products:
+                      type: string
+                    state:
+                      enum:
+                      - not_started
+                      - in_progress
+                      - error
+                      - complete
+                      type: string
+                    workflou_id:
+                      type: string
+                    workflou_output:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  required:
+                  - products
+                  - state
+                  - workflou_id
+                  - workflou_output
+                  type: object
                 type: array
-              phase:
-                enum:
-                - Pending
-                - Running
-                - Succeeded
-                - Failed
-                - Error
-                type: string
             required:
-            - observedGeneration
+            - products
             type: object
         required:
         - metadata

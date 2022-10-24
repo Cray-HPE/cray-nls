@@ -33,9 +33,8 @@ import (
 	"io/fs"
 	"text/template"
 
+	iuf_v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
-	models_v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -82,7 +81,7 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
 }
 
-func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_v1.IufSessionSpec) ([]byte, error) {
+func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req iuf_v1.IufSessionSpec) ([]byte, error) {
 	tmpl := template.New("install.yaml")
 
 	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req)
@@ -191,7 +190,7 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 	return tmpRes.Bytes(), nil
 }
 
-func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_v1.IufSessionSpec) ([]byte, error) {
+func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req iuf_v1.IufSessionSpec) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -210,7 +209,7 @@ func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_v1.Iuf
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, struct {
-		Products []v1.IufSessionProduct
+		Products []iuf_v1.IufProduct
 		Stages   []string
 		DryRun   string
 	}{
