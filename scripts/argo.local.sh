@@ -53,6 +53,9 @@ docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c 
 
 kubectl create ns argo
 
+helm dependency build ./charts/v1.0/cray-iuf
+helm upgrade --install cray-iuf ./charts/v1.0/cray-iuf  -n argo 
+
 helm repo add argo https://argoproj.github.io/argo-helm
 helm dependency build ./charts/v1.0/cray-nls
 helm upgrade --install argo-only ./charts/v1.0/cray-nls  -n argo \
