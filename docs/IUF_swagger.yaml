@@ -636,7 +636,7 @@ paths:
       summary: Resume a stopped session of an IUF activity
       tags:
       - Sessions
-  /iuf/v1/activities/{id}:
+  /iuf/v1/activities/{uid}:
     get:
       consumes:
       - application/json

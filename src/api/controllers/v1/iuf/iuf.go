@@ -81,7 +81,7 @@ func (u IufController) ListIufActivities(c *gin.Context) {
 // @Produce  json
 // @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{id} [get]
+// @Router   /iuf/v1/activities/{uid} [get]
 func (u IufController) GetIufActivity(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -95,7 +95,7 @@ func (u IufController) GetIufActivity(c *gin.Context) {
 // @Produce  json
 // @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{id} [patch]
+// @Router   /iuf/v1/activities/{uid} [patch]
 func (u IufController) PatchIufActivity(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

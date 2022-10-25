@@ -273,7 +273,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "/iuf/v1/activities/{id}": {
+        "/iuf/v1/activities/{uid}": {
             "get": {
                 "consumes": [
                     "application/json"
