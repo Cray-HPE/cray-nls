@@ -23,51 +23,61 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package controllers_v1
+package iuf
 
 import (
 	"fmt"
 
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/nls/v1"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
+	v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
 )
 
-// HookController data type
-type HookController struct {
-	workflowService services.WorkflowService
-	logger          utils.Logger
-}
-
-// NewHookController creates new Ncn controller
-func NewHookController(workflowService services.WorkflowService, logger utils.Logger) HookController {
-	return HookController{
-		workflowService: workflowService,
-		logger:          logger,
-	}
-}
-
-// AddHooks
-func (u HookController) AddHooks(c *gin.Context) {
-	var requestBody v1.SyncRequest
-	var response v1.SyncResponse
+// IufActivitySync
+func (u IufController) IufActivitySync(c *gin.Context) {
+	var requestBody v1.IufActivitiesSyncRequest
+	var response v1.IufActivitiesSyncResponse
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(400, errResponse)
 		return
 	}
-	u.logger.Infof(
-		"[%s] Hook changed, phase: %s, observed generation: %d",
-		requestBody.Parent.Name,
-		requestBody.Parent.Status.Phase,
-		requestBody.Parent.Status.ObservedGeneration,
-	)
-	response = v1.SyncResponse{
-		Status:             v1.HookStatus{Phase: "created"},
-		ResyncAfterSeconds: 0,
+	response.Status = requestBody.Parent.Status
+	// assuming we will always resync until it reaches end state
+	response.ResyncAfterSeconds = 10
+
+	if requestBody.Parent.Spec.IsCompleted {
+		// activity is marked as done, no-op
+		response.ResyncAfterSeconds = 0
+	} else {
+		// fetch all sessions belong to current acitivy
+		var err error
+		response.Status.Sessions, err = u.iufService.GetSessionsByActivityName(requestBody.Parent.Name)
+		if err != nil {
+			u.logger.Error(err)
+			errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+			c.JSON(400, errResponse)
+			return
+		}
+
+		if len(response.Status.Sessions) > 0 {
+			lastSession := response.Status.Sessions[len(response.Status.Sessions)-1]
+			if lastSession.Status.CurrentState.Type == v1.IufSessionStageInProgress {
+				u.logger.Warnf("Session: %s is in progress, sync again", lastSession.Name)
+				c.JSON(200, response)
+				return
+			}
+		}
+
+		if !cmp.Equal(requestBody.Parent.Spec.SharedInput, response.Status.SharedInput) {
+			u.logger.Info("input changed, reprocessing artifacts")
+			//TODO: ^
+			response.Status.SharedInput = requestBody.Parent.Spec.SharedInput
+		}
+		u.logger.Warn("Sync again")
+		c.JSON(200, response)
 	}
-	u.logger.Infof("[%s] Hook created, namespace: %s, resourceVersion: %s", requestBody.Parent.Name, requestBody.Parent.Namespace, requestBody.Parent.ResourceVersion)
-	c.JSON(200, response)
+
 }

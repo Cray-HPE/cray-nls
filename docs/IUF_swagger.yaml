@@ -23,154 +23,42 @@
 #
 basePath: /apis
 definitions:
-  Iuf.Activity:
+  IufActivity:
     properties:
-      inputs:
-        $ref: '#/definitions/IufSession.InputParams'
-      media-dir:
-        type: string
-      name:
-        type: string
-      products:
-        items:
-          $ref: '#/definitions/Iuf.Product'
-        type: array
-      sessions:
-        items:
-          properties:
-            name:
-              type: string
-            spec:
-              $ref: '#/definitions/IufSession.Spec'
-            status:
-              $ref: '#/definitions/IufSession.Status'
-          type: object
-        type: array
-    required:
-    - inputs
-    - media-dir
-    - name
-    - products
+      spec:
+        $ref: '#/definitions/IufActivity.Spec'
     type: object
-  Iuf.CreateOrPatchActivityRequest:
+  IufActivity.Spec:
     properties:
-      inputs:
-        $ref: '#/definitions/IufSession.InputParams'
-      media-dir:
-        type: string
-      products:
+      bootprep_config_managed:
         items:
-          $ref: '#/definitions/Iuf.Product'
+          type: string
         type: array
-    required:
-    - inputs
-    - media-dir
-    - products
-    type: object
-  Iuf.Product:
-    properties:
-      name:
+      bootprep_config_management:
+        items:
+          type: string
+        type: array
+      current_comment:
         type: string
-      version:
+      is_blocked:
+        type: boolean
+      is_completed:
+        type: boolean
+      limit_nodes:
+        items:
+          type: string
+        type: array
+      media_dir:
+        description: location of media
+        type: string
+      site_parameters:
+        description: json string
         type: string
     required:
-    - name
-    - version
-    type: object
-  IufSession.InputParams:
-    properties:
-      vcs_working_branch_pattern:
-        description: 'The pattern to use for all products. Use the following variables
-          in braces {} to specify the pattern:  {product_name} {product_version}  E.g.  {product_name}-{product_version}-test-branch'
-        type: string
-      vcs_working_branch_per_product:
-        additionalProperties:
-          type: string
-        description: Specify the working branch name per product. This is an object
-          where the key is the product name, and the value is the exact name (not
-          a pattern) of the VCS branch for that product.
-        type: object
-    type: object
-  IufSession.Product:
-    properties:
-      after_hook_scripts:
-        additionalProperties:
-          type: string
-        description: Any after hook scripts for this product. This is an object where
-          the key is operation name, and value is the CR name of the hook script for
-          this product.  Hook scripts are executed either before or after an execution
-          of a operation. They are specified in each product's distribution file,
-          as part of the iuf-manifest.yaml.  The hook scripts are initially taken
-          from the product distribution file and stored in S3, so that they can later
-          be referenced.
-        type: object
-      before_hook_scripts:
-        additionalProperties:
-          type: string
-        description: Any before hook scripts for this product. This is an object where
-          the key is operation name, and value is the CR name of the hook script for
-          this product.  Hook scripts are executed either before or after an execution
-          of a operation. They are specified in each product's distribution file,
-          as part of the iuf-manifest.yaml.  The hook scripts are initially taken
-          from the product distribution file and stored in S3, so that they can later
-          be referenced.
-        type: object
-      name:
-        description: The name of the product
-        type: string
-      original_location:
-        description: The original location of the extracted tar in on the physical
-          storage.
-        type: string
-      version:
-        description: The version of the product.
-        type: string
-    type: object
-  IufSession.Spec:
-    properties:
-      input_params:
-        $ref: '#/definitions/IufSession.InputParams'
-      products:
-        description: The products that need to be installed, as specified by the Admin.
-        items:
-          $ref: '#/definitions/IufSession.Product'
-        type: array
-      stages:
-        description: |-
-          The stages that need to be executed.
-          This is either explicitly specified by the Admin, or it is computed from the workflow type.
-          An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
-          if not specified, we apply all stages
-        items:
-          type: string
-        type: array
-      workflow_type:
-        description: What type of workflow are we executing? install or upgrade
-        type: string
-    type: object
-  IufSession.Status:
-    properties:
-      argo_workflow:
-        description: The unique name of the Argo workflow that is created from all
-          the input parameters above.
-        type: string
-      message:
-        type: string
-      observedGeneration:
-        type: integer
-      operations:
-        description: A 2-level DAG of Operations derived from stages that would be
-          executed for each of the products that are specified. This is not specified
-          by the Admin -- it is computed from the list of stages above.  This is an
-          array of array of CR names of Operations that are installed as part of IUF,
-          and determined by the Stages supplied.
-        items:
-          items:
-            type: string
-          type: array
-        type: array
-      phase:
-        type: string
+    - bootprep_config_managed
+    - bootprep_config_management
+    - media_dir
+    - site_parameters
     type: object
 info:
   contact: {}
@@ -186,7 +74,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/Iuf.Activity'
+              $ref: '#/definitions/IufActivity'
             type: array
         "501":
           description: Not Implemented
@@ -209,7 +97,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Iuf.Activity'
+            $ref: '#/definitions/IufActivity'
         "501":
           description: Not Implemented
       summary: Get an IUF activity
@@ -229,14 +117,14 @@ paths:
         name: partial_activity
         required: true
         schema:
-          $ref: '#/definitions/Iuf.CreateOrPatchActivityRequest'
+          $ref: '#/definitions/IufActivity'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Iuf.Activity'
+            $ref: '#/definitions/IufActivity'
         "501":
           description: Not Implemented
       summary: Patch an IUF activity
@@ -252,14 +140,14 @@ paths:
         name: activity
         required: true
         schema:
-          $ref: '#/definitions/Iuf.CreateOrPatchActivityRequest'
+          $ref: '#/definitions/IufActivity'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Iuf.Activity'
+            $ref: '#/definitions/IufActivity'
         "501":
           description: Not Implemented
       summary: Create an IUF activity

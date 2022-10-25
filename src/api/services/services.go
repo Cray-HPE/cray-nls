@@ -30,5 +30,6 @@ var Module = fx.Options(
 	fx.Provide(NewNcnService),
 	fx.Provide(NewWorkflowService),
 	fx.Provide(NewArgoService),
+	fx.Provide(NewIufService),
 	fx.Invoke(NewWorkflowService),
 )

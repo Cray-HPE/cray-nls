@@ -52,6 +52,20 @@ spec:
     sync:
       webhook:
         url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/sessions/sync"
-
+# iuf activities
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: iuf-activities
+spec:
+  generateSelector: true
+  parentResource:
+    apiVersion: iuf.hpe.com/v1
+    resource: iufactivities
+  hooks:
+    sync:
+      webhook:
+        url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/activities/sync"
 
         
