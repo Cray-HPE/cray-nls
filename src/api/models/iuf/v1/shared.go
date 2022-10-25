@@ -33,6 +33,8 @@ type IufProduct struct {
 	Version string `json:"version" validate:"required"`
 	// The original location of the extracted tar in on the physical storage.
 	OriginalLocation string `json:"original_location"  validate:"required"`
+	// The flag indicates md5 of a product tarball file has been validated
+	Validated bool `json:"validated"  validate:"required"`
 } // @name Product
 
 type SharedInput struct {

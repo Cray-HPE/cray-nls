@@ -500,6 +500,7 @@ const docTemplateIUF = `{
             "required": [
                 "name",
                 "original_location",
+                "validated",
                 "version"
             ],
             "properties": {
@@ -510,6 +511,10 @@ const docTemplateIUF = `{
                 "original_location": {
                     "description": "The original location of the extracted tar in on the physical storage.",
                     "type": "string"
+                },
+                "validated": {
+                    "description": "The flag indicates md5 of a product tarball file has been validated",
+                    "type": "boolean"
                 },
                 "version": {
                     "description": "The version of the product.",
