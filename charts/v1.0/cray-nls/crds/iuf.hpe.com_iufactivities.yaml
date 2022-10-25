@@ -210,10 +210,10 @@ spec:
                           - comment
                           - type
                           type: object
-                        products:
+                        stages:
                           items:
                             properties:
-                              products:
+                              name:
                                 type: string
                               state:
                                 enum:
@@ -229,7 +229,7 @@ spec:
                                   type: string
                                 type: object
                             required:
-                            - products
+                            - name
                             - state
                             - workflou_id
                             - workflou_output
@@ -237,7 +237,7 @@ spec:
                           type: array
                       required:
                       - current_state
-                      - products
+                      - stages
                       type: object
                   required:
                   - metadata

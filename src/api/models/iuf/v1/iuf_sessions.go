@@ -48,13 +48,13 @@ type IufSession struct {
 	metav1.TypeMeta   `json:",inline" swaggerignore:"true"`
 	metav1.ObjectMeta `json:"metadata" swaggerignore:"true"`
 	Spec              IufSessionSpec   `json:"spec"`
-	Status            IufSessionStatus `json:"status,omitempty" swaggerignore:"true"`
-}
+	Status            IufSessionStatus `json:"status,omitempty"`
+} // @name Session
 
 type IufSessionCurrentState struct {
 	Type    IufSessionStageState `json:"type" validate:"required"`
 	Comment string               `json:"comment"  validate:"optional"`
-} // @name IufSession.CurrentState
+} // @name Session.CurrentState
 
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
 type IufSessionSpec struct {
@@ -63,10 +63,9 @@ type IufSessionSpec struct {
 	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
 	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
 	// if not specified, we apply all stages
-	Stages []string `json:"stages"`
-
+	Stages   []string     `json:"stages"`
 	Products []IufProduct `json:"products" validate:"required"`
-} // @name IufSession.Spec
+} // @name Session.Spec
 
 // +kubebuilder:validation:Enum=not_started;in_progress;error;complete
 type IufSessionStageState string
@@ -80,13 +79,13 @@ const (
 )
 
 type IufSessionStage struct {
-	Name          string               `json:"products" validate:"required"`
+	Name          string               `json:"name" validate:"required"`
 	State         IufSessionStageState `json:"state" validate:"required"`
 	WorkflowId    string               `json:"workflou_id" validate:"required"`
 	WorkflowOuput map[string]string    `json:"workflou_output" validate:"optional"`
-} // @name IufSession.Stage
+} // @name Session.Stage
 
 type IufSessionStatus struct {
 	CurrentState IufSessionCurrentState `json:"current_state"`
-	Stages       []IufSessionStage      `json:"products" validate:"optional"`
-}
+	Stages       []IufSessionStage      `json:"stages" validate:"optional"`
+} // @name Session.Status

@@ -33,7 +33,7 @@ type IufProduct struct {
 	Version string `json:"version" validate:"required"`
 	// The original location of the extracted tar in on the physical storage.
 	OriginalLocation string `json:"original_location"  validate:"required"`
-} // @name Iuf.Product
+} // @name Product
 
 type SharedInput struct {
 	// location of media

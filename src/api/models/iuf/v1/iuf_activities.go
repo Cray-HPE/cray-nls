@@ -48,13 +48,13 @@ type IufActivity struct {
 	metav1.TypeMeta   `json:",inline" swaggerignore:"true"`
 	metav1.ObjectMeta `json:"metadata" swaggerignore:"true"`
 	Spec              IufActivitiesSpec   `json:"spec"`
-	Status            IufActivitiesStatus `json:"status,omitempty" swaggerignore:"true"`
-} // @name IufActivity
+	Status            IufActivitiesStatus `json:"status,omitempty"`
+} // @name Activity
 
 type IufActivityCurrentState struct {
 	Type    string `json:"type" validate:"required"`
 	Comment string `json:"comment"  validate:"optional"`
-} // @name IufActivity.CurrentState
+} // @name Activity.CurrentState
 
 // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
 type IufActivitiesSpec struct {
@@ -62,10 +62,10 @@ type IufActivitiesSpec struct {
 	IsBlocked      bool   `json:"is_blocked"`
 	IsCompleted    bool   `json:"is_completed"`
 	CurrentComment string `json:"current_comment"`
-} // @name IufActivity.Spec
+} // @name Activity.Spec
 
 type IufActivitiesStatus struct {
 	SharedInput `json:",inline"`
 	Sessions    []IufSession `json:"sessions" validate:"optional"`
 	Products    []IufProduct `json:"products" validate:"optional"`
-}
+} // @name Activity.Status

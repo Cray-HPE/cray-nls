@@ -59,7 +59,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/IufActivity"
+                                "$ref": "#/definitions/Activity"
                             }
                         }
                     },
@@ -95,7 +95,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.IufSession"
+                            "$ref": "#/definitions/Session"
                         }
                     }
                 ],
@@ -105,7 +105,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.IufSession"
+                                "$ref": "#/definitions/Session"
                             }
                         }
                     },
@@ -142,7 +142,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.IufSession"
+                                "$ref": "#/definitions/Session"
                             }
                         }
                     },
@@ -184,7 +184,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.IufSession"
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "501": {
@@ -223,7 +223,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.IufSession"
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "501": {
@@ -264,7 +264,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.IufSession"
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "501": {
@@ -298,7 +298,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/Activity"
                         }
                     },
                     "501": {
@@ -331,7 +331,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/Activity"
                         }
                     }
                 ],
@@ -339,7 +339,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/Activity"
                         }
                     },
                     "501": {
@@ -367,7 +367,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/Activity"
                         }
                     }
                 ],
@@ -375,7 +375,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/Activity"
                         }
                     },
                     "501": {
@@ -386,37 +386,18 @@ const docTemplateIUF = `{
         }
     },
     "definitions": {
-        "Iuf.Product": {
-            "type": "object",
-            "required": [
-                "name",
-                "original_location",
-                "version"
-            ],
-            "properties": {
-                "name": {
-                    "description": "The name of the product",
-                    "type": "string"
-                },
-                "original_location": {
-                    "description": "The original location of the extracted tar in on the physical storage.",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "The version of the product.",
-                    "type": "string"
-                }
-            }
-        },
-        "IufActivity": {
+        "Activity": {
             "type": "object",
             "properties": {
                 "spec": {
-                    "$ref": "#/definitions/IufActivity.Spec"
+                    "$ref": "#/definitions/Activity.Spec"
+                },
+                "status": {
+                    "$ref": "#/definitions/Activity.Status"
                 }
             }
         },
-        "IufActivity.Spec": {
+        "Activity.Spec": {
             "type": "object",
             "required": [
                 "bootprep_config_managed",
@@ -462,7 +443,103 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "IufSession.Spec": {
+        "Activity.Status": {
+            "type": "object",
+            "required": [
+                "bootprep_config_managed",
+                "bootprep_config_management",
+                "media_dir",
+                "site_parameters"
+            ],
+            "properties": {
+                "bootprep_config_managed": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bootprep_config_management": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit_nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "media_dir": {
+                    "description": "location of media",
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Session"
+                    }
+                },
+                "site_parameters": {
+                    "description": "json string",
+                    "type": "string"
+                }
+            }
+        },
+        "Product": {
+            "type": "object",
+            "required": [
+                "name",
+                "original_location",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "description": "The name of the product",
+                    "type": "string"
+                },
+                "original_location": {
+                    "description": "The original location of the extracted tar in on the physical storage.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
+        "Session": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/Session.Spec"
+                },
+                "status": {
+                    "$ref": "#/definitions/Session.Status"
+                }
+            }
+        },
+        "Session.CurrentState": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "Session.Spec": {
             "type": "object",
             "required": [
                 "bootprep_config_managed",
@@ -497,7 +574,7 @@ const docTemplateIUF = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Iuf.Product"
+                        "$ref": "#/definitions/Product"
                     }
                 },
                 "site_parameters": {
@@ -513,11 +590,42 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "v1.IufSession": {
+        "Session.Stage": {
+            "type": "object",
+            "required": [
+                "name",
+                "state",
+                "workflou_id"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "workflou_id": {
+                    "type": "string"
+                },
+                "workflou_output": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Session.Status": {
             "type": "object",
             "properties": {
-                "spec": {
-                    "$ref": "#/definitions/IufSession.Spec"
+                "current_state": {
+                    "$ref": "#/definitions/Session.CurrentState"
+                },
+                "stages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Session.Stage"
+                    }
                 }
             }
         }
