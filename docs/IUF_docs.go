@@ -50,7 +50,7 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "Activities"
                 ],
                 "summary": "List IUF activities",
                 "responses": {
@@ -69,6 +69,210 @@ const docTemplateIUF = `{
                 }
             }
         },
+        "/iuf/v1/activities/{activity_id}/session": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Create a new session of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "IUF session",
+                        "name": "session",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.IufSession"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.IufSession"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_id}/sessions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "List sessions of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.IufSession"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_id}/sessions/{session_id}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Get a session of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "session id",
+                        "name": "session_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.IufSession"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Stop a running session of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "session id",
+                        "name": "session_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.IufSession"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_id}/sessions/{session_id}/resume": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Resume a stopped session of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity id",
+                        "name": "activity_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "session id",
+                        "name": "session_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.IufSession"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
         "/iuf/v1/activities/{id}": {
             "get": {
                 "consumes": [
@@ -78,7 +282,7 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "Activities"
                 ],
                 "summary": "Get an IUF activity",
                 "parameters": [
@@ -110,7 +314,7 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "Activities"
                 ],
                 "summary": "Patch an IUF activity",
                 "parameters": [
@@ -153,7 +357,7 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "Activities"
                 ],
                 "summary": "Create an IUF activity",
                 "parameters": [
@@ -182,6 +386,28 @@ const docTemplateIUF = `{
         }
     },
     "definitions": {
+        "Iuf.Product": {
+            "type": "object",
+            "required": [
+                "name",
+                "original_location",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "description": "The name of the product",
+                    "type": "string"
+                },
+                "original_location": {
+                    "description": "The original location of the extracted tar in on the physical storage.",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
         "IufActivity": {
             "type": "object",
             "properties": {
@@ -233,6 +459,65 @@ const docTemplateIUF = `{
                 "site_parameters": {
                     "description": "json string",
                     "type": "string"
+                }
+            }
+        },
+        "IufSession.Spec": {
+            "type": "object",
+            "required": [
+                "bootprep_config_managed",
+                "bootprep_config_management",
+                "media_dir",
+                "products",
+                "site_parameters"
+            ],
+            "properties": {
+                "bootprep_config_managed": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bootprep_config_management": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit_nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "media_dir": {
+                    "description": "location of media",
+                    "type": "string"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Iuf.Product"
+                    }
+                },
+                "site_parameters": {
+                    "description": "json string",
+                    "type": "string"
+                },
+                "stages": {
+                    "description": "The stages that need to be executed.\nThis is either explicitly specified by the Admin, or it is computed from the workflow type.\nAn Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.\nif not specified, we apply all stages",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "v1.IufSession": {
+            "type": "object",
+            "properties": {
+                "spec": {
+                    "$ref": "#/definitions/IufSession.Spec"
                 }
             }
         }

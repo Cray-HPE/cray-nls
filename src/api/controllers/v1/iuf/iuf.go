@@ -51,7 +51,7 @@ func NewIufController(workflowService services.WorkflowService, iufService servi
 // CreateIufActivity
 // @Summary  Create an IUF activity
 // @Param    activity  body  v1.IufActivity  true  "IUF activity"
-// @Tags     IUF
+// @Tags     Activities
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  v1.IufActivity
@@ -63,12 +63,12 @@ func (u IufController) CreateIufActivity(c *gin.Context) {
 
 // ListIufActivities
 // @Summary  List IUF activities
-// @Tags     IUF
+// @Tags     Activities
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []v1.IufActivity
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities [GET]
+// @Router   /iuf/v1/activities [get]
 func (u IufController) ListIufActivities(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -76,7 +76,7 @@ func (u IufController) ListIufActivities(c *gin.Context) {
 // GetIufActivity
 // @Summary  Get an IUF activity
 // @Param    id                path  string          true  "activity id"
-// @Tags     IUF
+// @Tags     Activities
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  v1.IufActivity
@@ -90,12 +90,81 @@ func (u IufController) GetIufActivity(c *gin.Context) {
 // @Summary  Patch an IUF activity
 // @Param    id  path  string  true  "activity id"
 // @Param    partial_activity  body  v1.IufActivity  true  "partial IUF activity"
-// @Tags     IUF
+// @Tags     Activities
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  v1.IufActivity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{id} [patch]
 func (u IufController) PatchIufActivity(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// ListIufSessions
+// @Summary  List sessions of an IUF activity
+// @Param    activity_id  path  string         true  "activity id"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []v1.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/sessions [get]
+func (u IufController) ListIufSessions(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// GetIufSession
+// @Summary  Get a session of an IUF activity
+// @Param    activity_id  path  string  true  "activity id"
+// @Param    session_id   path  string  true  "session id"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  v1.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/sessions/{session_id} [get]
+func (u IufController) GetIufSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// CreateIufSession
+// @Summary  Create a new session of an IUF activity
+// @Param    activity_id  path  string  true  "activity id"
+// @Param    session      body  v1.IufSession  true  "IUF session"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []v1.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/session [post]
+func (u IufController) CreateIufSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// StopIufSession
+// @Summary  Stop a running session of an IUF activity
+// @Param    activity_id  path  string  true  "activity id"
+// @Param    session_id   path  string  true  "session id"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  v1.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/sessions/{session_id} [delete]
+func (u IufController) StopIufSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// ResumeIufSession
+// @Summary  Resume a stopped session of an IUF activity
+// @Param    activity_id  path  string  true  "activity id"
+// @Param    session_id   path  string  true  "session id"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  v1.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/sessions/{session_id}/resume [post]
+func (u IufController) ResumeIufSession(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

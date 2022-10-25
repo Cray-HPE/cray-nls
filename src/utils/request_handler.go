@@ -24,6 +24,7 @@
 package utils
 
 import (
+	"github.com/Cray-HPE/cray-nls/docs"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -56,11 +57,11 @@ func NewRequestHandler(logger Logger, env Env) RequestHandler {
 		),
 	)
 
+	docs.SwaggerInfoIUF.Title = "Install and Upgrade Framework"
 	engine.GET(
 		"/apis/iuf/openapi/*any",
 		ginSwagger.WrapHandler(
 			swaggerFiles.Handler,
-			ginSwagger.DocExpansion("none"),
 			ginSwagger.InstanceName("IUF"),
 		),
 	)

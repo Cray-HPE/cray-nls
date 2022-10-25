@@ -23,6 +23,23 @@
 #
 basePath: /apis
 definitions:
+  Iuf.Product:
+    properties:
+      name:
+        description: The name of the product
+        type: string
+      original_location:
+        description: The original location of the extracted tar in on the physical
+          storage.
+        type: string
+      version:
+        description: The version of the product.
+        type: string
+    required:
+    - name
+    - original_location
+    - version
+    type: object
   IufActivity:
     properties:
       spec:
@@ -60,6 +77,51 @@ definitions:
     - media_dir
     - site_parameters
     type: object
+  IufSession.Spec:
+    properties:
+      bootprep_config_managed:
+        items:
+          type: string
+        type: array
+      bootprep_config_management:
+        items:
+          type: string
+        type: array
+      limit_nodes:
+        items:
+          type: string
+        type: array
+      media_dir:
+        description: location of media
+        type: string
+      products:
+        items:
+          $ref: '#/definitions/Iuf.Product'
+        type: array
+      site_parameters:
+        description: json string
+        type: string
+      stages:
+        description: |-
+          The stages that need to be executed.
+          This is either explicitly specified by the Admin, or it is computed from the workflow type.
+          An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
+          if not specified, we apply all stages
+        items:
+          type: string
+        type: array
+    required:
+    - bootprep_config_managed
+    - bootprep_config_management
+    - media_dir
+    - products
+    - site_parameters
+    type: object
+  v1.IufSession:
+    properties:
+      spec:
+        $ref: '#/definitions/IufSession.Spec'
+    type: object
 info:
   contact: {}
 paths:
@@ -80,7 +142,141 @@ paths:
           description: Not Implemented
       summary: List IUF activities
       tags:
-      - IUF
+      - Activities
+  /iuf/v1/activities/{activity_id}/session:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: IUF session
+        in: body
+        name: session
+        required: true
+        schema:
+          $ref: '#/definitions/v1.IufSession'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.IufSession'
+            type: array
+        "501":
+          description: Not Implemented
+      summary: Create a new session of an IUF activity
+      tags:
+      - Sessions
+  /iuf/v1/activities/{activity_id}/sessions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.IufSession'
+            type: array
+        "501":
+          description: Not Implemented
+      summary: List sessions of an IUF activity
+      tags:
+      - Sessions
+  /iuf/v1/activities/{activity_id}/sessions/{session_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: session id
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.IufSession'
+        "501":
+          description: Not Implemented
+      summary: Stop a running session of an IUF activity
+      tags:
+      - Sessions
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: session id
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.IufSession'
+        "501":
+          description: Not Implemented
+      summary: Get a session of an IUF activity
+      tags:
+      - Sessions
+  /iuf/v1/activities/{activity_id}/sessions/{session_id}/resume:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity id
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: session id
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.IufSession'
+        "501":
+          description: Not Implemented
+      summary: Resume a stopped session of an IUF activity
+      tags:
+      - Sessions
   /iuf/v1/activities/{id}:
     get:
       consumes:
@@ -102,7 +298,7 @@ paths:
           description: Not Implemented
       summary: Get an IUF activity
       tags:
-      - IUF
+      - Activities
     patch:
       consumes:
       - application/json
@@ -129,7 +325,7 @@ paths:
           description: Not Implemented
       summary: Patch an IUF activity
       tags:
-      - IUF
+      - Activities
   /iuf/v1/activity:
     post:
       consumes:
@@ -152,5 +348,5 @@ paths:
           description: Not Implemented
       summary: Create an IUF activity
       tags:
-      - IUF
+      - Activities
 swagger: "2.0"
