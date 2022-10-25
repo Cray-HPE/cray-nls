@@ -29,6 +29,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // @BasePath  /apis

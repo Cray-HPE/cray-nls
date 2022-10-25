@@ -45,10 +45,10 @@ type IufActivitiesSyncResponse struct {
 // +kubebuilder:resource:path=iufactivities,scope=Namespaced
 // +kubebuilder:storageversion
 type IufActivity struct {
-	metav1.TypeMeta   `json:",inline" swaggerignore:"true"`
-	metav1.ObjectMeta `json:"metadata" swaggerignore:"true"`
-	Spec              IufActivitiesSpec   `json:"spec"`
-	Status            IufActivitiesStatus `json:"status,omitempty"`
+	metav1.TypeMeta `json:",inline" swaggerignore:"true"`
+	Metadata        metav1.ObjectMeta   `json:"metadata"`
+	Spec            IufActivitiesSpec   `json:"spec"`
+	Status          IufActivitiesStatus `json:"status,omitempty"`
 } // @name Activity
 
 type IufActivityCurrentState struct {

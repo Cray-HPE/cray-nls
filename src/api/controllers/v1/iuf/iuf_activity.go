@@ -54,7 +54,7 @@ func (u IufController) IufActivitySync(c *gin.Context) {
 	} else {
 		// fetch all sessions belong to current acitivy
 		var err error
-		response.Status.Sessions, err = u.iufService.GetSessionsByActivityName(requestBody.Parent.Name)
+		response.Status.Sessions, err = u.iufService.GetSessionsByActivityName(requestBody.Parent.Metadata.Name)
 		if err != nil {
 			u.logger.Error(err)
 			errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -65,7 +65,7 @@ func (u IufController) IufActivitySync(c *gin.Context) {
 		if len(response.Status.Sessions) > 0 {
 			lastSession := response.Status.Sessions[len(response.Status.Sessions)-1]
 			if lastSession.Status.CurrentState.Type == v1.IufSessionStageInProgress {
-				u.logger.Warnf("Session: %s is in progress, sync again", lastSession.Name)
+				u.logger.Warnf("Session: %s is in progress, sync again", lastSession.Metadata.Name)
 				c.JSON(200, response)
 				return
 			}
