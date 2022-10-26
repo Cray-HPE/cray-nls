@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
+	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	models "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	v1alpha1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	gin "github.com/gin-gonic/gin"
@@ -38,7 +38,7 @@ func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockWorkflowService) CreateIufWorkflow(req v1.IufSessionSpec) (*v1alpha1.Workflow, error) {
+func (m *MockWorkflowService) CreateIufWorkflow(req iuf.IufSession) (*v1alpha1.Workflow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)

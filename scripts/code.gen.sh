@@ -41,7 +41,7 @@ docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-dock
 
 go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
 ~/go/bin/controller-gen crd webhook paths="./src/api/models/nls/v1/..." output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
-~/go/bin/controller-gen crd webhook paths="./src/api/models/iuf/v1/..." output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
+
 
 # mockgen
 ~/go/bin/mockgen -destination=src/api/mocks/services/workflow.go -package=mocks -source=src/api//services/workflow.go

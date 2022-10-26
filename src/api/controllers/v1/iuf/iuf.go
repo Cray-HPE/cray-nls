@@ -26,7 +26,7 @@
 package iuf
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
@@ -50,11 +50,11 @@ func NewIufController(workflowService services.WorkflowService, iufService servi
 
 // CreateIufActivity
 // @Summary  Create an IUF activity
-// @Param    activity  body  v1.IufActivity  true  "IUF activity"
+// @Param    activity  body  iuf.CreateActivityRequest  true  "IUF activity"
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufActivity
+// @Success  200  {object}  iuf.Activity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activity [post]
 func (u IufController) CreateIufActivity(c *gin.Context) {
@@ -66,7 +66,7 @@ func (u IufController) CreateIufActivity(c *gin.Context) {
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  []v1.IufActivity
+// @Success  200  {object}  []iuf.Activity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities [get]
 func (u IufController) ListIufActivities(c *gin.Context) {
@@ -75,11 +75,11 @@ func (u IufController) ListIufActivities(c *gin.Context) {
 
 // GetIufActivity
 // @Summary  Get an IUF activity
-// @Param    id                path  string          true  "activity uid"
+// @Param    id                path  string                    true  "activity uid"
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufActivity
+// @Success  200  {object}  iuf.Activity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{uid} [get]
 func (u IufController) GetIufActivity(c *gin.Context) {
@@ -89,11 +89,11 @@ func (u IufController) GetIufActivity(c *gin.Context) {
 // PatchIufActivity
 // @Summary  Patch an IUF activity
 // @Param    id  path  string  true  "activity uid"
-// @Param    partial_activity  body  v1.IufActivity  true  "partial IUF activity"
+// @Param    partial_activity  body  iuf.PatchActivityRequest  true  "partial IUF activity"
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufActivity
+// @Success  200  {object}  iuf.Activity
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{uid} [patch]
 func (u IufController) PatchIufActivity(c *gin.Context) {
@@ -102,11 +102,11 @@ func (u IufController) PatchIufActivity(c *gin.Context) {
 
 // ListIufSessions
 // @Summary  List sessions of an IUF activity
-// @Param    activity_uid  path  string         true  "activity uid"
+// @Param    activity_uid  path  string                    true  "activity uid"
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  []v1.IufSession
+// @Success  200  {object}  []iuf.IufSession
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{activity_uid}/sessions [get]
 func (u IufController) ListIufSessions(c *gin.Context) {
@@ -120,7 +120,7 @@ func (u IufController) ListIufSessions(c *gin.Context) {
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufSession
+// @Success  200  {object}  iuf.IufSession
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid} [get]
 func (u IufController) GetIufSession(c *gin.Context) {
@@ -130,11 +130,11 @@ func (u IufController) GetIufSession(c *gin.Context) {
 // CreateIufSession
 // @Summary  Create a new session of an IUF activity
 // @Param    activity_uid  path  string  true  "activity uid"
-// @Param    session       body  v1.IufSession  true  "IUF session"
+// @Param    session       body  iuf.CreateSessionRequest  true  "IUF session"
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  []v1.IufSession
+// @Success  200  {object}  []iuf.IufSession
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{activity_uid}/session [post]
 func (u IufController) CreateIufSession(c *gin.Context) {
@@ -148,9 +148,9 @@ func (u IufController) CreateIufSession(c *gin.Context) {
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufSession
+// @Success  200  {object}  iuf.IufSession
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid} [delete]
+// @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid}/stop [post]
 func (u IufController) StopIufSession(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
@@ -162,9 +162,21 @@ func (u IufController) StopIufSession(c *gin.Context) {
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  v1.IufSession
+// @Success  200  {object}  iuf.IufSession
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid}/resume [post]
 func (u IufController) ResumeIufSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// ListIufStages
+// @Summary  List stages of iuf
+// @Tags     Stages
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.IufSession
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/stages [get]
+func (u IufController) ListIufStages(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

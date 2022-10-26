@@ -23,10 +23,9 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-// +groupName=iuf.hpe.com
-package v1
+package iuf
 
-type IufProduct struct {
+type Product struct {
 	// The name of the product
 	Name string `json:"name" validate:"required"`
 	// The version of the product.
@@ -36,13 +35,3 @@ type IufProduct struct {
 	// The flag indicates md5 of a product tarball file has been validated
 	Validated bool `json:"validated"  validate:"required"`
 } // @name Product
-
-type SharedInput struct {
-	// location of media
-	MediaDir string `json:"media_dir" validate:"required"`
-	// json string
-	SiteParameters           string   `json:"site_parameters" validate:"required"`
-	BootprepConfigManaged    []string `json:"bootprep_config_managed" validate:"required"`
-	BootprepConfigManagement []string `json:"bootprep_config_management" validate:"required"`
-	LimitNodes               []string `json:"limit_nodes" validate:"optional"`
-}
