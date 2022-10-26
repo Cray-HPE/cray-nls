@@ -23,39 +23,36 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
 import (
-	"github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/gin-gonic/gin"
 )
 
-// IufRoutes struct
-type IufRoutes struct {
-	logger        utils.Logger
-	handler       utils.RequestHandler
-	iufController iuf.IufController
+// ListSessions
+// @Summary  List sessions of an IUF activity
+// @Param    activity_uid  path  string  true  "activity uid"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []iuf.Session
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_uid}/sessions [get]
+func (u IufController) ListSessions(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }
 
-// Setup Iuf routes
-func (s IufRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/iuf/v1")
-	{
-		api.POST("/activities", s.iufController.CreateActivity)
-
-	}
-}
-
-// NewIufRoutes creates new Iuf controller
-func NewIufRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	iufController iuf.IufController,
-) IufRoutes {
-	return IufRoutes{
-		handler:       handler,
-		logger:        logger,
-		iufController: iufController,
-	}
+// GetSession
+// @Summary  Get a session of an IUF activity
+// @Param    activity_uid  path  string  true  "activity uid"
+// @Param    session_uid   path  string  true  "session uid"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Session
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid} [get]
+func (u IufController) GetSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }

@@ -35,10 +35,10 @@ func (m *MockIufService) EXPECT() *MockIufServiceMockRecorder {
 }
 
 // GetSessionsByActivityName mocks base method.
-func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.IufSession, error) {
+func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSessionsByActivityName", activityName)
-	ret0, _ := ret[0].([]iuf.IufSession)
+	ret0, _ := ret[0].([]iuf.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

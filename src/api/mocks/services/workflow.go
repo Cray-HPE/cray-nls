@@ -38,7 +38,7 @@ func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockWorkflowService) CreateIufWorkflow(req iuf.IufSession) (*v1alpha1.Workflow, error) {
+func (m *MockWorkflowService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)

@@ -62,7 +62,7 @@ type WorkflowService interface {
 	RerunWorkflow(ctx *gin.Context) error
 	RetryWorkflow(ctx *gin.Context) error
 	CreateRebuildWorkflow(req models_nls.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error)
-	CreateIufWorkflow(req models_iuf.IufSession) (*v1alpha1.Workflow, error)
+	CreateIufWorkflow(req models_iuf.Session) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -351,7 +351,7 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 	return res, nil
 }
 
-func (s workflowService) CreateIufWorkflow(req models_iuf.IufSession) (*v1alpha1.Workflow, error) {
+func (s workflowService) CreateIufWorkflow(req models_iuf.Session) (*v1alpha1.Workflow, error) {
 	var installWorkflow []byte
 	var getWorkflowErr error
 	installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)

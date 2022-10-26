@@ -26,7 +26,7 @@
 package iuf
 
 // IufSession
-type IufSession struct {
+type Session struct {
 	// The stages that need to be executed.
 	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
 	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.

@@ -23,39 +23,21 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
 import (
-	"github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/gin-gonic/gin"
 )
 
-// IufRoutes struct
-type IufRoutes struct {
-	logger        utils.Logger
-	handler       utils.RequestHandler
-	iufController iuf.IufController
-}
-
-// Setup Iuf routes
-func (s IufRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/iuf/v1")
-	{
-		api.POST("/activities", s.iufController.CreateActivity)
-
-	}
-}
-
-// NewIufRoutes creates new Iuf controller
-func NewIufRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	iufController iuf.IufController,
-) IufRoutes {
-	return IufRoutes{
-		handler:       handler,
-		logger:        logger,
-		iufController: iufController,
-	}
+// ListHistory
+// @Summary  List stages of iuf
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Session
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/history [get]
+func (u IufController) ListHistory(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }

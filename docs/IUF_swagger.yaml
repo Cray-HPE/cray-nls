@@ -31,7 +31,11 @@ definitions:
           $ref: '#/definitions/Activity.State'
         type: array
       input_parameters:
-        $ref: '#/definitions/Activity.CreateActivityRequest'
+        $ref: '#/definitions/Activity.InputParameters'
+        description: Input parameters by admin
+      name:
+        description: Name of activity
+        type: string
       operation_outputs:
         additionalProperties: true
         description: Operation outputs from argo
@@ -49,6 +53,18 @@ definitions:
     type: object
   Activity.CreateActivityRequest:
     properties:
+      input_parameters:
+        $ref: '#/definitions/Activity.InputParameters'
+        description: Input parameters by admin
+      name:
+        description: Name of activity
+        type: string
+    required:
+    - input_parameters
+    - name
+    type: object
+  Activity.InputParameters:
+    properties:
       bootprep_config_managed:
         description: Each item is a path of the bootprep files
         items:
@@ -59,33 +75,32 @@ definitions:
         items:
           type: string
         type: array
+      force:
+        description: Force re-execution of stage operations
+        type: boolean
       limit_nodes:
         description: Each item is the xname of a node
         items:
           type: string
         type: array
       media_dir:
-        description: location of media
-        type: string
-      name:
-        description: Name of activity
+        description: Location of media
         type: string
       site_parameters:
         description: The inline contents of the site_parameters.yaml file.
         type: string
-    required:
-    - bootprep_config_managed
-    - bootprep_config_management
-    - media_dir
-    - name
-    - site_parameters
+      stages:
+        description: Execution of the specified stages
+        items:
+          type: string
+        type: array
     type: object
   Activity.PatchActivityRequest:
     properties:
-      comment:
-        type: string
-      state:
-        type: string
+      input_parameters:
+        $ref: '#/definitions/Activity.InputParameters'
+    required:
+    - input_parameters
     type: object
   Activity.State:
     properties:
@@ -141,8 +156,6 @@ definitions:
     required:
     - products
     type: object
-  Session.CreateSessionRequest:
-    type: object
 info:
   contact: {}
 paths:
@@ -186,6 +199,71 @@ paths:
       summary: Create an IUF activity
       tags:
       - Activities
+  /iuf/v1/activities/{activity_id}/history:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Session'
+        "501":
+          description: Not Implemented
+      summary: List stages of iuf
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Activity'
+        "501":
+          description: Not Implemented
+      summary: Get an IUF activity
+      tags:
+      - Activities
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: IUF activity
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/Activity.PatchActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Activity'
+        "501":
+          description: Not Implemented
+      summary: Get an IUF activity
+      tags:
+      - Activities
   /iuf/v1/activities/{activity_uid}/sessions:
     get:
       consumes:
@@ -208,35 +286,6 @@ paths:
         "501":
           description: Not Implemented
       summary: List sessions of an IUF activity
-      tags:
-      - Sessions
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: activity_uid
-        required: true
-        type: string
-      - description: IUF session
-        in: body
-        name: session
-        required: true
-        schema:
-          $ref: '#/definitions/Session.CreateSessionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/Session'
-            type: array
-        "501":
-          description: Not Implemented
-      summary: Create a new session of an IUF activity
       tags:
       - Sessions
   /iuf/v1/activities/{activity_uid}/sessions/{session_uid}:
@@ -266,109 +315,6 @@ paths:
       summary: Get a session of an IUF activity
       tags:
       - Sessions
-  /iuf/v1/activities/{activity_uid}/sessions/{session_uid}/resume:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: activity_uid
-        required: true
-        type: string
-      - description: session uid
-        in: path
-        name: session_uid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Session'
-        "501":
-          description: Not Implemented
-      summary: Resume a stopped session of an IUF activity
-      tags:
-      - Sessions
-  /iuf/v1/activities/{activity_uid}/sessions/{session_uid}/stop:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: activity_uid
-        required: true
-        type: string
-      - description: session uid
-        in: path
-        name: session_uid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Session'
-        "501":
-          description: Not Implemented
-      summary: Stop a running session of an IUF activity
-      tags:
-      - Sessions
-  /iuf/v1/activities/{uid}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
-      summary: Get an IUF activity
-      tags:
-      - Activities
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: partial IUF activity
-        in: body
-        name: partial_activity
-        required: true
-        schema:
-          $ref: '#/definitions/Activity.PatchActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
-      summary: Patch an IUF activity
-      tags:
-      - Activities
   /iuf/v1/stages:
     get:
       consumes:

@@ -81,7 +81,7 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
 }
 
-func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_iuf.IufSession) ([]byte, error) {
+func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_iuf.Session) ([]byte, error) {
 	tmpl := template.New("install.yaml")
 
 	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req)
@@ -190,7 +190,7 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 	return tmpRes.Bytes(), nil
 }
 
-func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.IufSession) ([]byte, error) {
+func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Session) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {

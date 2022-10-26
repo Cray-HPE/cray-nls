@@ -27,13 +27,11 @@ package iuf
 
 // Activity
 type Activity struct {
-	InputParameters CreateActivityRequest `json:"input_parameters" validate:"required"`
-	// Operation outputs from argo
-	OperationOutputs map[string]interface{} `json:"operation_outputs" validate:"required"`
-	// List of products included in an activity
-	Products []Product `json:"products" validate:"required"`
-	// History of states
-	ActivityStates []ActivityState `json:"activity_states" validate:"required"`
+	Name             string                 `json:"name"`                                  // Name of activity
+	InputParameters  InputParameters        `json:"input_parameters" validate:"required"`  // Input parameters by admin
+	OperationOutputs map[string]interface{} `json:"operation_outputs" validate:"required"` // Operation outputs from argo
+	Products         []Product              `json:"products" validate:"required"`          // List of products included in an activity
+	ActivityStates   []ActivityState        `json:"activity_states" validate:"required"`   // History of states
 } // @name Activity
 
 type ActivityState struct {
@@ -43,22 +41,21 @@ type ActivityState struct {
 	Comment     string `json:"comment" validate:"optional"`
 } // @name Activity.State
 
+type InputParameters struct {
+	MediaDir                 string   `json:"media_dir"`                  // Location of media
+	SiteParameters           string   `json:"site_parameters"`            // The inline contents of the site_parameters.yaml file.
+	LimitNodes               []string `json:"limit_nodes"`                // Each item is the xname of a node
+	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is a path of the bootprep files
+	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
+	Stages                   []string `json:"stages"`                     // Execution of the specified stages
+	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
+} // @name Activity.InputParameters
+
 type CreateActivityRequest struct {
-	// Name of activity
-	Name string `json:"name" validate:"required"`
-	// location of media
-	MediaDir string `json:"media_dir" validate:"required"`
-	// The inline contents of the site_parameters.yaml file.
-	SiteParameters string `json:"site_parameters" validate:"required"`
-	// Each item is the xname of a node
-	LimitNodes []string `json:"limit_nodes" validate:"optional"`
-	// Each item is a path of the bootprep files
-	BootprepConfigManaged []string `json:"bootprep_config_managed" validate:"required"`
-	// Each item is a path of the bootprep files
-	BootprepConfigManagement []string `json:"bootprep_config_management" validate:"required"`
+	Name            string          `json:"name" validate:"required"`             // Name of activity
+	InputParameters InputParameters `json:"input_parameters" validate:"required"` // Input parameters by admin
 } // @name Activity.CreateActivityRequest
 
 type PatchActivityRequest struct {
-	State   string `json:"state" validate:"optional"`
-	Comment string `json:"comment" validate:"optional"`
+	InputParameters InputParameters `json:"input_parameters" validate:"required"`
 } // @name Activity.PatchActivityRequest

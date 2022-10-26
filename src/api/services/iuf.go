@@ -43,7 +43,7 @@ import (
 )
 
 type IufService interface {
-	GetSessionsByActivityName(activityName string) ([]iuf.IufSession, error)
+	GetSessionsByActivityName(activityName string) ([]iuf.Session, error)
 }
 
 // IufService service layer
@@ -79,8 +79,8 @@ func NewIufService(logger utils.Logger, argoService ArgoService, env utils.Env) 
 	return iufSvc
 }
 
-func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.IufSession, error) {
-	var mySessions []iuf.IufSession
+func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
+	var mySessions []iuf.Session
 	if s.k8sRestClientSet == nil {
 		return mySessions, nil
 	}
