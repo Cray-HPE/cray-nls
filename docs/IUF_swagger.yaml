@@ -30,27 +30,8 @@ definitions:
         items:
           $ref: '#/definitions/Activity.State'
         type: array
-      bootprep_config_managed:
-        description: Each item is a path of the bootprep files
-        items:
-          type: string
-        type: array
-      bootprep_config_management:
-        description: Each item is a path of the bootprep files
-        items:
-          type: string
-        type: array
-      limit_nodes:
-        description: Each item is the xname of a node
-        items:
-          type: string
-        type: array
-      media_dir:
-        description: location of media
-        type: string
-      name:
-        description: Name of activity
-        type: string
+      input_parameters:
+        $ref: '#/definitions/Activity.CreateActivityRequest'
       operation_outputs:
         additionalProperties: true
         description: Operation outputs from argo
@@ -60,18 +41,11 @@ definitions:
         items:
           $ref: '#/definitions/Product'
         type: array
-      site_parameters:
-        description: The inline contents of the site_parameters.yaml file.
-        type: string
     required:
     - activity_states
-    - bootprep_config_managed
-    - bootprep_config_management
-    - media_dir
-    - name
+    - input_parameters
     - operation_outputs
     - products
-    - site_parameters
     type: object
   Activity.CreateActivityRequest:
     properties:

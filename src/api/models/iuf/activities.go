@@ -27,18 +27,7 @@ package iuf
 
 // Activity
 type Activity struct {
-	// Name of activity
-	Name string `json:"name" validate:"required"`
-	// location of media
-	MediaDir string `json:"media_dir" validate:"required"`
-	// The inline contents of the site_parameters.yaml file.
-	SiteParameters string `json:"site_parameters" validate:"required"`
-	// Each item is the xname of a node
-	LimitNodes []string `json:"limit_nodes" validate:"optional"`
-	// Each item is a path of the bootprep files
-	BootprepConfigManaged []string `json:"bootprep_config_managed" validate:"required"`
-	// Each item is a path of the bootprep files
-	BootprepConfigManagement []string `json:"bootprep_config_management" validate:"required"`
+	InputParameters CreateActivityRequest `json:"input_parameters" validate:"required"`
 	// Operation outputs from argo
 	OperationOutputs map[string]interface{} `json:"operation_outputs" validate:"required"`
 	// List of products included in an activity
