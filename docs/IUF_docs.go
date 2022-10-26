@@ -103,7 +103,42 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "/iuf/v1/activities/{activity_uid}/session": {
+        "/iuf/v1/activities/{activity_uid}/sessions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "List sessions of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity uid",
+                        "name": "activity_uid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Session"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -131,43 +166,6 @@ const docTemplateIUF = `{
                         "schema": {
                             "$ref": "#/definitions/Session.CreateSessionRequest"
                         }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/Session"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/iuf/v1/activities/{activity_uid}/sessions": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sessions"
-                ],
-                "summary": "List sessions of an IUF activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "activity uid",
-                        "name": "activity_uid",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {

@@ -186,7 +186,30 @@ paths:
       summary: Create an IUF activity
       tags:
       - Activities
-  /iuf/v1/activities/{activity_uid}/session:
+  /iuf/v1/activities/{activity_uid}/sessions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity uid
+        in: path
+        name: activity_uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Session'
+            type: array
+        "501":
+          description: Not Implemented
+      summary: List sessions of an IUF activity
+      tags:
+      - Sessions
     post:
       consumes:
       - application/json
@@ -214,30 +237,6 @@ paths:
         "501":
           description: Not Implemented
       summary: Create a new session of an IUF activity
-      tags:
-      - Sessions
-  /iuf/v1/activities/{activity_uid}/sessions:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity uid
-        in: path
-        name: activity_uid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/Session'
-            type: array
-        "501":
-          description: Not Implemented
-      summary: List sessions of an IUF activity
       tags:
       - Sessions
   /iuf/v1/activities/{activity_uid}/sessions/{session_uid}:

@@ -136,7 +136,7 @@ func (u IufController) GetIufSession(c *gin.Context) {
 // @Produce  json
 // @Success  200  {object}  []iuf.IufSession
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_uid}/session [post]
+// @Router   /iuf/v1/activities/{activity_uid}/sessions [post]
 func (u IufController) CreateIufSession(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
