@@ -447,10 +447,6 @@ const docTemplateIUF = `{
                         "type": "string"
                     }
                 },
-                "current_comment": {
-                    "description": "Comment provided by admin",
-                    "type": "string"
-                },
                 "limit_nodes": {
                     "description": "Each item is the xname of a node",
                     "type": "array",
@@ -485,10 +481,60 @@ const docTemplateIUF = `{
             }
         },
         "Activity.CreateActivityRequest": {
-            "type": "object"
+            "type": "object",
+            "required": [
+                "bootprep_config_managed",
+                "bootprep_config_management",
+                "media_dir",
+                "name",
+                "site_parameters"
+            ],
+            "properties": {
+                "bootprep_config_managed": {
+                    "description": "Each item is a path of the bootprep files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bootprep_config_management": {
+                    "description": "Each item is a path of the bootprep files",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit_nodes": {
+                    "description": "Each item is the xname of a node",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "media_dir": {
+                    "description": "location of media",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name of activity",
+                    "type": "string"
+                },
+                "site_parameters": {
+                    "description": "The inline contents of the site_parameters.yaml file.",
+                    "type": "string"
+                }
+            }
         },
         "Activity.PatchActivityRequest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
         },
         "Activity.State": {
             "type": "object",

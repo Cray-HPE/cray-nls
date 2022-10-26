@@ -40,9 +40,6 @@ definitions:
         items:
           type: string
         type: array
-      current_comment:
-        description: Comment provided by admin
-        type: string
       limit_nodes:
         description: Each item is the xname of a node
         items:
@@ -77,8 +74,44 @@ definitions:
     - site_parameters
     type: object
   Activity.CreateActivityRequest:
+    properties:
+      bootprep_config_managed:
+        description: Each item is a path of the bootprep files
+        items:
+          type: string
+        type: array
+      bootprep_config_management:
+        description: Each item is a path of the bootprep files
+        items:
+          type: string
+        type: array
+      limit_nodes:
+        description: Each item is the xname of a node
+        items:
+          type: string
+        type: array
+      media_dir:
+        description: location of media
+        type: string
+      name:
+        description: Name of activity
+        type: string
+      site_parameters:
+        description: The inline contents of the site_parameters.yaml file.
+        type: string
+    required:
+    - bootprep_config_managed
+    - bootprep_config_management
+    - media_dir
+    - name
+    - site_parameters
     type: object
   Activity.PatchActivityRequest:
+    properties:
+      comment:
+        type: string
+      state:
+        type: string
     type: object
   Activity.State:
     properties:
