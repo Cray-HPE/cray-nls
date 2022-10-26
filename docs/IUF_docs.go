@@ -67,6 +67,40 @@ const docTemplateIUF = `{
                         "description": "Not Implemented"
                     }
                 }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Create an IUF activity",
+                "parameters": [
+                    {
+                        "description": "IUF activity",
+                        "name": "activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Activity.CreateActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
             }
         },
         "/iuf/v1/activities/{activity_uid}/session": {
@@ -334,42 +368,6 @@ const docTemplateIUF = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/Activity.PatchActivityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/Activity"
-                        }
-                    },
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
-        "/iuf/v1/activity": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Activities"
-                ],
-                "summary": "Create an IUF activity",
-                "parameters": [
-                    {
-                        "description": "IUF activity",
-                        "name": "activity",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/Activity.CreateActivityRequest"
                         }
                     }
                 ],

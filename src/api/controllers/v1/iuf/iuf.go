@@ -56,7 +56,7 @@ func NewIufController(workflowService services.WorkflowService, iufService servi
 // @Produce  json
 // @Success  200  {object}  iuf.Activity
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activity [post]
+// @Router   /iuf/v1/activities [post]
 func (u IufController) CreateIufActivity(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

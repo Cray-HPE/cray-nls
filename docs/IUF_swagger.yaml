@@ -164,6 +164,28 @@ paths:
       summary: List IUF activities
       tags:
       - Activities
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: IUF activity
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/Activity.CreateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Activity'
+        "501":
+          description: Not Implemented
+      summary: Create an IUF activity
+      tags:
+      - Activities
   /iuf/v1/activities/{activity_uid}/session:
     post:
       consumes:
@@ -346,29 +368,6 @@ paths:
         "501":
           description: Not Implemented
       summary: Patch an IUF activity
-      tags:
-      - Activities
-  /iuf/v1/activity:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: IUF activity
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/Activity.CreateActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
-      summary: Create an IUF activity
       tags:
       - Activities
   /iuf/v1/stages:
