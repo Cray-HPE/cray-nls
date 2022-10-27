@@ -1,0 +1,439 @@
+#
+# MIT License
+#
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# Schema definition for the IUF Product Manifest
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Product Manifest for HPE CSM Install-Upgrade Framework (IUF)"
+description: >
+  A manifest that defines the behavior of the IUF when it performs operations
+  against this product.
+
+
+  This manifest file must be named iuf-product-manifest.yaml in the top level
+  of the product release distribution in order for it to be discovered by the
+  IUF.
+# This is the version of the IUF manifest schema itself
+version: 0.1.0
+type: object
+required:
+- iuf_version
+- name
+# TODO: Generally would like this throughout all objects as it provides more
+# guarantee of backwards compatibility of old manifests with newer schema.
+#
+# Using additionalProperties false helps ensure backwards compatibility of old
+# IUF manifest files with newer schema versions because old manifest files will
+# not be able to use additional properties which are then later added to the IUF
+# manifest schema.
+additionalProperties: false
+properties:
+
+  iuf_version:
+    description: >
+      The semantic version of the IUF with which this manifest file is expected
+      to be compatible. Version constraints can be specified using ">", ">=",
+      "==", "<", and "<=" comparison operators. Multiple comparison operators
+      can be used to specify a range.
+
+
+      Version constraints can also be specified with "~" (tilde) and "^" (caret)
+      operators. A full version prefixed with "~" means that all versions with the
+      same major and minor versions are compatible. That is, the patch version
+      is allowed to differ. A full version prefixed with "^" means that all versions
+      with the same major version are compatible. That is, the minor and patch
+      versions are allowed to differ.
+
+
+      It is recommended that products specify a caret range matching the
+      current version of the IUF against which the manifest is developed. This
+      will allow the manifest to continue working with new minor and patch
+      versions of the IUF.
+    type: string
+    examples:
+    - 1.0.0
+    - ">= 1.0.0 < 2.0"
+    - "< 2.0"
+    - "~1.0.0"
+    - "^1.0.0"
+
+  name:
+    description: >
+      The abbreviated name of the product. This product name is the name under
+      which the product will be uploaded to the product catalog.
+    type: string
+    examples:
+    - cos
+    - sat
+    - analytics
+    # TODO: Consider a regular expression for allowed product names
+    # pattern: <regex in ECMA-262 regular expression dialect goes here>
+
+  description:
+    description: >
+      A description of the product.
+    type: string
+
+  version:
+    description: >
+      The version of the product. If not specified, the IUF will look for a
+      file named ".version" in the top level of the release distribution
+      directory.  If the version is not specified in the manifest, and there is
+      no ".version" file, an attempt to install the product using the IUF will
+      fail.
+
+      It is recommended that products use a version string format which
+      conforms to the Semantic Versioning 2.0.0 Spec. This does not require
+      that the version numbers be assigned and incremented in accordance with
+      the rules and requirements dictated by SemVer.
+
+      If the product provides Ansible configuration content which is uploaded to a
+      vcs repository (see the "vcs" property), then the version here must be a
+      valid semantic version.
+    type: string
+    examples:
+    - 2.4.76
+    - 22.9.4
+    - 1.3.0-rc.3
+    - 2.5.8-20221004160837-9746d6e
+    # If we can enforce that every product uses SemVer, then we can use the
+    # following official regex from the FAQ on semver.org.
+    # pattern: '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+
+  content:
+    type: object
+    description: >
+      The content delivered by this product, including container images, RPMs,
+      package repositories, helm charts, loftsman manifests, VCS repositories,
+      IMS images and recipes, and S3 artifacts.
+
+      Note that if the layout of the content is not specified in this manifest,
+      the IUF will assume a default layout as defined in the property
+      descriptions here.
+
+      Any time a "relative path" is mentioned in the descriptions of properties
+      beneath "content", it means a path relative to the top level of the
+      product release distribution file.
+
+    additionalProperties: false
+    properties:
+      docker:
+        description: >
+          An array of directories containing docker images that should be
+          uploaded to the Docker image registry in Nexus at install/upgrade
+          time.
+        default:
+        - path: "docker"
+        type: array
+        items:
+          type: object
+          required:
+          - path
+          additionalProperties: false
+          properties:
+            path:
+              description: |
+                The relative path to a directory containing the container
+                images to be uploaded to the Docker image registry in Nexus.
+
+                The directories contained within the directory specified here
+                must contain container images. The container images will be
+                uploaded to Nexus with names exactly matching the full path to
+                the directory containing the image manifest.json file.
+
+                For example, if this path contains the following file structure
+
+                .
+                |-- arti.hpc.amslabs.hpecorp.net
+                    `-- my-container:1.2.4
+                        |-- 1054448d81575250985471206b1c4654b0262d337f1a52ddac9a21208665656e
+                        |-- ...
+                        |-- manifest.json
+                        `-- version
+
+                A single container image would be uploaded to the Nexus Docker
+                registry as arti.hpc.amslabs.hpecorp.net/my-container:1.2.4
+              type: string
+
+      helm:
+        description: >
+          An array of directories containing helm charts that should be
+          uploaded to a Helm chart repository in Nexus at install/upgrade
+          time.
+        type: array
+        default:
+        - path: helm
+        items:
+          type: object
+          required:
+          - path
+          additionalProperties: false
+          properties:
+            path:
+              description: >
+                The relative path to a directory containing the helm charts to
+                be uploaded to a Helm chart repository in Nexus. The directory
+                should contain Helm charts as gzipped tar files. The helm charts
+                will be uploaded to the "charts" Helm chart repository in Nexus.
+              type: string
+
+      loftsman:
+        description: >
+          An array of Loftsman manifest files or directories containing Lofstman
+          manifest files provided by the product.
+
+          Loftsman manifests will be uploaded to S3 storage during the
+          upload\_content stage of the install/upgrade. They will be used from
+          this S3 location during the deploy\_manifests stage of the install.
+
+          If the loftsman manifests are customized with the contents of
+          customizations.yaml using manifestgen, then both the pre-customization
+          and post-customization versions of the manifests will be stored in S3.
+        type: array
+        default:
+        - path: manifests
+          deploy: true
+          manifestgen: true
+
+        items:
+          type: object
+          required:
+          - path
+          additionalProperties: false
+          properties:
+            path:
+              description: >
+                The relative path to a loftsman manifest file or a directory
+                containing multiple loftsman manifest files.
+              type: string
+
+            use_manifestgen:
+              description: >
+                Whether manifestgen needs to be called against the manifest(s).
+
+                The manifestgen command applies values from customizations.yaml
+                to the Loftsman manifest. These generally affect values in the
+                Loftsman manifest file that are passed through to the Helm
+                charts when they are deployed.
+              type: boolean
+              default: true
+            deploy:
+              description: >
+                Whether this loftsman manifest should be deployed as part of the
+                deploy_manifests stage of the IUF.
+              type: boolean
+              default: true
+
+      nexus_blob_stores:
+        description: >
+          The Nexus blob stores that should be defined for this product.
+        type: object
+        required:
+        - yaml_path
+        additionalProperties: false
+        properties:
+          yaml_path:
+            description: >
+              The relative path to a YAML file that defines the Nexus blob
+              stores that should be created for this product. The YAML file
+              should consist of a series of documents, each of which defines a
+              blobstore.
+
+              The schema of this file is unchanged from the Papaya recipe.
+            type: string
+            default: nexus-blobstores.yaml
+
+      nexus_repositories:
+        description: >
+          The Nexus repositories that should be defined for this product.
+        type: object
+        required:
+        - yaml_path
+        additionalProperties: false
+        properties:
+          yaml_path:
+            description: >
+              The relative path to a YAML file that defines the Nexus
+              repositories that should be created for this product. The YAML
+              file should consist of a series of documents, each of which
+              defines a Nexus repository.
+
+              The schema of this file is unchanged from the Papaya recipe.
+            type: string
+            default: nexus-repositories.yaml
+
+      rpms:
+        description: >
+          An array of directories containing RPMs that should be uploaded to the
+          repositories defined by the "nexus_repositories" property.
+        type: array
+        items:
+          type: object
+          required:
+          - path
+          - repository_name
+          additionalProperties: false
+          properties:
+            path:
+              description: >
+                The relative path to a directory containing RPMs to upload to a
+                repository in Nexus. This directory may also contain yum
+                repository metadata files, and they will also be uploaded to
+                the repository in Nexus.
+              type: string
+            repository_name:
+              description: >
+                The name of the repository to which these RPMs should be
+                uploaded. This repository should have been defined in the file
+                referenced by the "nexus_repositories" property.
+              type: string
+            repository_type:
+              description: >
+                The type of the Nexus repository to which the RPMs should be
+                uploaded.
+              type: string
+              default: raw
+              enum:
+              - raw
+              - yum
+
+      vcs:
+        default: {}
+        description: >
+          Information about the repository to create in VCS (Gitea) for this
+          product.
+        type: object
+        required:
+        - path
+        additionalProperties: false
+        properties:
+          path:
+            description: >
+              The relative path to the directory containing the content to
+              upload to a repository in VCS.
+            type: string
+          import_branch:
+            description: >
+              The branch name to which the content in the given path should be
+              uploaded in VCS. If omitted, this will default to
+              cray/PRODUCT_NAME/PRODUCT_VERSION where PRODUCT_NAME and
+              PRODUCT_VERSION are the name and version of the product,
+              respectively. It is recommended not to override this value unless
+              it is absolutely required to do so.
+            type: string
+          site_branch:
+            description: >
+              The branch name to use as the branch for site customizations. If
+              omitted this will default to "integration-PRODUCT_VERSION" where
+              "PRODUCT_VERSION" is the version of the product.
+            type: string
+
+      ims:
+        description: >
+          Information about the IMS images and/or recipes to be uploaded into
+          IMS for this product.
+        type: object
+        additionalProperties: false
+        properties:
+          recipes:
+            type: array
+            items:
+              type: object
+              required:
+              - path
+              additionalProperties: false
+              properties:
+                path:
+                  description: >
+                    The relative path to the recipe as a gzipped tar file.
+                  type: string
+                name:
+                  description: >
+                    The name of the recipe to be created in IMS. If omitted,
+                    this will default to the name of the tar file without the
+                    ".tar.gz" extension.
+                  type: string
+          images:
+            type: array
+            items:
+              type: object
+              required:
+              - path
+              additionalProperties: false
+              properties:
+                path:
+                  description: >
+                    The relative path to the directory containing the image
+                    artifacts. These artifacts may include a root filesystem
+                    image in squashfs format, a kernel file, and an initrd.
+
+                    An IMS image record will be created, the image artifacts
+                    will be uploaded to the appropriate paths in S3, an IMS
+                    manifest that references those artifacts will be constructed
+                    and uploaded to S3, and the IMS image record will be updated
+                    with that manifest.
+                  type: string
+                name:
+                  description: >
+                    The name of the image to create. If omitted, this will
+                    default to the name of the directory containing the image
+                    artifacts.
+                  type: string
+                rootfs_file:
+                  description: >
+                    The name of the file defining the root filesystem for the
+                    image. This file should be in squashfs format.
+                  type: string
+                kernel_file:
+                  description: >
+                    The name of the kernel file for the image.
+                  type: string
+                initrd_file:
+                  description: >
+                    The name of the initrd file for the image.
+                  type: string
+
+      s3:
+        description: >
+          Information about additional artifacts that should be uploaded to S3
+        type: array
+        items:
+          type: object
+          required:
+          - path
+          - bucket
+          - key
+          additionalProperties: false
+          properties:
+            path:
+              description: >
+                The relative path to the file that should be uploaded to S3.
+              type: string
+            bucket:
+              description: >
+                The S3 bucket to which this file should be uploaded.
+              type: string
+            key:
+              description: >
+                The key of the object to be created in S3.
+
