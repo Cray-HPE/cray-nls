@@ -34,23 +34,6 @@ type Activity struct {
 	ActivityStates   []ActivityState        `json:"activity_states" validate:"required"`   // History of states
 } // @name Activity
 
-type ActivityState struct {
-	State       string `json:"state" validate:"required"`
-	SessionName string `json:"session_name" validate:"required"`
-	StartTime   string `json:"start_time" validate:"required"`
-	Comment     string `json:"comment" validate:"optional"`
-} // @name Activity.State
-
-type InputParameters struct {
-	MediaDir                 string   `json:"media_dir"`                  // Location of media
-	SiteParameters           string   `json:"site_parameters"`            // The inline contents of the site_parameters.yaml file.
-	LimitNodes               []string `json:"limit_nodes"`                // Each item is the xname of a node
-	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is a path of the bootprep files
-	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
-	Stages                   []string `json:"stages"`                     // Execution of the specified stages
-	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
-} // @name Activity.InputParameters
-
 type CreateActivityRequest struct {
 	Name            string          `json:"name" validate:"required"`             // Name of activity
 	InputParameters InputParameters `json:"input_parameters" validate:"required"` // Input parameters by admin
@@ -59,3 +42,12 @@ type CreateActivityRequest struct {
 type PatchActivityRequest struct {
 	InputParameters InputParameters `json:"input_parameters" validate:"required"`
 } // @name Activity.PatchActivityRequest
+
+type ActivityState string
+
+const (
+	ActivityStateInProgress ActivityState = "in_progress"
+	ActivityStatePaused     ActivityState = "paused"
+	ActivityStateDebug      ActivityState = "debug"
+	ActivityStateCompleted  ActivityState = "completed"
+)

@@ -32,27 +32,27 @@ import (
 
 // ListSessions
 // @Summary  List sessions of an IUF activity
-// @Param    activity_uid  path  string  true  "activity uid"
+// @Param    activity_name  path  string  true  "activity name"
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []iuf.Session
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_uid}/sessions [get]
+// @Router   /iuf/v1/activities/{activity_name}/sessions [get]
 func (u IufController) ListSessions(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }
 
 // GetSession
 // @Summary  Get a session of an IUF activity
-// @Param    activity_uid  path  string  true  "activity uid"
-// @Param    session_uid   path  string  true  "session uid"
+// @Param    activity_name  path  string  true  "activity name"
+// @Param    session_name   path  string  true  "session name"
 // @Tags     Sessions
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.Session
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_uid}/sessions/{session_uid} [get]
+// @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
 func (u IufController) GetSession(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

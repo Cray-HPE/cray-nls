@@ -31,13 +31,110 @@ import (
 )
 
 // ListHistory
-// @Summary  List stages of iuf
+// @Summary  List history of an iuf activity
 // @Tags     History
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  iuf.Session
+// @Success  200  {object}  []iuf.History
 // @Failure  501  "Not Implemented"
 // @Router   /iuf/v1/activities/{activity_id}/history [get]
 func (u IufController) ListHistory(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// GetHistory
+// @Summary  Get a history item of an iuf activity
+// @Param    start_time  path  string                            true  "start time of a history item"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.History
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/history/{start_time} [get]
+func (u IufController) GetHistory(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// ReplaceHistoryComment
+// @Summary  Get a history item of an iuf activity
+// @Param    start_time  path  string  true  "start time of a history item"
+// @Param    activity    body  iuf.ReplaceHistoryCommentRequest  true  "Modify comment of a history"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.History
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_id}/history/{start_time} [patch]
+func (u IufController) ReplaceHistoryComment(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// HistoryRunAction
+// @Summary  Run a session
+// @Param    activity_name   path  string                    true  "activity name"
+// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  201  "Created"
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/history/run [post]
+func (u IufController) HistoryRunAction(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// HistoryBlockedAction
+// @Summary  Mark a session blocked
+// @Param    activity_name   path  string                    true  "activity name"
+// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  201  "Created"
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/history/blocked [post]
+func (u IufController) HistoryBlockedAction(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// HistoryResumeAction
+// @Summary  Resume an activity
+// @Param    activity_name   path  string                    true  "activity name"
+// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  201  "Created"
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/history/resume [post]
+func (u IufController) HistoryResumeAction(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// HistoryPausedAction
+// @Summary  Pause a session
+// @Param    activity_name   path  string                    true  "activity name"
+// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  201  "Created"
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/history/paused [post]
+func (u IufController) HistoryPausedAction(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// HistoryAbortAction
+// @Summary  Abort a session
+// @Param    activity_name   path  string                    true  "activity name"
+// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Tags     History
+// @Accept   json
+// @Produce  json
+// @Success  201  "Created"
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/history/abort [post]
+func (u IufController) HistoryAbortAction(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

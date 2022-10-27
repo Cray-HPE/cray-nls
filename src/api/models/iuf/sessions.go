@@ -27,45 +27,23 @@ package iuf
 
 // IufSession
 type Session struct {
-	// The stages that need to be executed.
-	// This is either explicitly specified by the Admin, or it is computed from the workflow type.
-	// An Stage is a group of Operations. Stages represent the overall workflow at a high-level, and executing a stage means executing a bunch of Operations in a predefined manner.  An Admin can specify the stages that must be executed for an install-upgrade workflow. And Product Developers can extend each stage with custom hook scripts that they would like to run before and after the stage's execution.  The high-level stages allow their configuration would revealing too many details to the consumers of IUF.
-	// if not specified, we apply all stages
-	Stages   []string  `json:"stages"`
-	Products []Product `json:"products" validate:"required"`
+	InputParameters InputParameters   `json:"input_parameters"`
+	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
+	CurrentStage    string            `json:"stage"`
+	Workflows       []SessionWorkflow `json:"workflows"`
+	Products        []Product         `json:"products" validate:"required"`
 } // @name Session
 
-type CreateSessionRequest struct {
-	//TODO
-} // @name Session.CreateSessionRequest
+type SessionState string
 
-// type IufSessionCurrentState struct {
-// 	Type    IufSessionStageState `json:"type" validate:"required"`
-// 	Comment string               `json:"comment"  validate:"optional"`
-// } // @name Session.CurrentState
+const (
+	SessionStateInProgress SessionState = "in_progress"
+	SessionStatePaused     SessionState = "paused"
+	SessionStateDebug      SessionState = "debug"
+	SessionStateCompleted  SessionState = "completed"
+)
 
-// // An IUF session represents the intent of an Admin to initiate an install-upgrade workflow. It contains both input data, as well as any intermediary data that is needed to generate the final Argo workflow.
-// type IufSessionSpec struct {
-// } // @name Session.Spec
-
-// type IufSessionStageState string
-
-// // Node types
-// const (
-// 	IufSessionStageNotStarted IufSessionStageState = "not_started"
-// 	IufSessionStageInProgress IufSessionStageState = "in_progres"
-// 	IufSessionStageError      IufSessionStageState = "error"
-// 	IufSessionStageComplete   IufSessionStageState = "complete"
-// )
-
-// type IufSessionStage struct {
-// 	Name          string               `json:"name" validate:"required"`
-// 	State         IufSessionStageState `json:"state" validate:"required"`
-// 	WorkflowId    string               `json:"workflou_id" validate:"required"`
-// 	WorkflowOuput map[string]string    `json:"workflou_output" validate:"optional"`
-// } // @name Session.Stage
-
-// type IufSessionStatus struct {
-// 	CurrentState IufSessionCurrentState `json:"current_state"`
-// 	Stages       []IufSessionStage      `json:"stages" validate:"optional"`
-// } // @name Session.Status
+type SessionWorkflow struct {
+	Id  string `json:"id"`  // id of argo workflow
+	Url string `json:"url"` // url to the argo workflow
+} // @name Session.Workflow

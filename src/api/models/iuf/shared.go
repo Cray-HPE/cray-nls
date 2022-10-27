@@ -35,3 +35,13 @@ type Product struct {
 	// The flag indicates md5 of a product tarball file has been validated
 	Validated bool `json:"validated"  validate:"required"`
 } // @name Product
+
+type InputParameters struct {
+	MediaDir                 string   `json:"media_dir"`                  // Location of media
+	SiteParameters           string   `json:"site_parameters"`            // The inline contents of the site_parameters.yaml file.
+	LimitNodes               []string `json:"limit_nodes"`                // Each item is the xname of a node
+	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is a path of the bootprep files
+	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
+	Stages                   []string `json:"stages"`                     // Stages to execute
+	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
+} // @name InputParameters

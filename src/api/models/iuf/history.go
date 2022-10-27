@@ -25,19 +25,19 @@
  */
 package iuf
 
-import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/gin-gonic/gin"
-)
+// History
+type History struct {
+	State       ActivityState `json:"state" enums:"paused,in_progress,debug,completed"` // State of Activity
+	SessionName string        `json:"session_name"`                                     // Name of the session
+	StartTime   int32         `json:"start_time"`                                       // Epoch timestamp
+	Comment     string        `json:"comment"`                                          // Comment
+} // @name History
 
-// ListIufStages
-// @Summary  List stages of iuf
-// @Tags     Stages
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  iuf.Session
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/stages [get]
-func (u IufController) ListIufStages(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
+type ReplaceHistoryCommentRequest struct {
+	Comment string `json:"comment"` // Comment
+} // @name History.ReplaceHistoryCommentRequest
+
+type HistoryActionRequest struct {
+	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
+	Comment   string `json:"comment" validate:"optional"`    // Comment
+} // @name History.HistoryActionRequest

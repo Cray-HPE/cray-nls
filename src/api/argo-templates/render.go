@@ -214,7 +214,7 @@ func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Se
 		DryRun   string
 	}{
 		Products: req.Products,
-		Stages:   req.Stages,
+		Stages:   req.InputParameters.Stages,
 		DryRun:   "true", //todo
 	})
 	if err != nil {
