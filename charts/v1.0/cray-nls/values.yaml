@@ -267,26 +267,3 @@ argo-workflows:
         passwordSecret:
           name: argouser.cray-nls-postgres.credentials
           key: password
-
-metacontroller-helm:
-  image:
-    repository: artifactory.algol60.net/csm-docker/stable/docker.io/metacontrollerio/metacontroller
-    tag: v4.4.0
-  replicas: 2
-  commandArgs:
-    - --zap-log-level=4
-    - --discovery-interval=20s
-    - --cache-flush-interval=30m
-    - --leader-election
-  podDisruptionBudget:
-    minAvailable: 1
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                  - metacontroller-helm
