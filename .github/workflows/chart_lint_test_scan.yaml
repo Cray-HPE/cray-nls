@@ -9,7 +9,7 @@ env:
   HELM_EXPERIMENTAL_OCI: 1
 jobs:
   lint-test-scan:
-    uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v1
+    uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v1.0.1
     with:
       lint-charts: ${{ github.event_name == 'pull_request' }}
       test-charts: false
