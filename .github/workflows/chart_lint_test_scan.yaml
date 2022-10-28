@@ -17,6 +17,6 @@ jobs:
       ct-yaml: ct.yaml
       scan-image-snyk-args: "--severity-threshold=high"
       scan-chart-snyk-args: "--severity-threshold=high"
-      scan-images-ignore-prefix-list: ["artifactory.algol60.net/csm-docker/stable/cray-nls"]
+      scan-images-ignore-prefix-list: `["artifactory.algol60.net/csm-docker/stable/cray-nls"]`
     secrets:
       snyk-token: ${{ secrets.SNYK_TOKEN }}
