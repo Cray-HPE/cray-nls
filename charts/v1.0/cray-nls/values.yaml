@@ -98,7 +98,7 @@ cray-service:
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.2.4
+        tag: 0.3.0
       resources:
         limits:
           cpu: 1
