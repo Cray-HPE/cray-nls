@@ -34,6 +34,20 @@ func (m *MockIufService) EXPECT() *MockIufServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateActivity mocks base method.
+func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateActivity", req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateActivity indicates an expected call of CreateActivity.
+func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActivity", reflect.TypeOf((*MockIufService)(nil).CreateActivity), req)
+}
+
 // GetSessionsByActivityName mocks base method.
 func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
 	m.ctrl.T.Helper()

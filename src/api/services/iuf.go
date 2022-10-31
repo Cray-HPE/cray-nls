@@ -30,13 +30,14 @@ package services
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/argoproj/pkg/json"
-
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	core_v1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -44,6 +45,7 @@ import (
 
 type IufService interface {
 	GetSessionsByActivityName(activityName string) ([]iuf.Session, error)
+	CreateActivity(req iuf.CreateActivityRequest) error
 }
 
 // IufService service layer
@@ -102,4 +104,21 @@ func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Sessio
 		return mySessions, err
 	}
 	return mySessions, nil
+}
+
+func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
+	reqBytes, _ := json.Marshal(req)
+	_, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps("argo").
+		Create(
+			context.TODO(),
+			&core_v1.ConfigMap{
+				ObjectMeta: v1.ObjectMeta{Name: req.Name},
+				Data:       map[string]string{"Activity": string(reqBytes)},
+			},
+			v1.CreateOptions{},
+		)
+
+	return err
 }

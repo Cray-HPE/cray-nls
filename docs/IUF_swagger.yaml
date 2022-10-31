@@ -66,7 +66,6 @@ definitions:
         description: Name of activity
         type: string
     required:
-    - input_parameters
     - name
     type: object
   Activity.PatchActivityRequest:
@@ -164,6 +163,11 @@ definitions:
     - validated
     - version
     type: object
+  ResponseError:
+    properties:
+      message:
+        type: string
+    type: object
   Session:
     properties:
       current_state:
@@ -231,12 +235,16 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: ""
+        "400":
+          description: Bad Request
           schema:
-            $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Create an IUF activity
       tags:
       - Activities

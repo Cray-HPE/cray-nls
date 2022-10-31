@@ -91,14 +91,20 @@ const docTemplateIUF = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/Activity"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -609,7 +615,6 @@ const docTemplateIUF = `{
         "Activity.CreateActivityRequest": {
             "type": "object",
             "required": [
-                "input_parameters",
                 "name"
             ],
             "properties": {
@@ -751,6 +756,14 @@ const docTemplateIUF = `{
                 },
                 "version": {
                     "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
+        "ResponseError": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }
