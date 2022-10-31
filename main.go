@@ -25,17 +25,11 @@ package main
 
 import (
 	_ "github.com/Cray-HPE/cray-nls/docs"
-	"github.com/Cray-HPE/cray-nls/src/bootstrap"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/joho/godotenv"
-	"go.uber.org/fx"
-	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/Cray-HPE/cray-nls/src/cmd"
 )
 
 // @BasePath  /apis
 
 func main() {
-	godotenv.Load()
-	logger := utils.GetLogger().GetFxLogger()
-	fx.New(bootstrap.Module, fx.Logger(logger)).Run()
+	cmd.Execute()
 }
