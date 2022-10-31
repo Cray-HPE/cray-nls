@@ -26,10 +26,9 @@
 package iuf
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/gin-gonic/gin"
 )
 
 // IufController data type
@@ -46,56 +45,4 @@ func NewIufController(workflowService services.WorkflowService, iufService servi
 		iufService:      iufService,
 		logger:          logger,
 	}
-}
-
-// CreateIufActivity
-// @Summary  Create an IUF activity
-// @Param    activity  body  v1.IufActivity  true  "IUF activity"
-// @Tags     IUF
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  v1.IufActivity
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activity [post]
-func (u IufController) CreateIufActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// ListIufActivities
-// @Summary  List IUF activities
-// @Tags     IUF
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  []v1.IufActivity
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities [GET]
-func (u IufController) ListIufActivities(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// GetIufActivity
-// @Summary  Get an IUF activity
-// @Param    id                path  string          true  "activity id"
-// @Tags     IUF
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  v1.IufActivity
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{id} [get]
-func (u IufController) GetIufActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
-}
-
-// PatchIufActivity
-// @Summary  Patch an IUF activity
-// @Param    id  path  string  true  "activity id"
-// @Param    partial_activity  body  v1.IufActivity  true  "partial IUF activity"
-// @Tags     IUF
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  v1.IufActivity
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{id} [patch]
-func (u IufController) PatchIufActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
 }

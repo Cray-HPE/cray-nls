@@ -35,7 +35,7 @@ import (
 
 	"github.com/argoproj/pkg/json"
 
-	iuf_v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
+	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -43,7 +43,7 @@ import (
 )
 
 type IufService interface {
-	GetSessionsByActivityName(activityName string) ([]iuf_v1.IufSession, error)
+	GetSessionsByActivityName(activityName string) ([]iuf.Session, error)
 }
 
 // IufService service layer
@@ -79,8 +79,8 @@ func NewIufService(logger utils.Logger, argoService ArgoService, env utils.Env) 
 	return iufSvc
 }
 
-func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf_v1.IufSession, error) {
-	var mySessions []iuf_v1.IufSession
+func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
+	var mySessions []iuf.Session
 	if s.k8sRestClientSet == nil {
 		return mySessions, nil
 	}

@@ -23,42 +23,179 @@
 #
 basePath: /apis
 definitions:
-  IufActivity:
+  Activity:
     properties:
-      spec:
-        $ref: '#/definitions/IufActivity.Spec'
+      activity_states:
+        description: History of states
+        items:
+          description: State of Activity
+          enum:
+          - paused
+          - in_progress
+          - debug
+          - completed
+          type: string
+        type: array
+      input_parameters:
+        $ref: '#/definitions/InputParameters'
+        description: Input parameters by admin
+      name:
+        description: Name of activity
+        type: string
+      operation_outputs:
+        additionalProperties: true
+        description: Operation outputs from argo
+        type: object
+      products:
+        description: List of products included in an activity
+        items:
+          $ref: '#/definitions/Product'
+        type: array
+    required:
+    - activity_states
+    - input_parameters
+    - operation_outputs
+    - products
     type: object
-  IufActivity.Spec:
+  Activity.CreateActivityRequest:
+    properties:
+      input_parameters:
+        $ref: '#/definitions/InputParameters'
+        description: Input parameters by admin
+      name:
+        description: Name of activity
+        type: string
+    required:
+    - input_parameters
+    - name
+    type: object
+  Activity.PatchActivityRequest:
+    properties:
+      input_parameters:
+        $ref: '#/definitions/InputParameters'
+    required:
+    - input_parameters
+    type: object
+  History:
+    properties:
+      comment:
+        description: Comment
+        type: string
+      session_name:
+        description: Name of the session
+        type: string
+      start_time:
+        description: Epoch timestamp
+        type: integer
+      state:
+        description: State of Activity
+        enum:
+        - paused
+        - in_progress
+        - debug
+        - completed
+        type: string
+    type: object
+  History.HistoryActionRequest:
+    properties:
+      comment:
+        description: Comment
+        type: string
+      start_time:
+        description: Epoch timestamp
+        type: integer
+    type: object
+  History.ReplaceHistoryCommentRequest:
+    properties:
+      comment:
+        description: Comment
+        type: string
+    type: object
+  InputParameters:
     properties:
       bootprep_config_managed:
+        description: Each item is a path of the bootprep files
         items:
           type: string
         type: array
       bootprep_config_management:
+        description: Each item is a path of the bootprep files
         items:
           type: string
         type: array
-      current_comment:
-        type: string
-      is_blocked:
-        type: boolean
-      is_completed:
+      force:
+        description: Force re-execution of stage operations
         type: boolean
       limit_nodes:
+        description: Each item is the xname of a node
         items:
           type: string
         type: array
       media_dir:
-        description: location of media
+        description: Location of media
         type: string
       site_parameters:
-        description: json string
+        description: The inline contents of the site_parameters.yaml file.
+        type: string
+      stages:
+        description: Stages to execute
+        items:
+          type: string
+        type: array
+    type: object
+  Product:
+    properties:
+      name:
+        description: The name of the product
+        type: string
+      original_location:
+        description: The original location of the extracted tar in on the physical
+          storage.
+        type: string
+      validated:
+        description: The flag indicates md5 of a product tarball file has been validated
+        type: boolean
+      version:
+        description: The version of the product.
         type: string
     required:
-    - bootprep_config_managed
-    - bootprep_config_management
-    - media_dir
-    - site_parameters
+    - name
+    - original_location
+    - validated
+    - version
+    type: object
+  Session:
+    properties:
+      current_state:
+        enum:
+        - paused
+        - in_progress
+        - debug
+        - completed
+        type: string
+      input_parameters:
+        $ref: '#/definitions/InputParameters'
+      products:
+        items:
+          $ref: '#/definitions/Product'
+        type: array
+      stage:
+        type: string
+      workflows:
+        items:
+          $ref: '#/definitions/Session.Workflow'
+        type: array
+    required:
+    - products
+    type: object
+  Session.Workflow:
+    properties:
+      id:
+        description: id of argo workflow
+        type: string
+      url:
+        description: url to the argo workflow
+        type: string
     type: object
 info:
   contact: {}
@@ -74,63 +211,13 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/IufActivity'
+              $ref: '#/definitions/Activity'
             type: array
         "501":
           description: Not Implemented
       summary: List IUF activities
       tags:
-      - IUF
-  /iuf/v1/activities/{id}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity id
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/IufActivity'
-        "501":
-          description: Not Implemented
-      summary: Get an IUF activity
-      tags:
-      - IUF
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: partial IUF activity
-        in: body
-        name: partial_activity
-        required: true
-        schema:
-          $ref: '#/definitions/IufActivity'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/IufActivity'
-        "501":
-          description: Not Implemented
-      summary: Patch an IUF activity
-      tags:
-      - IUF
-  /iuf/v1/activity:
+      - Activities
     post:
       consumes:
       - application/json
@@ -140,17 +227,314 @@ paths:
         name: activity
         required: true
         schema:
-          $ref: '#/definitions/IufActivity'
+          $ref: '#/definitions/Activity.CreateActivityRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/IufActivity'
+            $ref: '#/definitions/Activity'
         "501":
           description: Not Implemented
       summary: Create an IUF activity
       tags:
-      - IUF
+      - Activities
+  /iuf/v1/activities/{activity_id}/history:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/History'
+            type: array
+        "501":
+          description: Not Implemented
+      summary: List history of an iuf activity
+      tags:
+      - History
+  /iuf/v1/activities/{activity_id}/history/{start_time}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: start time of a history item
+        in: path
+        name: start_time
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/History'
+        "501":
+          description: Not Implemented
+      summary: Get a history item of an iuf activity
+      tags:
+      - History
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: start time of a history item
+        in: path
+        name: start_time
+        required: true
+        type: string
+      - description: Modify comment of a history
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/History.ReplaceHistoryCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/History'
+        "501":
+          description: Not Implemented
+      summary: Get a history item of an iuf activity
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Activity'
+        "501":
+          description: Not Implemented
+      summary: Get an IUF activity
+      tags:
+      - Activities
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: IUF activity
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/Activity.PatchActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Activity'
+        "501":
+          description: Not Implemented
+      summary: Get an IUF activity
+      tags:
+      - Activities
+  /iuf/v1/activities/{activity_name}/history/abort:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/History.HistoryActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "501":
+          description: Not Implemented
+      summary: Abort a session
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/blocked:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/History.HistoryActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "501":
+          description: Not Implemented
+      summary: Mark a session blocked
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/paused:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/History.HistoryActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "501":
+          description: Not Implemented
+      summary: Pause a session
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/resume:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/History.HistoryActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "501":
+          description: Not Implemented
+      summary: Resume an activity
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/History.HistoryActionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "501":
+          description: Not Implemented
+      summary: Run a session
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/sessions:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/Session'
+            type: array
+        "501":
+          description: Not Implemented
+      summary: List sessions of an IUF activity
+      tags:
+      - Sessions
+  /iuf/v1/activities/{activity_name}/sessions/{session_name}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: session name
+        in: path
+        name: session_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Session'
+        "501":
+          description: Not Implemented
+      summary: Get a session of an IUF activity
+      tags:
+      - Sessions
 swagger: "2.0"

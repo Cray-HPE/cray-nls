@@ -7,7 +7,7 @@ package mocks
 import (
 	reflect "reflect"
 
-	v1 "github.com/Cray-HPE/cray-nls/src/api/models/iuf/v1"
+	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -35,10 +35,10 @@ func (m *MockIufService) EXPECT() *MockIufServiceMockRecorder {
 }
 
 // GetSessionsByActivityName mocks base method.
-func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]v1.IufSession, error) {
+func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSessionsByActivityName", activityName)
-	ret0, _ := ret[0].([]v1.IufSession)
+	ret0, _ := ret[0].([]iuf.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

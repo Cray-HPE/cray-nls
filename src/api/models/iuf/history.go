@@ -23,39 +23,21 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
-import (
-	"github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-)
+// History
+type History struct {
+	State       ActivityState `json:"state" enums:"paused,in_progress,debug,completed"` // State of Activity
+	SessionName string        `json:"session_name"`                                     // Name of the session
+	StartTime   int32         `json:"start_time"`                                       // Epoch timestamp
+	Comment     string        `json:"comment"`                                          // Comment
+} // @name History
 
-// IufRoutes struct
-type IufRoutes struct {
-	logger        utils.Logger
-	handler       utils.RequestHandler
-	iufController iuf.IufController
-}
+type ReplaceHistoryCommentRequest struct {
+	Comment string `json:"comment"` // Comment
+} // @name History.ReplaceHistoryCommentRequest
 
-// Setup Iuf routes
-func (s IufRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/iuf/v1")
-	{
-		api.POST("/activities", s.iufController.CreateActivity)
-
-	}
-}
-
-// NewIufRoutes creates new Iuf controller
-func NewIufRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	iufController iuf.IufController,
-) IufRoutes {
-	return IufRoutes{
-		handler:       handler,
-		logger:        logger,
-		iufController: iufController,
-	}
-}
+type HistoryActionRequest struct {
+	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
+	Comment   string `json:"comment" validate:"optional"`    // Comment
+} // @name History.HistoryActionRequest

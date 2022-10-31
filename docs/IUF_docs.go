@@ -50,7 +50,7 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "Activities"
                 ],
                 "summary": "List IUF activities",
                 "responses": {
@@ -59,7 +59,69 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/IufActivity"
+                                "$ref": "#/definitions/Activity"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Create an IUF activity",
+                "parameters": [
+                    {
+                        "description": "IUF activity",
+                        "name": "activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Activity.CreateActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_id}/history": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "List history of an iuf activity",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/History"
                             }
                         }
                     },
@@ -69,7 +131,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "/iuf/v1/activities/{id}": {
+        "/iuf/v1/activities/{activity_id}/history/{start_time}": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -78,14 +140,14 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "History"
                 ],
-                "summary": "Get an IUF activity",
+                "summary": "Get a history item of an iuf activity",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activity id",
-                        "name": "id",
+                        "description": "start time of a history item",
+                        "name": "start_time",
                         "in": "path",
                         "required": true
                     }
@@ -94,7 +156,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/History"
                         }
                     },
                     "501": {
@@ -110,24 +172,24 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "History"
                 ],
-                "summary": "Patch an IUF activity",
+                "summary": "Get a history item of an iuf activity",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "activity id",
-                        "name": "id",
+                        "description": "start time of a history item",
+                        "name": "start_time",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "partial IUF activity",
-                        "name": "partial_activity",
+                        "description": "Modify comment of a history",
+                        "name": "activity",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/History.ReplaceHistoryCommentRequest"
                         }
                     }
                 ],
@@ -135,7 +197,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/History"
                         }
                     },
                     "501": {
@@ -144,7 +206,82 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "/iuf/v1/activity": {
+        "/iuf/v1/activities/{activity_name}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Get an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            },
+            "patch": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Get an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "IUF activity",
+                        "name": "activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/Activity.PatchActivityRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Activity"
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/abort": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -153,25 +290,267 @@ const docTemplateIUF = `{
                     "application/json"
                 ],
                 "tags": [
-                    "IUF"
+                    "History"
                 ],
-                "summary": "Create an IUF activity",
+                "summary": "Abort a session",
                 "parameters": [
                     {
-                        "description": "IUF activity",
-                        "name": "activity",
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "$ref": "#/definitions/History.HistoryActionRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/blocked": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Mark a session blocked",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/History.HistoryActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/paused": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Pause a session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/History.HistoryActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/resume": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Resume an activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/History.HistoryActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/run": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Run a session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/History.HistoryActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/sessions": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "List sessions of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/IufActivity"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Session"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Not Implemented"
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/sessions/{session_name}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Get a session of an IUF activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "session name",
+                        "name": "session_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "501": {
@@ -182,56 +561,244 @@ const docTemplateIUF = `{
         }
     },
     "definitions": {
-        "IufActivity": {
+        "Activity": {
             "type": "object",
+            "required": [
+                "activity_states",
+                "input_parameters",
+                "operation_outputs",
+                "products"
+            ],
             "properties": {
-                "spec": {
-                    "$ref": "#/definitions/IufActivity.Spec"
+                "activity_states": {
+                    "description": "History of states",
+                    "type": "array",
+                    "items": {
+                        "description": "State of Activity",
+                        "type": "string",
+                        "enum": [
+                            "paused",
+                            "in_progress",
+                            "debug",
+                            "completed"
+                        ]
+                    }
+                },
+                "input_parameters": {
+                    "description": "Input parameters by admin",
+                    "$ref": "#/definitions/InputParameters"
+                },
+                "name": {
+                    "description": "Name of activity",
+                    "type": "string"
+                },
+                "operation_outputs": {
+                    "description": "Operation outputs from argo",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "products": {
+                    "description": "List of products included in an activity",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
                 }
             }
         },
-        "IufActivity.Spec": {
+        "Activity.CreateActivityRequest": {
             "type": "object",
             "required": [
-                "bootprep_config_managed",
-                "bootprep_config_management",
-                "media_dir",
-                "site_parameters"
+                "input_parameters",
+                "name"
             ],
             "properties": {
+                "input_parameters": {
+                    "description": "Input parameters by admin",
+                    "$ref": "#/definitions/InputParameters"
+                },
+                "name": {
+                    "description": "Name of activity",
+                    "type": "string"
+                }
+            }
+        },
+        "Activity.PatchActivityRequest": {
+            "type": "object",
+            "required": [
+                "input_parameters"
+            ],
+            "properties": {
+                "input_parameters": {
+                    "$ref": "#/definitions/InputParameters"
+                }
+            }
+        },
+        "History": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                },
+                "session_name": {
+                    "description": "Name of the session",
+                    "type": "string"
+                },
+                "start_time": {
+                    "description": "Epoch timestamp",
+                    "type": "integer"
+                },
+                "state": {
+                    "description": "State of Activity",
+                    "type": "string",
+                    "enum": [
+                        "paused",
+                        "in_progress",
+                        "debug",
+                        "completed"
+                    ]
+                }
+            }
+        },
+        "History.HistoryActionRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                },
+                "start_time": {
+                    "description": "Epoch timestamp",
+                    "type": "integer"
+                }
+            }
+        },
+        "History.ReplaceHistoryCommentRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                }
+            }
+        },
+        "InputParameters": {
+            "type": "object",
+            "properties": {
                 "bootprep_config_managed": {
+                    "description": "Each item is a path of the bootprep files",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "bootprep_config_management": {
+                    "description": "Each item is a path of the bootprep files",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "current_comment": {
-                    "type": "string"
-                },
-                "is_blocked": {
-                    "type": "boolean"
-                },
-                "is_completed": {
+                "force": {
+                    "description": "Force re-execution of stage operations",
                     "type": "boolean"
                 },
                 "limit_nodes": {
+                    "description": "Each item is the xname of a node",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "media_dir": {
-                    "description": "location of media",
+                    "description": "Location of media",
                     "type": "string"
                 },
                 "site_parameters": {
-                    "description": "json string",
+                    "description": "The inline contents of the site_parameters.yaml file.",
+                    "type": "string"
+                },
+                "stages": {
+                    "description": "Stages to execute",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Product": {
+            "type": "object",
+            "required": [
+                "name",
+                "original_location",
+                "validated",
+                "version"
+            ],
+            "properties": {
+                "name": {
+                    "description": "The name of the product",
+                    "type": "string"
+                },
+                "original_location": {
+                    "description": "The original location of the extracted tar in on the physical storage.",
+                    "type": "string"
+                },
+                "validated": {
+                    "description": "The flag indicates md5 of a product tarball file has been validated",
+                    "type": "boolean"
+                },
+                "version": {
+                    "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
+        "Session": {
+            "type": "object",
+            "required": [
+                "products"
+            ],
+            "properties": {
+                "current_state": {
+                    "type": "string",
+                    "enum": [
+                        "paused",
+                        "in_progress",
+                        "debug",
+                        "completed"
+                    ]
+                },
+                "input_parameters": {
+                    "$ref": "#/definitions/InputParameters"
+                },
+                "products": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Product"
+                    }
+                },
+                "stage": {
+                    "type": "string"
+                },
+                "workflows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Session.Workflow"
+                    }
+                }
+            }
+        },
+        "Session.Workflow": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "id of argo workflow",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "url to the argo workflow",
                     "type": "string"
                 }
             }

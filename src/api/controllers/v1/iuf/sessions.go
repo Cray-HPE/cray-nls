@@ -23,24 +23,36 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-// +groupName=iuf.hpe.com
-package v1
+package iuf
 
-type IufProduct struct {
-	// The name of the product
-	Name string `json:"name" validate:"required"`
-	// The version of the product.
-	Version string `json:"version" validate:"required"`
-	// The original location of the extracted tar in on the physical storage.
-	OriginalLocation string `json:"original_location"  validate:"required"`
-} // @name Iuf.Product
+import (
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/gin-gonic/gin"
+)
 
-type SharedInput struct {
-	// location of media
-	MediaDir string `json:"media_dir" validate:"required"`
-	// json string
-	SiteParameters           string   `json:"site_parameters" validate:"required"`
-	BootprepConfigManaged    []string `json:"bootprep_config_managed" validate:"required"`
-	BootprepConfigManagement []string `json:"bootprep_config_management" validate:"required"`
-	LimitNodes               []string `json:"limit_nodes" validate:"optional"`
+// ListSessions
+// @Summary  List sessions of an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []iuf.Session
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/sessions [get]
+func (u IufController) ListSessions(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// GetSession
+// @Summary  Get a session of an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Param    session_name   path  string  true  "session name"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Session
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
+func (u IufController) GetSession(c *gin.Context) {
+	c.JSON(501, "not implemented")
 }

@@ -23,39 +23,27 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package routes
+package iuf
 
-import (
-	"github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+// IufSession
+type Session struct {
+	InputParameters InputParameters   `json:"input_parameters"`
+	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
+	CurrentStage    string            `json:"stage"`
+	Workflows       []SessionWorkflow `json:"workflows"`
+	Products        []Product         `json:"products" validate:"required"`
+} // @name Session
+
+type SessionState string
+
+const (
+	SessionStateInProgress SessionState = "in_progress"
+	SessionStatePaused     SessionState = "paused"
+	SessionStateDebug      SessionState = "debug"
+	SessionStateCompleted  SessionState = "completed"
 )
 
-// IufRoutes struct
-type IufRoutes struct {
-	logger        utils.Logger
-	handler       utils.RequestHandler
-	iufController iuf.IufController
-}
-
-// Setup Iuf routes
-func (s IufRoutes) Setup() {
-	s.logger.Info("Setting up routes")
-	api := s.handler.Gin.Group("/apis/iuf/v1")
-	{
-		api.POST("/activities", s.iufController.CreateActivity)
-
-	}
-}
-
-// NewIufRoutes creates new Iuf controller
-func NewIufRoutes(
-	logger utils.Logger,
-	handler utils.RequestHandler,
-	iufController iuf.IufController,
-) IufRoutes {
-	return IufRoutes{
-		handler:       handler,
-		logger:        logger,
-		iufController: iufController,
-	}
-}
+type SessionWorkflow struct {
+	Id  string `json:"id"`  // id of argo workflow
+	Url string `json:"url"` // url to the argo workflow
+} // @name Session.Workflow

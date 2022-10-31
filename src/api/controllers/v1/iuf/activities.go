@@ -1,0 +1,83 @@
+/*
+ *
+ *  MIT License
+ *
+ *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
+ *  Software is furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included
+ *  in all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ *  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ *  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *  OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+package iuf
+
+import (
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/gin-gonic/gin"
+)
+
+// CreateActivity
+// @Summary  Create an IUF activity
+// @Param    activity  body  iuf.CreateActivityRequest  true  "IUF activity"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Activity
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities [post]
+func (u IufController) CreateActivity(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// ListActivities
+// @Summary  List IUF activities
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []iuf.Activity
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities [get]
+func (u IufController) ListActivities(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// GetActivity
+// @Summary  Get an IUF activity
+// @Param    activity_name  path  string                    true  "activity name"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Activity
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name} [get]
+func (u IufController) GetActivity(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
+
+// PatchActivity
+// @Summary  Get an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Param    activity       body  iuf.PatchActivityRequest  true  "IUF activity"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Activity
+// @Failure  501  "Not Implemented"
+// @Router   /iuf/v1/activities/{activity_name} [patch]
+func (u IufController) PatchActivity(c *gin.Context) {
+	c.JSON(501, "not implemented")
+}
