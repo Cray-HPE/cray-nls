@@ -28,14 +28,20 @@ package services
 //go:generate mockgen -destination=../mocks/services/iuf.go -package=mocks -source=iuf.go
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"gopkg.in/yaml.v2"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -116,9 +122,21 @@ func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Sessio
 }
 
 func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
-	// TODO: validate input parameters
-	req.ActivityState = iuf.ActivityStateWaitForAdmin
-	configmap, err := s.iufObjectToConfigMapData(req, req.Name)
+	reqBytes, _ := json.Marshal(req)
+	var activity iuf.Activity
+	err := json.Unmarshal(reqBytes, &activity)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	err = s.processCreateActivityRequest(&activity)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name)
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -240,6 +258,97 @@ func (s iufService) iufObjectToConfigMapData(activity interface{}, name string) 
 			},
 		},
 		Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
+	}
+	return res, nil
+}
+
+func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {
+	if activity.InputParameters.MediaDir != "" {
+		s.logger.Infof("Processing media: %s", activity.InputParameters.MediaDir)
+		// find all tarball files
+		pattern := activity.InputParameters.MediaDir + "/*.tar.gz"
+		tarballFiles, err := filepath.Glob(pattern)
+		if err != nil {
+			s.logger.Error(err)
+			return err
+		}
+		// make sure there are product tarballs
+		if len(tarballFiles) == 0 {
+			err := fmt.Errorf("no tarball files found: %s", activity.InputParameters.MediaDir)
+			s.logger.Error(err)
+			return err
+		}
+
+		s.logger.Infof("Find tarballs: %v", tarballFiles)
+		// processing each tarball file
+		for _, file := range tarballFiles {
+			manifest, err := s.extractManifestFromTarballFile(file)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+			// validate iuf product manifest
+			data, _ := yaml.Marshal(manifest)
+			err = iuf.Validate(data)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
+			// add product to activity object
+			activity.Products = append(activity.Products, iuf.Product{
+				Name:             fmt.Sprintf("%v", manifest["name"]),
+				Version:          fmt.Sprintf("%v", manifest["version"]),
+				Validated:        true,
+				OriginalLocation: file,
+			})
+		}
+	}
+
+	activity.ActivityState = iuf.ActivityStateWaitForAdmin
+	return nil
+}
+
+func (s iufService) extractManifestFromTarballFile(path string) (map[string]interface{}, error) {
+	myFile, err := os.Open(path)
+	var res map[string]interface{}
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+	defer myFile.Close()
+
+	gzRead, err := gzip.NewReader(myFile)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+
+	tarRead := tar.NewReader(gzRead)
+	for {
+		cur, err := tarRead.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			s.logger.Error(err)
+			return nil, err
+		}
+		if cur.Typeflag != tar.TypeReg {
+			continue
+		}
+		if strings.HasSuffix(cur.Name, "iuf-product-manifest.yaml") {
+			resBytes, err := io.ReadAll(tarRead)
+			if err != nil {
+				s.logger.Error(err)
+				return nil, err
+			}
+			err = yaml.Unmarshal(resBytes, &res)
+			if err != nil {
+				s.logger.Error(err)
+				return nil, err
+			}
+			break
+		}
 	}
 	return res, nil
 }
