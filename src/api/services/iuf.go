@@ -118,21 +118,18 @@ func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Sessio
 func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 	// TODO: validate input parameters
 	req.ActivityState = iuf.ActivityStateWaitForAdmin
-	reqBytes, _ := json.Marshal(req)
-	_, err := s.k8sRestClientSet.
+	configmap, err := s.iufObjectToConfigMapData(req, req.Name)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
 		Create(
 			context.TODO(),
-			&core_v1.ConfigMap{
-				ObjectMeta: v1.ObjectMeta{
-					Name: req.Name,
-					Labels: map[string]string{
-						"type": LABEL_ACTIVITY,
-					},
-				},
-				Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
-			},
+			&configmap,
 			v1.CreateOptions{},
 		)
 	// TODO: add activity history
@@ -153,7 +150,7 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 		return iuf.Activity{}, err
 	}
 
-	res, err := s.configMapActivityToActivity(rawConfigMapData.Data[CONFIGMAP_KEY_ACTIVITY])
+	res, err := s.configMapDataToActivity(rawConfigMapData.Data[CONFIGMAP_KEY_ACTIVITY])
 	if err != nil {
 		s.logger.Error(err)
 		return res, err
@@ -171,21 +168,18 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 	// TODO: validate input parameters
 	// TODO: support partial update
 	tmp.InputParameters = req.InputParameters
-	reqBytes, _ := json.Marshal(tmp)
+	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+
 	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
 		Update(
 			context.TODO(),
-			&core_v1.ConfigMap{
-				ObjectMeta: v1.ObjectMeta{
-					Name: tmp.Name,
-					Labels: map[string]string{
-						"type": LABEL_ACTIVITY,
-					},
-				},
-				Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
-			},
+			&configmap,
 			v1.UpdateOptions{},
 		)
 	if err != nil {
@@ -211,7 +205,7 @@ func (s iufService) ListActivities() ([]iuf.Activity, error) {
 	}
 	var res []iuf.Activity
 	for _, rawConfigMap := range rawConfigMapList.Items {
-		tmp, err := s.configMapActivityToActivity(rawConfigMap.Data[CONFIGMAP_KEY_ACTIVITY])
+		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[CONFIGMAP_KEY_ACTIVITY])
 		if err != nil {
 			s.logger.Error(err)
 			return []iuf.Activity{}, err
@@ -221,7 +215,7 @@ func (s iufService) ListActivities() ([]iuf.Activity, error) {
 	return res, nil
 }
 
-func (s iufService) configMapActivityToActivity(data string) (iuf.Activity, error) {
+func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 	var res iuf.Activity
 	err := json.Unmarshal([]byte(data), &res)
 	if err != nil {
@@ -229,4 +223,22 @@ func (s iufService) configMapActivityToActivity(data string) (iuf.Activity, erro
 		return res, err
 	}
 	return res, err
+}
+
+func (s iufService) iufObjectToConfigMapData(activity interface{}, name string) (core_v1.ConfigMap, error) {
+	reqBytes, err := json.Marshal(activity)
+	if err != nil {
+		s.logger.Error(err)
+		return core_v1.ConfigMap{}, err
+	}
+	res := core_v1.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+			Labels: map[string]string{
+				"type": LABEL_ACTIVITY,
+			},
+		},
+		Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
+	}
+	return res, nil
 }
