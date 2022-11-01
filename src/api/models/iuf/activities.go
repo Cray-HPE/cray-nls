@@ -27,11 +27,11 @@ package iuf
 
 // Activity
 type Activity struct {
-	Name             string                 `json:"name"`                                 // Name of activity
-	InputParameters  InputParameters        `json:"input_parameters" binding:"required"`  // Input parameters by admin
-	OperationOutputs map[string]interface{} `json:"operation_outputs" binding:"required"` // Operation outputs from argo
-	Products         []Product              `json:"products" binding:"required"`          // List of products included in an activity
-	ActivityState    ActivityState          `json:"activity_state" binding:"required"`    // State of activity
+	Name             string                 `json:"name"`                                                                                      // Name of activity
+	InputParameters  InputParameters        `json:"input_parameters" binding:"required"`                                                       // Input parameters by admin
+	OperationOutputs map[string]interface{} `json:"operation_outputs" binding:"required"`                                                      // Operation outputs from argo
+	Products         []Product              `json:"products" binding:"required"`                                                               // List of products included in an activity
+	ActivityState    ActivityState          `json:"activity_state" binding:"required" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
 } // @name Activity
 
 type CreateActivityRequest struct {
@@ -50,6 +50,6 @@ const (
 	ActivityStateInProgress   ActivityState = "in_progress"
 	ActivityStatePaused       ActivityState = "paused"
 	ActivityStateDebug        ActivityState = "debug"
-	ActivityStateCompleted    ActivityState = "completed"
+	ActivityStateBlocked      ActivityState = "blocked"
 	ActivityStateWaitForAdmin ActivityState = "wait_for_admin"
 )

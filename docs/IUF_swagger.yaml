@@ -27,6 +27,12 @@ definitions:
     properties:
       activity_state:
         description: State of activity
+        enum:
+        - paused
+        - in_progress
+        - debug
+        - blocked
+        - wait_for_admin
         type: string
       input_parameters:
         $ref: '#/definitions/InputParameters'

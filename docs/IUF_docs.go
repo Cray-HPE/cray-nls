@@ -587,7 +587,14 @@ const docTemplateIUF = `{
             "properties": {
                 "activity_state": {
                     "description": "State of activity",
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "paused",
+                        "in_progress",
+                        "debug",
+                        "blocked",
+                        "wait_for_admin"
+                    ]
                 },
                 "input_parameters": {
                     "description": "Input parameters by admin",
