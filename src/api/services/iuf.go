@@ -159,13 +159,13 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 }
 
 func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error) {
-	// TODO: block request if activity is in_progress, paused
 	tmp, err := s.GetActivity(name)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
 
+	// TODO: block request if activity is in_progress, paused
 	// TODO: validate input parameters
 	// TODO: support partial update
 	tmp.InputParameters = req.InputParameters
