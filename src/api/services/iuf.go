@@ -122,6 +122,7 @@ func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Sessio
 }
 
 func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
+	// construct activity object from create req
 	reqBytes, _ := json.Marshal(req)
 	var activity iuf.Activity
 	err := json.Unmarshal(reqBytes, &activity)
@@ -130,18 +131,20 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 		return err
 	}
 
+	// processing individual field of request
 	err = s.processCreateActivityRequest(&activity)
 	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
 
+	// convert activity to k8s configmap object
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name)
 	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
-
+	// store activity
 	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
@@ -310,6 +313,7 @@ func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {
 }
 
 func (s iufService) extractManifestFromTarballFile(path string) (map[string]interface{}, error) {
+	// read the tar file
 	myFile, err := os.Open(path)
 	var res map[string]interface{}
 	if err != nil {
@@ -317,14 +321,15 @@ func (s iufService) extractManifestFromTarballFile(path string) (map[string]inte
 		return nil, err
 	}
 	defer myFile.Close()
-
+	// load gzip reader
 	gzRead, err := gzip.NewReader(myFile)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
-
+	// load tar reader
 	tarRead := tar.NewReader(gzRead)
+	// loop to find iuf manifest
 	for {
 		cur, err := tarRead.Next()
 		if err == io.EOF {
@@ -336,6 +341,7 @@ func (s iufService) extractManifestFromTarballFile(path string) (map[string]inte
 		if cur.Typeflag != tar.TypeReg {
 			continue
 		}
+		// extract iuf mainfest and return
 		if strings.HasSuffix(cur.Name, "iuf-product-manifest.yaml") {
 			resBytes, err := io.ReadAll(tarRead)
 			if err != nil {
