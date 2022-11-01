@@ -5,7 +5,7 @@
 1. [Go 1.17](https://go.dev/doc/install)
 1. [Go Fresh](https://github.com/gravityblast/fresh)
    ```
-   go get github.com/pilu/fresh
+   go install github.com/pilu/fresh
    ```
 1. [K3D](https://k3d.io/) (required for running locally)
 
