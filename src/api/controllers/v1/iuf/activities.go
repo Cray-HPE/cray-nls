@@ -26,7 +26,11 @@
 package iuf
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"fmt"
+	"net/http"
+
+	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,11 +40,25 @@ import (
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  200  {object}  iuf.Activity
-// @Failure  501  "Not Implemented"
+// @Success  201
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities [post]
 func (u IufController) CreateActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.CreateActivityRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	if err := u.iufService.CreateActivity(requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusCreated, nil)
 }
 
 // ListActivities
@@ -49,10 +67,16 @@ func (u IufController) CreateActivity(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []iuf.Activity
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities [get]
 func (u IufController) ListActivities(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	res, err := u.iufService.ListActivities()
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 // GetActivity
@@ -62,10 +86,16 @@ func (u IufController) ListActivities(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.Activity
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name} [get]
 func (u IufController) GetActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	res, err := u.iufService.GetActivity(c.Param("activity_name"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 // PatchActivity
@@ -76,8 +106,21 @@ func (u IufController) GetActivity(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.Activity
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name} [patch]
 func (u IufController) PatchActivity(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.PatchActivityRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.PatchActivity(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }

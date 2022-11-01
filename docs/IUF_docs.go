@@ -63,8 +63,11 @@ const docTemplateIUF = `{
                             }
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             },
@@ -91,14 +94,20 @@ const docTemplateIUF = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": ""
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/Activity"
+                            "$ref": "#/definitions/ResponseError"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -234,8 +243,11 @@ const docTemplateIUF = `{
                             "$ref": "#/definitions/Activity"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             },
@@ -275,8 +287,11 @@ const docTemplateIUF = `{
                             "$ref": "#/definitions/Activity"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -564,25 +579,22 @@ const docTemplateIUF = `{
         "Activity": {
             "type": "object",
             "required": [
-                "activity_states",
+                "activity_state",
                 "input_parameters",
                 "operation_outputs",
                 "products"
             ],
             "properties": {
-                "activity_states": {
-                    "description": "History of states",
-                    "type": "array",
-                    "items": {
-                        "description": "State of Activity",
-                        "type": "string",
-                        "enum": [
-                            "paused",
-                            "in_progress",
-                            "debug",
-                            "completed"
-                        ]
-                    }
+                "activity_state": {
+                    "description": "State of activity",
+                    "type": "string",
+                    "enum": [
+                        "paused",
+                        "in_progress",
+                        "debug",
+                        "blocked",
+                        "wait_for_admin"
+                    ]
                 },
                 "input_parameters": {
                     "description": "Input parameters by admin",
@@ -609,7 +621,6 @@ const docTemplateIUF = `{
         "Activity.CreateActivityRequest": {
             "type": "object",
             "required": [
-                "input_parameters",
                 "name"
             ],
             "properties": {
@@ -751,6 +762,14 @@ const docTemplateIUF = `{
                 },
                 "version": {
                     "description": "The version of the product.",
+                    "type": "string"
+                }
+            }
+        },
+        "ResponseError": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
                 }
             }

@@ -34,6 +34,35 @@ func (m *MockIufService) EXPECT() *MockIufServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateActivity mocks base method.
+func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateActivity", req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateActivity indicates an expected call of CreateActivity.
+func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActivity", reflect.TypeOf((*MockIufService)(nil).CreateActivity), req)
+}
+
+// GetActivity mocks base method.
+func (m *MockIufService) GetActivity(name string) (iuf.Activity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActivity", name)
+	ret0, _ := ret[0].(iuf.Activity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActivity indicates an expected call of GetActivity.
+func (mr *MockIufServiceMockRecorder) GetActivity(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivity", reflect.TypeOf((*MockIufService)(nil).GetActivity), name)
+}
+
 // GetSessionsByActivityName mocks base method.
 func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
 	m.ctrl.T.Helper()
@@ -47,4 +76,34 @@ func (m *MockIufService) GetSessionsByActivityName(activityName string) ([]iuf.S
 func (mr *MockIufServiceMockRecorder) GetSessionsByActivityName(activityName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionsByActivityName", reflect.TypeOf((*MockIufService)(nil).GetSessionsByActivityName), activityName)
+}
+
+// ListActivities mocks base method.
+func (m *MockIufService) ListActivities() ([]iuf.Activity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListActivities")
+	ret0, _ := ret[0].([]iuf.Activity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListActivities indicates an expected call of ListActivities.
+func (mr *MockIufServiceMockRecorder) ListActivities() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListActivities", reflect.TypeOf((*MockIufService)(nil).ListActivities))
+}
+
+// PatchActivity mocks base method.
+func (m *MockIufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchActivity", name, req)
+	ret0, _ := ret[0].(iuf.Activity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchActivity indicates an expected call of PatchActivity.
+func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), name, req)
 }

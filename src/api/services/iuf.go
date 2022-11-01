@@ -30,20 +30,31 @@ package services
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/argoproj/pkg/json"
-
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	core_v1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	DEFAULT_NAMESPACE      = "argo"
+	LABEL_ACTIVITY         = "iuf-activity"
+	CONFIGMAP_KEY_ACTIVITY = "Activity"
+)
+
 type IufService interface {
 	GetSessionsByActivityName(activityName string) ([]iuf.Session, error)
+	CreateActivity(req iuf.CreateActivityRequest) error
+	ListActivities() ([]iuf.Activity, error)
+	GetActivity(name string) (iuf.Activity, error)
+	PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error)
 }
 
 // IufService service layer
@@ -102,4 +113,133 @@ func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Sessio
 		return mySessions, err
 	}
 	return mySessions, nil
+}
+
+func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
+	// TODO: validate input parameters
+	req.ActivityState = iuf.ActivityStateWaitForAdmin
+	configmap, err := s.iufObjectToConfigMapData(req, req.Name)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Create(
+			context.TODO(),
+			&configmap,
+			v1.CreateOptions{},
+		)
+	// TODO: add activity history
+	return err
+}
+
+func (s iufService) GetActivity(name string) (iuf.Activity, error) {
+	rawConfigMapData, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Get(
+			context.TODO(),
+			name,
+			v1.GetOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+
+	res, err := s.configMapDataToActivity(rawConfigMapData.Data[CONFIGMAP_KEY_ACTIVITY])
+	if err != nil {
+		s.logger.Error(err)
+		return res, err
+	}
+	return res, err
+}
+
+func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error) {
+	tmp, err := s.GetActivity(name)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+
+	// TODO: block request if activity is in_progress, paused
+	// TODO: validate input parameters
+	// TODO: support partial update
+	tmp.InputParameters = req.InputParameters
+	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Update(
+			context.TODO(),
+			&configmap,
+			v1.UpdateOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+	return tmp, err
+}
+
+func (s iufService) ListActivities() ([]iuf.Activity, error) {
+	rawConfigMapList, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		List(
+			context.TODO(),
+			v1.ListOptions{
+				LabelSelector: fmt.Sprintf("type=%s", LABEL_ACTIVITY),
+			},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return []iuf.Activity{}, err
+	}
+	var res []iuf.Activity
+	for _, rawConfigMap := range rawConfigMapList.Items {
+		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[CONFIGMAP_KEY_ACTIVITY])
+		if err != nil {
+			s.logger.Error(err)
+			return []iuf.Activity{}, err
+		}
+		res = append(res, tmp)
+	}
+	return res, nil
+}
+
+func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
+	var res iuf.Activity
+	err := json.Unmarshal([]byte(data), &res)
+	if err != nil {
+		s.logger.Error(err)
+		return res, err
+	}
+	return res, err
+}
+
+func (s iufService) iufObjectToConfigMapData(activity interface{}, name string) (core_v1.ConfigMap, error) {
+	reqBytes, err := json.Marshal(activity)
+	if err != nil {
+		s.logger.Error(err)
+		return core_v1.ConfigMap{}, err
+	}
+	res := core_v1.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{
+			Name: name,
+			Labels: map[string]string{
+				"type": LABEL_ACTIVITY,
+			},
+		},
+		Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
+	}
+	return res, nil
 }

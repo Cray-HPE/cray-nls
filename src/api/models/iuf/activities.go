@@ -27,27 +27,29 @@ package iuf
 
 // Activity
 type Activity struct {
-	Name             string                 `json:"name"`                                  // Name of activity
-	InputParameters  InputParameters        `json:"input_parameters" validate:"required"`  // Input parameters by admin
-	OperationOutputs map[string]interface{} `json:"operation_outputs" validate:"required"` // Operation outputs from argo
-	Products         []Product              `json:"products" validate:"required"`          // List of products included in an activity
-	ActivityStates   []ActivityState        `json:"activity_states" validate:"required"`   // History of states
+	Name             string                 `json:"name"`                                                                                      // Name of activity
+	InputParameters  InputParameters        `json:"input_parameters" binding:"required"`                                                       // Input parameters by admin
+	OperationOutputs map[string]interface{} `json:"operation_outputs" binding:"required"`                                                      // Operation outputs from argo
+	Products         []Product              `json:"products" binding:"required"`                                                               // List of products included in an activity
+	ActivityState    ActivityState          `json:"activity_state" binding:"required" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
 } // @name Activity
 
 type CreateActivityRequest struct {
-	Name            string          `json:"name" validate:"required"`             // Name of activity
-	InputParameters InputParameters `json:"input_parameters" validate:"required"` // Input parameters by admin
+	Name            string          `json:"name" binding:"required"` // Name of activity
+	InputParameters InputParameters `json:"input_parameters"`        // Input parameters by admin
+	ActivityState   ActivityState   `json:"activity_state" swaggerignore:"true"`
 } // @name Activity.CreateActivityRequest
 
 type PatchActivityRequest struct {
-	InputParameters InputParameters `json:"input_parameters" validate:"required"`
+	InputParameters InputParameters `json:"input_parameters" binding:"required"`
 } // @name Activity.PatchActivityRequest
 
 type ActivityState string
 
 const (
-	ActivityStateInProgress ActivityState = "in_progress"
-	ActivityStatePaused     ActivityState = "paused"
-	ActivityStateDebug      ActivityState = "debug"
-	ActivityStateCompleted  ActivityState = "completed"
+	ActivityStateInProgress   ActivityState = "in_progress"
+	ActivityStatePaused       ActivityState = "paused"
+	ActivityStateDebug        ActivityState = "debug"
+	ActivityStateBlocked      ActivityState = "blocked"
+	ActivityStateWaitForAdmin ActivityState = "wait_for_admin"
 )

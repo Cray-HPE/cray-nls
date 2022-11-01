@@ -25,17 +25,15 @@ basePath: /apis
 definitions:
   Activity:
     properties:
-      activity_states:
-        description: History of states
-        items:
-          description: State of Activity
-          enum:
-          - paused
-          - in_progress
-          - debug
-          - completed
-          type: string
-        type: array
+      activity_state:
+        description: State of activity
+        enum:
+        - paused
+        - in_progress
+        - debug
+        - blocked
+        - wait_for_admin
+        type: string
       input_parameters:
         $ref: '#/definitions/InputParameters'
         description: Input parameters by admin
@@ -52,7 +50,7 @@ definitions:
           $ref: '#/definitions/Product'
         type: array
     required:
-    - activity_states
+    - activity_state
     - input_parameters
     - operation_outputs
     - products
@@ -66,7 +64,6 @@ definitions:
         description: Name of activity
         type: string
     required:
-    - input_parameters
     - name
     type: object
   Activity.PatchActivityRequest:
@@ -164,6 +161,11 @@ definitions:
     - validated
     - version
     type: object
+  ResponseError:
+    properties:
+      message:
+        type: string
+    type: object
   Session:
     properties:
       current_state:
@@ -213,8 +215,10 @@ paths:
             items:
               $ref: '#/definitions/Activity'
             type: array
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: List IUF activities
       tags:
       - Activities
@@ -231,12 +235,16 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: ""
+        "400":
+          description: Bad Request
           schema:
-            $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Create an IUF activity
       tags:
       - Activities
@@ -324,8 +332,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Get an IUF activity
       tags:
       - Activities
@@ -351,8 +361,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Get an IUF activity
       tags:
       - Activities
