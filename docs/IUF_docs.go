@@ -63,8 +63,11 @@ const docTemplateIUF = `{
                             }
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             },
@@ -240,8 +243,11 @@ const docTemplateIUF = `{
                             "$ref": "#/definitions/Activity"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             },
@@ -281,8 +287,11 @@ const docTemplateIUF = `{
                             "$ref": "#/definitions/Activity"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -570,25 +579,15 @@ const docTemplateIUF = `{
         "Activity": {
             "type": "object",
             "required": [
-                "activity_states",
+                "activity_state",
                 "input_parameters",
                 "operation_outputs",
                 "products"
             ],
             "properties": {
-                "activity_states": {
-                    "description": "History of states",
-                    "type": "array",
-                    "items": {
-                        "description": "State of Activity",
-                        "type": "string",
-                        "enum": [
-                            "paused",
-                            "in_progress",
-                            "debug",
-                            "completed"
-                        ]
-                    }
+                "activity_state": {
+                    "description": "State of activity",
+                    "type": "string"
                 },
                 "input_parameters": {
                     "description": "Input parameters by admin",

@@ -31,12 +31,13 @@ type Activity struct {
 	InputParameters  InputParameters        `json:"input_parameters" binding:"required"`  // Input parameters by admin
 	OperationOutputs map[string]interface{} `json:"operation_outputs" binding:"required"` // Operation outputs from argo
 	Products         []Product              `json:"products" binding:"required"`          // List of products included in an activity
-	ActivityStates   []ActivityState        `json:"activity_states" binding:"required"`   // History of states
+	ActivityState    ActivityState          `json:"activity_state" binding:"required"`    // State of activity
 } // @name Activity
 
 type CreateActivityRequest struct {
 	Name            string          `json:"name" binding:"required"` // Name of activity
 	InputParameters InputParameters `json:"input_parameters"`        // Input parameters by admin
+	ActivityState   ActivityState   `json:"activity_state" swaggerignore:"true"`
 } // @name Activity.CreateActivityRequest
 
 type PatchActivityRequest struct {
@@ -46,8 +47,9 @@ type PatchActivityRequest struct {
 type ActivityState string
 
 const (
-	ActivityStateInProgress ActivityState = "in_progress"
-	ActivityStatePaused     ActivityState = "paused"
-	ActivityStateDebug      ActivityState = "debug"
-	ActivityStateCompleted  ActivityState = "completed"
+	ActivityStateInProgress   ActivityState = "in_progress"
+	ActivityStatePaused       ActivityState = "paused"
+	ActivityStateDebug        ActivityState = "debug"
+	ActivityStateCompleted    ActivityState = "completed"
+	ActivityStateWaitForAdmin ActivityState = "wait_for_admin"
 )

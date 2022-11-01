@@ -63,7 +63,7 @@ func TestCreateActivity(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
 		iufServiceMock := mocks.NewMockIufService(ctrl)
-		iufServiceMock.EXPECT().CreateActivity(gomock.Any()).Return(nil)
+		iufServiceMock.EXPECT().CreateActivity(gomock.Any()).Return(nil).AnyTimes()
 		var tests = []struct {
 			name        string
 			requestBody string

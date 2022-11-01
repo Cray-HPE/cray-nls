@@ -25,17 +25,9 @@ basePath: /apis
 definitions:
   Activity:
     properties:
-      activity_states:
-        description: History of states
-        items:
-          description: State of Activity
-          enum:
-          - paused
-          - in_progress
-          - debug
-          - completed
-          type: string
-        type: array
+      activity_state:
+        description: State of activity
+        type: string
       input_parameters:
         $ref: '#/definitions/InputParameters'
         description: Input parameters by admin
@@ -52,7 +44,7 @@ definitions:
           $ref: '#/definitions/Product'
         type: array
     required:
-    - activity_states
+    - activity_state
     - input_parameters
     - operation_outputs
     - products
@@ -217,8 +209,10 @@ paths:
             items:
               $ref: '#/definitions/Activity'
             type: array
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: List IUF activities
       tags:
       - Activities
@@ -332,8 +326,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Get an IUF activity
       tags:
       - Activities
@@ -359,8 +355,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Activity'
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Get an IUF activity
       tags:
       - Activities
