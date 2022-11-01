@@ -292,17 +292,18 @@ func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {
 			}
 			// validate iuf product manifest
 			data, _ := yaml.Marshal(manifest)
+			validated := true
 			err = iuf.Validate(data)
 			if err != nil {
 				s.logger.Error(err)
-				return err
+				validated = false
 			}
 			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
 			// add product to activity object
 			activity.Products = append(activity.Products, iuf.Product{
 				Name:             fmt.Sprintf("%v", manifest["name"]),
 				Version:          fmt.Sprintf("%v", manifest["version"]),
-				Validated:        true,
+				Validated:        validated,
 				OriginalLocation: file,
 			})
 		}
