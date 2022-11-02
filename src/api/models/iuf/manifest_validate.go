@@ -31,7 +31,6 @@ import (
 	"os"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	_ "github.com/santhosh-tekuri/jsonschema/v5"
 	"sigs.k8s.io/yaml"
 )
 
@@ -40,40 +39,50 @@ var rebuildWorkflowFS embed.FS
 
 const iuf_manifest_schema_file string = "iuf-manifest-schema.yaml"
 
-func Validate(file_path string) error {
+func ValidateFile(file_path string) error {
 	fmt.Printf("Validating file %v against IUF Product Manifest Schema.\n", file_path)
 
 	file_contents, err := os.ReadFile(file_path)
 	if err != nil {
-		return fmt.Errorf("Failed to open IUF Product Manifest file: %v", err)
+		return fmt.Errorf("failed to open IUF Product Manifest file: %v", err)
 	}
 
-	var manifest interface{}
-	err = yaml.Unmarshal(file_contents, &manifest)
+	err = Validate(file_contents)
 	if err != nil {
-		return fmt.Errorf("Failed to parse IUF Product Manifest as YAML: %v", err)
+		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
+	}
+
+	fmt.Printf("File %v is valid against IUF Product Manifest schema.\n", file_path)
+	return nil
+}
+
+func Validate(file_contents []byte) error {
+
+	var manifest interface{}
+	err := yaml.Unmarshal(file_contents, &manifest)
+	if err != nil {
+		return fmt.Errorf("failed to parse IUF Product Manifest as YAML: %v", err)
 	}
 
 	schema_file_contents, err := rebuildWorkflowFS.ReadFile(iuf_manifest_schema_file)
 	if err != nil {
-		return fmt.Errorf("Failed to load IUF Product Manifest schema: %v", err)
+		return fmt.Errorf("failed to load IUF Product Manifest schema: %v", err)
 	}
 
 	schema_json, err := yaml.YAMLToJSON(schema_file_contents)
 	if err != nil {
-		return fmt.Errorf("Failed to convert IUF Product Manifest from YAML to JSON: %v", err)
+		return fmt.Errorf("failed to convert IUF Product Manifest from YAML to JSON: %v", err)
 	}
 
 	schema, err := jsonschema.CompileString(iuf_manifest_schema_file, string(schema_json))
 	if err != nil {
-		return fmt.Errorf("Failed to validate IUF Product Manifest JSON Schema: %v", err)
+		return fmt.Errorf("failed to validate IUF Product Manifest JSON Schema: %v", err)
 	}
 
 	err = schema.Validate(manifest)
 	if err != nil {
-		return fmt.Errorf("Failed to validate IUF Product Manifest schema: %#v", err)
+		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
 	}
 
-	fmt.Printf("File %v is valid against IUF Product Manifest schema.\n", file_path)
 	return nil
 }

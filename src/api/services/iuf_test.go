@@ -23,47 +23,46 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-
-package cmd
+package services
 
 import (
-	"fmt"
-	"os"
+	_ "embed"
+	"testing"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/lithammer/dedent"
-	"github.com/spf13/cobra"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
-var validateCmd = &cobra.Command{
-	Use:   "validate file",
-	Short: "Validate an IUF Product Manifest file against the schema.",
-	Long: dedent.Dedent(`
-		Validate an IUF Product Manifest file against the IUF Product Manifest
-		schema understood by this version of the IUF.
-
-		Exits with zero exit code on successful validation, non-zero exit code
-		on validation failure. Validation errors are printed to stderr.
-	`),
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := iuf.ValidateFile(args[0]); err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
-			os.Exit(1)
-		}
-	},
-	Args: cobra.ExactArgs(1),
-}
-
-func init() {
-	rootCmd.AddCommand(validateCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// validateCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// validateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func TestProcessCreateActivityRequest(t *testing.T) {
+	mySvc := iufService{logger: utils.GetLogger()}
+	var tests = []struct {
+		name     string
+		activity iuf.Activity
+		wantErr  bool
+	}{
+		{
+			name:     "empty",
+			activity: iuf.Activity{},
+			wantErr:  false,
+		},
+		{
+			name:     "invalid media dir",
+			activity: iuf.Activity{InputParameters: iuf.InputParameters{MediaDir: "/asdf"}},
+			wantErr:  true,
+		},
+		{
+			name:     "valid media dir with tar files",
+			activity: iuf.Activity{InputParameters: iuf.InputParameters{MediaDir: "/etc/iuf"}},
+			wantErr:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := mySvc.processCreateActivityRequest(&tt.activity)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
 }

@@ -36,6 +36,7 @@ type Env struct {
 	WorkerRebuildWorkflowFiles  string `mapstructure:"WORKER_REBUILD_WORKFLOW_FILES"`
 	StorageRebuildWorkflowFiles string `mapstructure:"STORAGE_REBUILD_WORKFLOW_FILES"`
 	IufInstallWorkflowFiles     string `mapstructure:"IUF_INSTALL_WORKFLOW_FILES"`
+	MediaDirBase                string `mapstructure:"MEDIA_DIR_BASE"`
 }
 
 // NewEnv creates a new environment
@@ -54,6 +55,11 @@ func NewEnv(log Logger) Env {
 	err = viper.Unmarshal(&env)
 	if err != nil {
 		log.Fatal("☠️ environment can't be loaded: ", err)
+	}
+
+	// for the intiial realse, this is hard coded
+	if len(env.MediaDirBase) == 0 {
+		env.MediaDirBase = "/etc/iuf"
 	}
 
 	log.Infof("%+v \n", env)
