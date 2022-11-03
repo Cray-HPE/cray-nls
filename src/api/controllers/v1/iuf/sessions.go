@@ -49,6 +49,7 @@ func (u IufController) ListSessions(c *gin.Context) {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
+		return
 	}
 	c.JSON(http.StatusOK, res)
 }
@@ -69,6 +70,7 @@ func (u IufController) GetSession(c *gin.Context) {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
+		return
 	}
 	c.JSON(http.StatusOK, res)
 }

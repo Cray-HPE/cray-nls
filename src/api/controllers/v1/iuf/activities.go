@@ -75,6 +75,7 @@ func (u IufController) ListActivities(c *gin.Context) {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
+		return
 	}
 	c.JSON(http.StatusOK, res)
 }
@@ -94,6 +95,7 @@ func (u IufController) GetActivity(c *gin.Context) {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
+		return
 	}
 	c.JSON(http.StatusOK, res)
 }
@@ -121,6 +123,7 @@ func (u IufController) PatchActivity(c *gin.Context) {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
+		return
 	}
 	c.JSON(http.StatusOK, res)
 }
