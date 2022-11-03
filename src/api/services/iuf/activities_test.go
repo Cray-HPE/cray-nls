@@ -23,7 +23,7 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package services
+package services_iuf
 
 import (
 	_ "embed"

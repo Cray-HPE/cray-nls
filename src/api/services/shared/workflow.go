@@ -23,7 +23,7 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package services
+package services_shared
 
 //go:generate mockgen -destination=../mocks/services/workflow.go -package=mocks -source=workflow.go
 

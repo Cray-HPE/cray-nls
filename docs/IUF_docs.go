@@ -112,34 +112,6 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "/iuf/v1/activities/{activity_id}/history": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "List history of an iuf activity",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/History"
-                            }
-                        }
-                    },
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            }
-        },
         "/iuf/v1/activities/{activity_id}/history/{start_time}": {
             "get": {
                 "consumes": [
@@ -285,6 +257,46 @@ const docTemplateIUF = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/Activity"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "List history of an iuf activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/History"
+                            }
                         }
                     },
                     "500": {
@@ -482,7 +494,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/History.HistoryActionRequest"
+                            "$ref": "#/definitions/History.HistoryRunActionRequest"
                         }
                     }
                 ],
@@ -490,8 +502,11 @@ const docTemplateIUF = `{
                     "201": {
                         "description": "Created"
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -527,8 +542,11 @@ const docTemplateIUF = `{
                             }
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -568,8 +586,11 @@ const docTemplateIUF = `{
                             "$ref": "#/definitions/Session"
                         }
                     },
-                    "501": {
-                        "description": "Not Implemented"
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     }
                 }
             }
@@ -647,7 +668,21 @@ const docTemplateIUF = `{
         },
         "History": {
             "type": "object",
+            "required": [
+                "activity_state"
+            ],
             "properties": {
+                "activity_state": {
+                    "description": "State of activity",
+                    "type": "string",
+                    "enum": [
+                        "paused",
+                        "in_progress",
+                        "debug",
+                        "blocked",
+                        "wait_for_admin"
+                    ]
+                },
                 "comment": {
                     "description": "Comment",
                     "type": "string"
@@ -659,16 +694,6 @@ const docTemplateIUF = `{
                 "start_time": {
                     "description": "Epoch timestamp",
                     "type": "integer"
-                },
-                "state": {
-                    "description": "State of Activity",
-                    "type": "string",
-                    "enum": [
-                        "paused",
-                        "in_progress",
-                        "debug",
-                        "completed"
-                    ]
                 }
             }
         },
@@ -682,6 +707,21 @@ const docTemplateIUF = `{
                 "start_time": {
                     "description": "Epoch timestamp",
                     "type": "integer"
+                }
+            }
+        },
+        "History.HistoryRunActionRequest": {
+            "type": "object",
+            "required": [
+                "input_parameters"
+            ],
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                },
+                "input_parameters": {
+                    "$ref": "#/definitions/InputParameters"
                 }
             }
         },

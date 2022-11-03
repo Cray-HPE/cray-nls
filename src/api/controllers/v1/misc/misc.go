@@ -26,7 +26,7 @@ package controllers_v1
 import (
 	"net/http"
 
-	"github.com/Cray-HPE/cray-nls/src/api/services"
+	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -37,12 +37,12 @@ const VERSION string = "development"
 
 // MiscController data type
 type MiscController struct {
-	workflowService services.WorkflowService
+	workflowService services_shared.WorkflowService
 	logger          utils.Logger
 }
 
 // NewMiscController creates new Misc controller
-func NewMiscController(workflowService services.WorkflowService, logger utils.Logger) MiscController {
+func NewMiscController(workflowService services_shared.WorkflowService, logger utils.Logger) MiscController {
 	return MiscController{
 		workflowService: workflowService,
 		logger:          logger,

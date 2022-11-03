@@ -27,10 +27,11 @@ package iuf
 
 // History
 type History struct {
-	State       ActivityState `json:"state" enums:"paused,in_progress,debug,completed"` // State of Activity
-	SessionName string        `json:"session_name"`                                     // Name of the session
-	StartTime   int32         `json:"start_time"`                                       // Epoch timestamp
-	Comment     string        `json:"comment"`                                          // Comment
+	ActivityState ActivityState `json:"activity_state" binding:"required" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
+	SessionName   string        `json:"session_name"`                                                                              // Name of the session
+	StartTime     int32         `json:"start_time"`                                                                                // Epoch timestamp
+	Comment       string        `json:"comment"`                                                                                   // Comment
+	Name          string        `json:"name"`                                                                                      // Comment
 } // @name History
 
 type ReplaceHistoryCommentRequest struct {
@@ -41,3 +42,8 @@ type HistoryActionRequest struct {
 	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
 	Comment   string `json:"comment" validate:"optional"`    // Comment
 } // @name History.HistoryActionRequest
+
+type HistoryRunActionRequest struct {
+	InputParameters InputParameters `json:"input_parameters" binding:"required"`
+	Comment         string          `json:"comment" validate:"optional"` // Comment
+} // @name History.HistoryRunActionRequest

@@ -29,20 +29,21 @@ import (
 	"fmt"
 
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
+	services_nls "github.com/Cray-HPE/cray-nls/src/api/services/nls"
+	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // NcnController data type
 type NcnController struct {
-	workflowService services.WorkflowService
+	workflowService services_shared.WorkflowService
 	logger          utils.Logger
 	validator       utils.Validator
 }
 
 // NewNcnController creates new Ncn controller
-func NewNcnController(workflowService services.WorkflowService, ncnService services.NcnService, logger utils.Logger) NcnController {
+func NewNcnController(workflowService services_shared.WorkflowService, ncnService services_nls.NcnService, logger utils.Logger) NcnController {
 	return NcnController{
 		workflowService: workflowService,
 		logger:          logger,

@@ -26,7 +26,11 @@
 package iuf
 
 import (
+	"fmt"
+	"net/http"
+
 	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,10 +41,16 @@ import (
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []iuf.Session
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/sessions [get]
 func (u IufController) ListSessions(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	res, err := u.iufService.ListSessions(c.Param("activity_name"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 // GetSession
@@ -51,8 +61,14 @@ func (u IufController) ListSessions(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.Session
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
 func (u IufController) GetSession(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	res, err := u.iufService.GetSession(c.Param("activity_name"), c.Param("session_name"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }

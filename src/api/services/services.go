@@ -23,13 +23,18 @@
 //
 package services
 
-import "go.uber.org/fx"
+import (
+	iuf "github.com/Cray-HPE/cray-nls/src/api/services/iuf"
+	nls "github.com/Cray-HPE/cray-nls/src/api/services/nls"
+	shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
+	"go.uber.org/fx"
+)
 
 // Module exports services present
 var Module = fx.Options(
-	fx.Provide(NewNcnService),
-	fx.Provide(NewWorkflowService),
-	fx.Provide(NewArgoService),
-	fx.Provide(NewIufService),
-	fx.Invoke(NewWorkflowService),
+	fx.Provide(nls.NewNcnService),
+	fx.Provide(shared.NewWorkflowService),
+	fx.Provide(shared.NewArgoService),
+	fx.Provide(iuf.NewIufService),
+	fx.Invoke(shared.NewWorkflowService),
 )

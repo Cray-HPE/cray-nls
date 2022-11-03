@@ -42,11 +42,17 @@ func (s IufRoutes) Setup() {
 	s.logger.Info("Setting up routes")
 	api := s.handler.Gin.Group("/apis/iuf/v1")
 	{
+		// activities CRUD
 		api.POST("/activities", s.iufController.CreateActivity)
 		api.GET("/activities", s.iufController.ListActivities)
 		api.GET("/activities/:activity_name", s.iufController.GetActivity)
 		api.PATCH("/activities/:activity_name", s.iufController.PatchActivity)
-
+		// history CRUD
+		api.GET("/activities/:activity_name/history", s.iufController.ListHistory)
+		api.POST("/activities/:activity_name/history/run", s.iufController.HistoryRunAction)
+		// session CRUD
+		api.GET("/activities/:activity_name/sessions", s.iufController.ListSessions)
+		api.GET("/activities/:activity_name/sessions/:session_name", s.iufController.GetSession)
 	}
 }
 

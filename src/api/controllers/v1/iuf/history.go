@@ -26,20 +26,31 @@
 package iuf
 
 import (
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"fmt"
+	"net/http"
+
+	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // ListHistory
 // @Summary  List history of an iuf activity
+// @Param    activity_name  path  string  true  "activity name"
 // @Tags     History
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  []iuf.History
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_id}/history [get]
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name}/history [get]
 func (u IufController) ListHistory(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	res, err := u.iufService.ListActivityHistory(c.Param("activity_name"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 // GetHistory
@@ -71,16 +82,29 @@ func (u IufController) ReplaceHistoryComment(c *gin.Context) {
 
 // HistoryRunAction
 // @Summary  Run a session
-// @Param    activity_name   path  string                    true  "activity name"
-// @Param    action_request  body  iuf.HistoryActionRequest  true  "Action Request"
+// @Param    activity_name   path  string                       true  "activity name"
+// @Param    action_request  body  iuf.HistoryRunActionRequest  true  "Action Request"
 // @Tags     History
 // @Accept   json
 // @Produce  json
 // @Success  201  "Created"
-// @Failure  501  "Not Implemented"
+// @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/history/run [post]
 func (u IufController) HistoryRunAction(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.HistoryRunActionRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	err := u.iufService.HistoryRunAction(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+	}
+	c.JSON(http.StatusCreated, nil)
 }
 
 // HistoryBlockedAction

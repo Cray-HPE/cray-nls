@@ -44,6 +44,6 @@ go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
 
 
 # mockgen
-~/go/bin/mockgen -destination=src/api/mocks/services/workflow.go -package=mocks -source=src/api//services/workflow.go
-~/go/bin/mockgen -destination=src/api/mocks/services/iuf.go -package=mocks -source=src/api//services/iuf.go
-~/go/bin/mockgen -destination=src/api/mocks/services/ncn.go -package=mocks -source=src/api//services/ncn.go
+~/go/bin/mockgen -destination=src/api/mocks/services/workflow.go -package=mocks -source=src/api/services/shared/workflow.go
+~/go/bin/mockgen -destination=src/api/mocks/services/iuf.go -package=mocks -source=src/api/services/iuf/iuf.go
+~/go/bin/mockgen -destination=src/api/mocks/services/ncn.go -package=mocks -source=src/api/services/nls/ncn.go
