@@ -87,6 +87,9 @@ definitions:
       comment:
         description: Comment
         type: string
+      name:
+        description: Comment
+        type: string
       session_name:
         description: Name of the session
         type: string
@@ -190,6 +193,8 @@ definitions:
         type: string
       input_parameters:
         $ref: '#/definitions/InputParameters'
+      name:
+        type: string
       products:
         items:
           $ref: '#/definitions/Product'

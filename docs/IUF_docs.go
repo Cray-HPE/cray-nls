@@ -687,6 +687,10 @@ const docTemplateIUF = `{
                     "description": "Comment",
                     "type": "string"
                 },
+                "name": {
+                    "description": "Comment",
+                    "type": "string"
+                },
                 "session_name": {
                     "description": "Name of the session",
                     "type": "string"
@@ -831,6 +835,9 @@ const docTemplateIUF = `{
                 },
                 "input_parameters": {
                     "$ref": "#/definitions/InputParameters"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "products": {
                     "type": "array",
