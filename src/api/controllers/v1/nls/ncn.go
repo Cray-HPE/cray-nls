@@ -42,7 +42,7 @@ type NcnController struct {
 }
 
 // NewNcnController creates new Ncn controller
-func NewNcnController(workflowService services.WorkflowService, logger utils.Logger) NcnController {
+func NewNcnController(workflowService services.WorkflowService, ncnService services.NcnService, logger utils.Logger) NcnController {
 	return NcnController{
 		workflowService: workflowService,
 		logger:          logger,

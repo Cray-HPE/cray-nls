@@ -58,7 +58,7 @@ func TestNcnsCreateRebuildWorkflow(t *testing.T) {
 
 		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(requestBody))
 
-		ginEngine.POST("/v1/ncns/rebuild", NewNcnController(workflowService, *utils.GetLogger().GetGinLogger().Logger).NcnsCreateRebuildWorkflow)
+		ginEngine.POST("/v1/ncns/rebuild", NewNcnController(workflowService, mocks.NewMockNcnService, *utils.GetLogger().GetGinLogger().Logger).NcnsCreateRebuildWorkflow)
 		ginEngine.ServeHTTP(response, context.Request)
 		return response
 	}

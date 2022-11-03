@@ -23,18 +23,82 @@
 //
 package services
 
+//go:generate mockgen -destination=../mocks/services/ncn.go -package=mocks -source=ncn.go
+
 import (
+	"context"
+	"embed"
+	"os"
+	"time"
+
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/yaml"
 )
 
+//go:embed cray-nls.hpe.com_hooks.yaml
+var nlsHooksFS embed.FS
+
+type NcnService interface{}
+
 // NcnService service layer
-type NcnService struct {
-	logger utils.Logger
+type ncnService struct {
+	k8sRestClientSet *kubernetes.Clientset
+	logger           utils.Logger
 }
 
 // NewNcnService creates a new Ncnservice
 func NewNcnService(logger utils.Logger) NcnService {
-	return NcnService{
-		logger: logger,
+	var config *rest.Config
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		// use k3d kubeconfig in development mode
+		home, _ := os.UserHomeDir()
+		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
+		if err != nil {
+			panic(err.Error())
+		}
 	}
+	k8sRestClientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// initialize ncn hooks crd
+	_, err = k8sRestClientSet.
+		RESTClient().
+		Get().
+		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/hooks.cray-nls.hpe.com").
+		DoRaw(context.TODO())
+	if err == nil {
+		// delete existing crd before upgrade
+		_, err = k8sRestClientSet.
+			RESTClient().
+			Delete().
+			AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/hooks.cray-nls.hpe.com").
+			DoRaw(context.TODO())
+		if err != nil {
+			logger.Panic(err)
+		}
+		time.Sleep(5000 * time.Millisecond)
+	}
+	// create crd
+	hooksCrdBytes, _ := nlsHooksFS.ReadFile("cray-nls.hpe.com_hooks.yaml")
+	body, _ := yaml.YAMLToJSON(hooksCrdBytes)
+	_, err = k8sRestClientSet.
+		RESTClient().
+		Post().
+		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
+		Body(body).DoRaw(context.TODO())
+	if err != nil {
+		logger.Panic(err)
+	}
+
+	ncSvc := ncnService{
+		logger:           logger,
+		k8sRestClientSet: k8sRestClientSet,
+	}
+	return ncSvc
 }
