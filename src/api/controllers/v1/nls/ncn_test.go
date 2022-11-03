@@ -33,7 +33,6 @@ import (
 	"testing"
 
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -59,7 +58,7 @@ func TestNcnsCreateRebuildWorkflow(t *testing.T) {
 
 		context.Request, _ = http.NewRequest("POST", requestUrl, strings.NewReader(requestBody))
 
-		ginEngine.POST("/v1/ncns/rebuild", NewNcnController(workflowService, services.NewNcnService(*utils.GetLogger().GetGinLogger().Logger), *utils.GetLogger().GetGinLogger().Logger).NcnsCreateRebuildWorkflow)
+		ginEngine.POST("/v1/ncns/rebuild", NewNcnController(workflowService, mocks.NewMockNcnService, *utils.GetLogger().GetGinLogger().Logger).NcnsCreateRebuildWorkflow)
 		ginEngine.ServeHTTP(response, context.Request)
 		return response
 	}

@@ -23,6 +23,8 @@
 //
 package services
 
+//go:generate mockgen -destination=../mocks/services/ncn.go -package=mocks -source=ncn.go
+
 import (
 	"context"
 	"embed"
@@ -39,8 +41,10 @@ import (
 //go:embed cray-nls.hpe.com_hooks.yaml
 var nlsHooksFS embed.FS
 
+type NcnService interface{}
+
 // NcnService service layer
-type NcnService struct {
+type ncnService struct {
 	k8sRestClientSet *kubernetes.Clientset
 	logger           utils.Logger
 }
@@ -92,7 +96,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 		logger.Panic(err)
 	}
 
-	ncSvc := NcnService{
+	ncSvc := ncnService{
 		logger:           logger,
 		k8sRestClientSet: k8sRestClientSet,
 	}
