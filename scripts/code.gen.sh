@@ -40,7 +40,7 @@ swag init --md docs/ --outputTypes go,yaml \
 docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs
 
 go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.9.0
-~/go/bin/controller-gen crd webhook paths="./src/api/models/nls/v1/..." output:crd:artifacts:config="charts/v1.0/cray-nls/crds"
+~/go/bin/controller-gen crd webhook paths="./src/api/models/nls/v1/..." output:crd:artifacts:config="src/api/services"
 
 
 # mockgen
