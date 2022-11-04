@@ -38,18 +38,18 @@ func (m *MockWorkflowService) EXPECT() *MockWorkflowServiceMockRecorder {
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockWorkflowService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error) {
+func (m *MockWorkflowService) CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
+	ret := m.ctrl.Call(m, "CreateIufWorkflow", req, stageIndex)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateIufWorkflow indicates an expected call of CreateIufWorkflow.
-func (mr *MockWorkflowServiceMockRecorder) CreateIufWorkflow(req interface{}) *gomock.Call {
+func (mr *MockWorkflowServiceMockRecorder) CreateIufWorkflow(req, stageIndex interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIufWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateIufWorkflow), req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIufWorkflow", reflect.TypeOf((*MockWorkflowService)(nil).CreateIufWorkflow), req, stageIndex)
 }
 
 // CreateRebuildWorkflow mocks base method.

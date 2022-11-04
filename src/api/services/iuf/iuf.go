@@ -33,7 +33,6 @@ import (
 	"os"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -60,7 +59,11 @@ type IufService interface {
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
-	GetSession(activityName string, sessionName string) (iuf.Session, error)
+	GetSession(sessionName string) (iuf.Session, string, error)
+	// session operator
+	ConfigMapDataToSession(data string) (iuf.Session, error)
+	UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error
+	UpdateSession(session iuf.Session, activityRef string) error
 }
 
 // IufService service layer
@@ -71,7 +74,7 @@ type iufService struct {
 }
 
 // NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, env utils.Env) IufService {
+func NewIufService(logger utils.Logger, env utils.Env) IufService {
 
 	var config *rest.Config
 	config, err := rest.InClusterConfig()
@@ -87,7 +90,6 @@ func NewIufService(logger utils.Logger, argoService services_shared.ArgoService,
 	if err != nil {
 		panic(err.Error())
 	}
-
 	iufSvc := iufService{
 		logger:           logger,
 		k8sRestClientSet: k8sRestClientSet,

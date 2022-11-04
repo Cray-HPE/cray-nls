@@ -81,10 +81,10 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
 }
 
-func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_iuf.Session) ([]byte, error) {
+func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_iuf.Session, stageIndex int) ([]byte, error) {
 	tmpl := template.New("install.yaml")
 
-	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req)
+	return GetIufWorkflow(tmpl, iufInstallWorkflowFS, req, stageIndex)
 }
 
 func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
@@ -190,7 +190,7 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 	return tmpRes.Bytes(), nil
 }
 
-func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Session) ([]byte, error) {
+func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Session, stageIndex int) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
 	funcMap["include"] = func(name string, data interface{}) (string, error) {
@@ -209,13 +209,15 @@ func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Se
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, struct {
-		Products []models_iuf.Product
-		Stages   []string
-		DryRun   string
+		Products   []models_iuf.Product
+		Stages     []string
+		DryRun     string
+		StageInput string
 	}{
-		Products: req.Products,
-		Stages:   req.InputParameters.Stages,
-		DryRun:   "true", //todo
+		Products:   req.Products,
+		Stages:     []string{req.InputParameters.Stages[stageIndex]},
+		DryRun:     "true",
+		StageInput: "{}", //todo
 	})
 	if err != nil {
 		return nil, err

@@ -244,7 +244,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			workflowTemplateCient: wftServiceSclientMock,
 			env:                   utils.Env{WorkerRebuildWorkflowFiles: "badname"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{})
+		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{}, 0)
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package

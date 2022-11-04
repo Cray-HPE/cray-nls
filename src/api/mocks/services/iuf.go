@@ -34,6 +34,21 @@ func (m *MockIufService) EXPECT() *MockIufServiceMockRecorder {
 	return m.recorder
 }
 
+// ConfigMapDataToSession mocks base method.
+func (m *MockIufService) ConfigMapDataToSession(data string) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConfigMapDataToSession", data)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ConfigMapDataToSession indicates an expected call of ConfigMapDataToSession.
+func (mr *MockIufServiceMockRecorder) ConfigMapDataToSession(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConfigMapDataToSession", reflect.TypeOf((*MockIufService)(nil).ConfigMapDataToSession), data)
+}
+
 // CreateActivity mocks base method.
 func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) error {
 	m.ctrl.T.Helper()
@@ -64,18 +79,19 @@ func (mr *MockIufServiceMockRecorder) GetActivity(name interface{}) *gomock.Call
 }
 
 // GetSession mocks base method.
-func (m *MockIufService) GetSession(activityName, sessionName string) (iuf.Session, error) {
+func (m *MockIufService) GetSession(sessionName string) (iuf.Session, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSession", activityName, sessionName)
+	ret := m.ctrl.Call(m, "GetSession", sessionName)
 	ret0, _ := ret[0].(iuf.Session)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetSession indicates an expected call of GetSession.
-func (mr *MockIufServiceMockRecorder) GetSession(activityName, sessionName interface{}) *gomock.Call {
+func (mr *MockIufServiceMockRecorder) GetSession(sessionName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockIufService)(nil).GetSession), activityName, sessionName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockIufService)(nil).GetSession), sessionName)
 }
 
 // HistoryRunAction mocks base method.
@@ -150,4 +166,32 @@ func (m *MockIufService) PatchActivity(name string, req iuf.PatchActivityRequest
 func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), name, req)
+}
+
+// UpdateActivityStateFromSessionState mocks base method.
+func (m *MockIufService) UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateActivityStateFromSessionState", session, activityRef)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateActivityStateFromSessionState indicates an expected call of UpdateActivityStateFromSessionState.
+func (mr *MockIufServiceMockRecorder) UpdateActivityStateFromSessionState(session, activityRef interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateActivityStateFromSessionState", reflect.TypeOf((*MockIufService)(nil).UpdateActivityStateFromSessionState), session, activityRef)
+}
+
+// UpdateSession mocks base method.
+func (m *MockIufService) UpdateSession(session iuf.Session, activityRef string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSession", session, activityRef)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSession indicates an expected call of UpdateSession.
+func (mr *MockIufServiceMockRecorder) UpdateSession(session, activityRef interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockIufService)(nil).UpdateSession), session, activityRef)
 }

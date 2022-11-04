@@ -29,8 +29,9 @@ import (
 	"fmt"
 	"net/http"
 
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 )
 
@@ -65,7 +66,7 @@ func (u IufController) ListSessions(c *gin.Context) {
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
 func (u IufController) GetSession(c *gin.Context) {
-	res, err := u.iufService.GetSession(c.Param("activity_name"), c.Param("session_name"))
+	res, _, err := u.iufService.GetSession(c.Param("session_name"))
 	if err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -73,4 +74,93 @@ func (u IufController) GetSession(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
+}
+
+func (u IufController) Sync(c *gin.Context) {
+	var requestBody iuf.SyncRequest
+	// var response v1.SyncResponse
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		c.JSON(500, fmt.Sprint(err))
+		return
+	}
+	session, activityRef, err := u.iufService.GetSession(requestBody.Object.Name)
+	if err != nil {
+		u.logger.Error(err)
+		c.JSON(500, fmt.Sprint(err))
+		return
+	}
+	var response iuf.SyncResponse
+	switch session.CurrentState {
+	case "":
+		u.logger.Infof("State is empty, creating workflow: %s", session.Name)
+		// get list of stages
+		stages := session.InputParameters.Stages
+		workflow, err := u.workflowService.CreateIufWorkflow(session, 0)
+		if err != nil {
+			u.logger.Error(err)
+			c.JSON(500, fmt.Sprint(err))
+			return
+		}
+		u.logger.Infof("workflow: %s has been created", workflow.Name)
+
+		session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflow.Name})
+		session.CurrentStage = stages[0]
+		session.CurrentState = iuf.SessionStateInProgress
+		u.logger.Infof("Update activity state, session state: %s", session.CurrentState)
+		err = u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
+		if err != nil {
+			u.logger.Error(err)
+			c.JSON(500, fmt.Sprint(err))
+			return
+		}
+		u.logger.Infof("Update session: %v", session)
+		err = u.iufService.UpdateSession(session, activityRef)
+		if err != nil {
+			u.logger.Error(err)
+			c.JSON(500, fmt.Sprint(err))
+			return
+		}
+		response = iuf.SyncResponse{
+			ResyncAfterSeconds: 5,
+		}
+		c.JSON(200, response)
+		return
+	case iuf.SessionStateInProgress:
+		activeWorkflowInfo := session.Workflows[len(session.Workflows)-1]
+		activeWorkflow, _ := u.workflowService.GetWorkflowByName(activeWorkflowInfo.Id, c)
+		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
+			u.logger.Infof("Workflow is still running: %s", activeWorkflowInfo.Id)
+			response = iuf.SyncResponse{
+				ResyncAfterSeconds: 5,
+			}
+			c.JSON(200, response)
+			return
+		}
+		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
+			u.logger.Infof("Workflow is in failed/error state: %s", activeWorkflowInfo.Id)
+			session.CurrentState = iuf.SessionStateDebug
+			u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
+			u.iufService.UpdateSession(session, activityRef)
+			response = iuf.SyncResponse{
+				ResyncAfterSeconds: 0,
+			}
+			c.JSON(200, response)
+			return
+		}
+		// todo: move to next stage or complete
+	case iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
+		u.logger.Infof("session state: %s", session.CurrentState)
+		response = iuf.SyncResponse{
+			ResyncAfterSeconds: 0,
+		}
+		c.JSON(200, response)
+		return
+	default:
+		err := fmt.Errorf("unknow state: session.CurrentState")
+		u.logger.Error(err)
+		c.JSON(500, utils.ResponseError{Message: fmt.Sprint(err)})
+		return
+	}
+	c.JSON(500, nil)
 }
