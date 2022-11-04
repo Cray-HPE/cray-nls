@@ -23,9 +23,7 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package services
-
-//go:generate mockgen -destination=../mocks/services/iuf.go -package=mocks -source=iuf.go
+package services_iuf
 
 import (
 	"archive/tar"
@@ -38,88 +36,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/google/uuid"
 	"gopkg.in/yaml.v2"
-	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
-
-const (
-	DEFAULT_NAMESPACE      = "argo"
-	LABEL_ACTIVITY         = "iuf-activity"
-	CONFIGMAP_KEY_ACTIVITY = "Activity"
-)
-
-type IufService interface {
-	GetSessionsByActivityName(activityName string) ([]iuf.Session, error)
-	CreateActivity(req iuf.CreateActivityRequest) error
-	ListActivities() ([]iuf.Activity, error)
-	GetActivity(name string) (iuf.Activity, error)
-	PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error)
-}
-
-// IufService service layer
-type iufService struct {
-	logger           utils.Logger
-	k8sRestClientSet *kubernetes.Clientset
-	env              utils.Env
-}
-
-// NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, argoService ArgoService, env utils.Env) IufService {
-
-	var config *rest.Config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		// use k3d kubeconfig in development mode
-		home, _ := os.UserHomeDir()
-		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	k8sRestClientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	iufSvc := iufService{
-		logger:           logger,
-		k8sRestClientSet: k8sRestClientSet,
-		env:              env,
-	}
-	return iufSvc
-}
-
-func (s iufService) GetSessionsByActivityName(activityName string) ([]iuf.Session, error) {
-	var mySessions []iuf.Session
-	if s.k8sRestClientSet == nil {
-		return mySessions, nil
-	}
-
-	sessions, err := s.k8sRestClientSet.
-		RESTClient().Get().
-		AbsPath("/apis/iuf.hpe.com/v1").
-		Resource("sessions").
-		Param("labelSelector", fmt.Sprintf("activityName=%s", activityName)).
-		DoRaw(context.TODO())
-	if err != nil {
-		s.logger.Error(err)
-		return mySessions, err
-	}
-
-	err = json.Unmarshal(sessions, &mySessions)
-	if err != nil {
-		s.logger.Error(err)
-		return mySessions, err
-	}
-	return mySessions, nil
-}
 
 func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 	// construct activity object from create req
@@ -138,13 +61,12 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 		return err
 	}
 
-	// convert activity to k8s configmap object
-	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name)
+	// store activity
+	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
-	// store activity
 	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
@@ -153,7 +75,33 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 			&configmap,
 			v1.CreateOptions{},
 		)
-	// TODO: add activity history
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	// store history
+	name := activity.Name + "-" + uuid.NewString()
+	iufHistory := iuf.History{
+		ActivityState: iuf.ActivityStateWaitForAdmin,
+		StartTime:     int32(time.Now().UnixMilli()),
+		Name:          name,
+	}
+	configmap, err = s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Create(
+			context.TODO(),
+			&configmap,
+			v1.CreateOptions{},
+		)
+
 	return err
 }
 
@@ -171,7 +119,7 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 		return iuf.Activity{}, err
 	}
 
-	res, err := s.configMapDataToActivity(rawConfigMapData.Data[CONFIGMAP_KEY_ACTIVITY])
+	res, err := s.configMapDataToActivity(rawConfigMapData.Data[LABEL_ACTIVITY])
 	if err != nil {
 		s.logger.Error(err)
 		return res, err
@@ -190,7 +138,7 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 	// TODO: validate input parameters
 	// TODO: support partial update
 	tmp.InputParameters = req.InputParameters
-	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name)
+	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err
@@ -227,7 +175,7 @@ func (s iufService) ListActivities() ([]iuf.Activity, error) {
 	}
 	var res []iuf.Activity
 	for _, rawConfigMap := range rawConfigMapList.Items {
-		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[CONFIGMAP_KEY_ACTIVITY])
+		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[LABEL_ACTIVITY])
 		if err != nil {
 			s.logger.Error(err)
 			return []iuf.Activity{}, err
@@ -245,24 +193,6 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 		return res, err
 	}
 	return res, err
-}
-
-func (s iufService) iufObjectToConfigMapData(activity interface{}, name string) (core_v1.ConfigMap, error) {
-	reqBytes, err := json.Marshal(activity)
-	if err != nil {
-		s.logger.Error(err)
-		return core_v1.ConfigMap{}, err
-	}
-	res := core_v1.ConfigMap{
-		ObjectMeta: v1.ObjectMeta{
-			Name: name,
-			Labels: map[string]string{
-				"type": LABEL_ACTIVITY,
-			},
-		},
-		Data: map[string]string{CONFIGMAP_KEY_ACTIVITY: string(reqBytes)},
-	}
-	return res, nil
 }
 
 func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {

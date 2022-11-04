@@ -32,6 +32,7 @@ type Session struct {
 	CurrentStage    string            `json:"stage"`
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
+	Name            string            `json:"name"`
 } // @name Session
 
 type SessionState string

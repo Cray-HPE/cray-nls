@@ -75,7 +75,19 @@ definitions:
     type: object
   History:
     properties:
+      activity_state:
+        description: State of activity
+        enum:
+        - paused
+        - in_progress
+        - debug
+        - blocked
+        - wait_for_admin
+        type: string
       comment:
+        description: Comment
+        type: string
+      name:
         description: Comment
         type: string
       session_name:
@@ -84,14 +96,8 @@ definitions:
       start_time:
         description: Epoch timestamp
         type: integer
-      state:
-        description: State of Activity
-        enum:
-        - paused
-        - in_progress
-        - debug
-        - completed
-        type: string
+    required:
+    - activity_state
     type: object
   History.HistoryActionRequest:
     properties:
@@ -101,6 +107,16 @@ definitions:
       start_time:
         description: Epoch timestamp
         type: integer
+    type: object
+  History.HistoryRunActionRequest:
+    properties:
+      comment:
+        description: Comment
+        type: string
+      input_parameters:
+        $ref: '#/definitions/InputParameters'
+    required:
+    - input_parameters
     type: object
   History.ReplaceHistoryCommentRequest:
     properties:
@@ -177,6 +193,8 @@ definitions:
         type: string
       input_parameters:
         $ref: '#/definitions/InputParameters'
+      name:
+        type: string
       products:
         items:
           $ref: '#/definitions/Product'
@@ -248,24 +266,6 @@ paths:
       summary: Create an IUF activity
       tags:
       - Activities
-  /iuf/v1/activities/{activity_id}/history:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/History'
-            type: array
-        "501":
-          description: Not Implemented
-      summary: List history of an iuf activity
-      tags:
-      - History
   /iuf/v1/activities/{activity_id}/history/{start_time}:
     get:
       consumes:
@@ -368,6 +368,32 @@ paths:
       summary: Get an IUF activity
       tags:
       - Activities
+  /iuf/v1/activities/{activity_name}/history:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/History'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: List history of an iuf activity
+      tags:
+      - History
   /iuf/v1/activities/{activity_name}/history/abort:
     post:
       consumes:
@@ -487,14 +513,16 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryActionRequest'
+          $ref: '#/definitions/History.HistoryRunActionRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Run a session
       tags:
       - History
@@ -517,8 +545,10 @@ paths:
             items:
               $ref: '#/definitions/Session'
             type: array
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: List sessions of an IUF activity
       tags:
       - Sessions
@@ -544,8 +574,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/Session'
-        "501":
-          description: Not Implemented
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
       summary: Get a session of an IUF activity
       tags:
       - Sessions

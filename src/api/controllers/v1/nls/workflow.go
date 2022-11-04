@@ -27,19 +27,19 @@ import (
 	"fmt"
 
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
+	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
 // Controller data type
 type WorkflowController struct {
-	service services.WorkflowService
+	service services_shared.WorkflowService
 	logger  utils.Logger
 }
 
 // NewController creates new  controller
-func NewWorkflowController(Service services.WorkflowService, logger utils.Logger) WorkflowController {
+func NewWorkflowController(Service services_shared.WorkflowService, logger utils.Logger) WorkflowController {
 	return WorkflowController{
 		service: Service,
 		logger:  logger,

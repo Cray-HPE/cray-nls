@@ -27,19 +27,20 @@ package iuf
 
 import (
 	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/Cray-HPE/cray-nls/src/api/services"
+	services_iuf "github.com/Cray-HPE/cray-nls/src/api/services/iuf"
+	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 )
 
 // IufController data type
 type IufController struct {
-	workflowService services.WorkflowService
-	iufService      services.IufService
+	workflowService services_shared.WorkflowService
+	iufService      services_iuf.IufService
 	logger          utils.Logger
 }
 
 // NewIufController creates new Ncn controller
-func NewIufController(workflowService services.WorkflowService, iufService services.IufService, logger utils.Logger) IufController {
+func NewIufController(workflowService services_shared.WorkflowService, iufService services_iuf.IufService, logger utils.Logger) IufController {
 	return IufController{
 		workflowService: workflowService,
 		iufService:      iufService,
