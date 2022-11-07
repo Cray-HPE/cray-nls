@@ -93,7 +93,7 @@ func (u IufController) Sync(c *gin.Context) {
 	var response iuf.SyncResponse
 	switch session.CurrentState {
 	case "":
-		u.logger.Infof("State is empty, creating workflow: %s", session.Name)
+		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
 		// get list of stages
 		stages := session.InputParameters.Stages
 		workflow, err := u.workflowService.CreateIufWorkflow(session, 0)
@@ -138,22 +138,18 @@ func (u IufController) Sync(c *gin.Context) {
 			return
 		}
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
-			u.logger.Infof("Workflow is in failed/error state: %s", activeWorkflowInfo.Id)
+			u.logger.Infof("Workflow is in failed/error state: %s,resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
 			session.CurrentState = iuf.SessionStateDebug
 			u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
 			u.iufService.UpdateSession(session, activityRef)
-			response = iuf.SyncResponse{
-				ResyncAfterSeconds: 0,
-			}
+			response = iuf.SyncResponse{}
 			c.JSON(200, response)
 			return
 		}
 		// todo: move to next stage or complete
 	case iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
 		u.logger.Infof("session state: %s", session.CurrentState)
-		response = iuf.SyncResponse{
-			ResyncAfterSeconds: 0,
-		}
+		response = iuf.SyncResponse{}
 		c.JSON(200, response)
 		return
 	default:
@@ -162,5 +158,4 @@ func (u IufController) Sync(c *gin.Context) {
 		c.JSON(500, utils.ResponseError{Message: fmt.Sprint(err)})
 		return
 	}
-	c.JSON(500, nil)
 }
