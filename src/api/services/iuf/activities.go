@@ -143,10 +143,13 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 	}
 	// TODO: validate input parameters
 	// support partial update
-	if err := mergo.Merge(&tmp.InputParameters, req.InputParameters, mergo.WithOverride); err != nil {
+	original := tmp.InputParameters
+	request := req.InputParameters
+	if err := mergo.Merge(&request, original); err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
+	tmp.InputParameters = request
 	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
