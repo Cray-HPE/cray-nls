@@ -25,7 +25,9 @@
  */
 package iuf
 
-import core_v1 "k8s.io/api/core/v1"
+import (
+	core_v1 "k8s.io/api/core/v1"
+)
 
 // IufSession
 type Session struct {

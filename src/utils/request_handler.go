@@ -46,7 +46,7 @@ type ResponseOk struct {
 // NewRequestHandler creates a new request handler
 func NewRequestHandler(logger Logger, env Env) RequestHandler {
 	gin.DefaultWriter = logger.GetGinLogger()
-	engine := gin.Default()
+	engine := gin.New()
 
 	engine.GET(
 		"/apis/nls/openapi/*any",

@@ -43,9 +43,6 @@ dependencies:
     # When his PR is merged
     version: "0.16.2"
     repository: https://argoproj.github.io/argo-helm
-  - name: metacontroller-helm
-    version: "v4.4.0"
-    repository: "oci://ghcr.io/metacontroller"
 maintainers:
   - name: Platform Engineering
     url: https://github.com/orgs/Cray-HPE/teams/platform-engineering
