@@ -63,7 +63,6 @@ func (s iufService) ListActivityHistory(activityName string) ([]iuf.History, err
 }
 
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
-	// todo: block run action if activity state is in progress
 	patchReq := iuf.PatchActivityRequest{InputParameters: req.InputParameters}
 	activity, err := s.PatchActivity(activityName, patchReq)
 	if err != nil {

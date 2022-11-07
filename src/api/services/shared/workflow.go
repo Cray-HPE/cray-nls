@@ -51,8 +51,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 type WorkflowService interface {
@@ -77,30 +75,16 @@ type workflowService struct {
 }
 
 // NewWorkflowService creates a new Workflowservice
-func NewWorkflowService(logger utils.Logger, argoService ArgoService, env utils.Env) WorkflowService {
+func NewWorkflowService(logger utils.Logger, argoService ArgoService, k8sSvc K8sService, env utils.Env) WorkflowService {
 
 	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
-	var config *rest.Config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		// use k3d kubeconfig in development mode
-		home, _ := os.UserHomeDir()
-		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	k8sRestClientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
 
 	workflowSvc := workflowService{
 		logger:                logger,
 		ctx:                   argoService.Context,
 		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
 		workflowTemplateCient: workflowTemplateCient,
-		k8sRestClientSet:      k8sRestClientSet,
+		k8sRestClientSet:      k8sSvc.Client,
 		env:                   env,
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()

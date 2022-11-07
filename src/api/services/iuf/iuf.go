@@ -30,15 +30,13 @@ package services_iuf
 import (
 	_ "embed"
 	"encoding/json"
-	"os"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -74,25 +72,11 @@ type iufService struct {
 }
 
 // NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, env utils.Env) IufService {
+func NewIufService(logger utils.Logger, k8sSvc services_shared.K8sService, env utils.Env) IufService {
 
-	var config *rest.Config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		// use k3d kubeconfig in development mode
-		home, _ := os.UserHomeDir()
-		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	k8sRestClientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
 	iufSvc := iufService{
 		logger:           logger,
-		k8sRestClientSet: k8sRestClientSet,
+		k8sRestClientSet: k8sSvc.Client,
 		env:              env,
 	}
 	return iufSvc
