@@ -96,7 +96,7 @@ func (u IufController) Sync(c *gin.Context) {
 		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
 		// get list of stages
 		stages := session.InputParameters.Stages
-		workflow, err := u.workflowService.CreateIufWorkflow(session, 0)
+		workflow, err := u.iufService.CreateIufWorkflow(session, 0)
 		if err != nil {
 			u.logger.Error(err)
 			c.JSON(500, fmt.Sprint(err))

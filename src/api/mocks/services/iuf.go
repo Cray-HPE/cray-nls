@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	v1alpha1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -61,6 +62,21 @@ func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) error {
 func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActivity", reflect.TypeOf((*MockIufService)(nil).CreateActivity), req)
+}
+
+// CreateIufWorkflow mocks base method.
+func (m *MockIufService) CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateIufWorkflow", req, stageIndex)
+	ret0, _ := ret[0].(*v1alpha1.Workflow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateIufWorkflow indicates an expected call of CreateIufWorkflow.
+func (mr *MockIufServiceMockRecorder) CreateIufWorkflow(req, stageIndex interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIufWorkflow", reflect.TypeOf((*MockIufService)(nil).CreateIufWorkflow), req, stageIndex)
 }
 
 // GetActivity mocks base method.

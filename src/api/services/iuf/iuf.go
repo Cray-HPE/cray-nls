@@ -34,6 +34,8 @@ import (
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -62,20 +64,23 @@ type IufService interface {
 	ConfigMapDataToSession(data string) (iuf.Session, error)
 	UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error
 	UpdateSession(session iuf.Session, activityRef string) error
+	CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error)
 }
 
 // IufService service layer
 type iufService struct {
 	logger           utils.Logger
+	workflowCient    workflow.WorkflowServiceClient
 	k8sRestClientSet *kubernetes.Clientset
 	env              utils.Env
 }
 
 // NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, k8sSvc services_shared.K8sService, env utils.Env) IufService {
+func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, k8sSvc services_shared.K8sService, env utils.Env) IufService {
 
 	iufSvc := iufService{
 		logger:           logger,
+		workflowCient:    argoService.Client.NewWorkflowServiceClient(),
 		k8sRestClientSet: k8sSvc.Client,
 		env:              env,
 	}

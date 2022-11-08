@@ -42,7 +42,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	models_iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -60,7 +59,6 @@ type WorkflowService interface {
 	RerunWorkflow(ctx *gin.Context) error
 	RetryWorkflow(ctx *gin.Context) error
 	CreateRebuildWorkflow(req models_nls.CreateRebuildWorkflowRequest) (*v1alpha1.Workflow, error)
-	CreateIufWorkflow(req models_iuf.Session, stageIndex int) (*v1alpha1.Workflow, error)
 	InitializeWorkflowTemplate(template []byte) error
 }
 
@@ -329,41 +327,6 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 	})
 	if err != nil {
 		s.logger.Errorf("Creating workflow for: %v FAILED", req.Hosts)
-		s.logger.Error(err)
-		return nil, err
-	}
-	return res, nil
-}
-
-func (s workflowService) CreateIufWorkflow(req models_iuf.Session, stageIndex int) (*v1alpha1.Workflow, error) {
-	var installWorkflow []byte
-	var getWorkflowErr error
-	installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)
-	installWorkflow, getWorkflowErr = argo_templates.GetIufInstallWorkflow(installWorkflowFS, req, stageIndex)
-	if getWorkflowErr != nil {
-		s.logger.Error(getWorkflowErr)
-		return nil, getWorkflowErr
-	}
-
-	jsonTmp, err := yaml.YAMLToJSONStrict(installWorkflow)
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-
-	var myWorkflow v1alpha1.Workflow
-	err = json.Unmarshal(jsonTmp, &myWorkflow)
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-
-	res, err := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
-		Namespace: "argo",
-		Workflow:  &myWorkflow,
-	})
-	if err != nil {
-		s.logger.Errorf("Creating workflow for: %v FAILED", req)
 		s.logger.Error(err)
 		return nil, err
 	}

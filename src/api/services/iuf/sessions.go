@@ -30,11 +30,16 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
+	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 func (s iufService) GetSession(sessionName string) (iuf.Session, string, error) {
@@ -173,4 +178,39 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, act
 		)
 
 	return err
+}
+
+func (s iufService) CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error) {
+	var installWorkflow []byte
+	var getWorkflowErr error
+	installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)
+	installWorkflow, getWorkflowErr = argo_templates.GetIufInstallWorkflow(installWorkflowFS, req, stageIndex)
+	if getWorkflowErr != nil {
+		s.logger.Error(getWorkflowErr)
+		return nil, getWorkflowErr
+	}
+
+	jsonTmp, err := yaml.YAMLToJSONStrict(installWorkflow)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+
+	var myWorkflow v1alpha1.Workflow
+	err = json.Unmarshal(jsonTmp, &myWorkflow)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
+
+	res, err := s.workflowCient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
+		Namespace: "argo",
+		Workflow:  &myWorkflow,
+	})
+	if err != nil {
+		s.logger.Errorf("Creating workflow for: %v FAILED", req)
+		s.logger.Error(err)
+		return nil, err
+	}
+	return res, nil
 }

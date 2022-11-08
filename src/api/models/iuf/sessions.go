@@ -27,6 +27,7 @@ package iuf
 
 import (
 	core_v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 // IufSession
@@ -59,4 +60,38 @@ type SyncRequest struct {
 
 type SyncResponse struct {
 	ResyncAfterSeconds int `json:"resyncAfterSeconds,omitempty"`
+}
+
+type StageInputs struct {
+	ProductManifest ProductManifest `json:"product_manifest"`
+	InputParams     InputParams     `json:"input_params"`
+	StageParams     StageParams     `json:"stage_params"`
+}
+
+type ProductManifest struct {
+	Products       map[string]unstructured.Unstructured `json:"products"`
+	CurrentProduct map[string]unstructured.Unstructured `json:"current_product"`
+}
+
+type InputParams struct {
+	Producs        []string `json:"products"`
+	MediaDir       string   `json:"media_dir"`
+	SiteParameters struct {
+		Global         map[string]unstructured.Unstructured `json:"global"`
+		Products       map[string]unstructured.Unstructured `json:"products"`
+		CurrentProduct map[string]unstructured.Unstructured `json:"current_product"`
+	} `json:"site_parameters"`
+	BootstrapConfigManaged struct {
+		Contents string `json:"contents"`
+	} `json:"bootprep_config_managed"`
+	BootstrapConfigManagement struct {
+		Contents string `json:"contents"`
+	} `json:"bootprep_config_management"`
+	LimitNodes []string `json:"limit_nodes"`
+}
+
+type StageParams map[string]struct {
+	Global         map[string]unstructured.Unstructured `json:"global"`
+	Products       map[string]unstructured.Unstructured `json:"products"`
+	CurrentProduct map[string]unstructured.Unstructured `json:"current_product"`
 }
