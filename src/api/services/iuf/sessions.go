@@ -36,8 +36,10 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/uuid"
+	yaml_v2 "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
 func (s iufService) GetSession(sessionName string) (iuf.Session, string, error) {
@@ -275,7 +277,6 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 			for index, operation := range stageInfo.Operations {
 				task := v1alpha1.DAGTask{
 					Name: product.Name + "-" + operation.Name,
-					//Template: stageInfo.Name,
 				}
 				// dep with a stage
 				if index != 0 {
@@ -283,7 +284,8 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 						product.Name + "-" + stageInfo.Operations[index-1].Name,
 					}
 				}
-				b, _ := json.Marshal(product)
+				stageInputs := s.getStageInputs(session, product)
+				b, _ := json.Marshal(stageInputs)
 				task.Arguments = v1alpha1.Arguments{
 					Parameters: []v1alpha1.Parameter{
 						{
@@ -292,10 +294,6 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 						},
 						{
 							Name:  "stage_inputs",
-							Value: v1alpha1.AnyStringPtr("todo"), // todo generate input parameter
-						},
-						{
-							Name:  "product",
 							Value: v1alpha1.AnyStringPtr(string(b)),
 						},
 					},
@@ -314,39 +312,46 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 	return res
 }
 
-// func (s iufService) getOpeartions(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.Template {
-// 	res := []v1alpha1.Template{}
-// 	return res
-// }
+func (s iufService) getStageInputs(session iuf.Session, in_product iuf.Product) map[string]interface{} {
+	res := map[string]interface{}{
+		"products":     make(map[string]interface{}),
+		"input_params": make(map[string]interface{}),
+		//"site_params":  make(map[string]interface{}),
+	}
 
-// dag:
-// 	tasks:
-// 	# process each product defined in iuf session
-// 	{{ range $indexProduct,$product := $.Products }}
-// 	# generate tasks based on stages defined in iuf session
-// 	# Special handling:
-// 	#   1. rolling-reboot is a global step that should run only once
-// 	#   2. post-install-check should happen:
-// 	#       2.1 after rolling-reboot if it is defined
-// 	#       2.1 after other stages if rolling-reboot is NOT defined
-// 		{{ range $indexStage,$stage := $.Stages }}
-// 		{{ if and (ne $stage "rolling-reboot") (ne $stage "post-install-check") }}
-// 			{{ if ne $stage "sat-bootprep" }}
-// 	- name: {{$product.Name}}-{{$stage}}
-// 		template: {{$stage}}
-// 			{{ if ne $indexStage 0 }}
-// 		dependencies:
-// 		- {{$product.Name}}-{{ index $.Stages (add $indexStage -1) }}
-// 			{{ end }}
-// 		arguments:
-// 		parameters:
-// 		- name: product
-// 			value: {{$product.Name}}
-// 		- name: stageInput
-// 			value: {{$product.StageInput}}
-// 		- name: dryRun
-// 			value: "{{$.DryRun}}"
-// 			{{ end }}
-// 		{{ end }}
-// 		{{ end }}
-// 	{{ end }}
+	// products
+	var productsArray []string
+	resProducts := make(map[string]interface{})
+	var currentProductManifest map[string]interface{}
+	for _, product := range session.Products {
+		manifest, _ := s.extractManifestFromTarballFile(product.OriginalLocation)
+		manifestBytes, _ := yaml_v2.Marshal(manifest)
+		manifestJsonBytes, _ := yaml.YAMLToJSON(manifestBytes)
+		var manifestJson map[string]interface{}
+		json.Unmarshal(manifestJsonBytes, &manifestJson)
+		if product.Name == in_product.Name {
+			currentProductManifest = manifestJson
+		}
+		resProducts[product.Name] = map[string]interface{}{
+			"manifest":          manifestJson,
+			"original_location": product.OriginalLocation,
+		}
+		productsArray = append(productsArray, product.Name)
+	}
+	resProducts["current_product"] = map[string]interface{}{
+		"name":              in_product.Name,
+		"manifest":          currentProductManifest,
+		"original_location": in_product.OriginalLocation,
+	}
+	res["products"] = resProducts
+	res["input_params"] = map[string]interface{}{
+		"products":  productsArray,
+		"media_dir": session.InputParameters.MediaDir,
+		//todo: site_parameters
+		//todo: bootprep_config_managed
+		//todo: bootprep_config_management
+		"limit_nodes": session.InputParameters.LimitNodes,
+	}
+	//todo: stage params
+	return res
+}
