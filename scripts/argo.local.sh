@@ -34,7 +34,7 @@ if [[ $? -ne 0 ]]; then
         -a 3 \
         --agents-memory 1g \
         --servers-memory 1g \
-        -v "$HOME/iuf:/iuf" \
+        -v "$HOME/iuf:/etc/iuf" \
         --no-lb \
         --k3s-arg "--node-name=ncn-w001"@agent:0 \
         --k3s-arg "--node-name=ncn-w002"@agent:1 \

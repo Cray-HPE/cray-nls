@@ -23,39 +23,17 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package services_iuf
+package iuf
 
-import (
-	"testing"
-
-	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/alecthomas/assert"
-	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/stretchr/testify/mock"
-)
-
-func TestCreateIufWorkflow(t *testing.T) {
-
-	t.Run("It can create a new iuf workflow", func(t *testing.T) {
-		// setup mocks
-		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
-		wfServiceClientMock.On(
-			"CreateWorkflow",
-			mock.Anything,
-			mock.Anything,
-		).Return(new(v1alpha1.Workflow), nil)
-
-		workflowSvc := iufService{
-			logger:        utils.GetLogger(),
-			workflowCient: wfServiceClientMock,
-			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname"},
-		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{})
-
-		// we don't actually test the template render/upload
-		// this is tested in the render package
-		assert.Contains(t, err.Error(), "template: pattern matches no files: `*.yaml`")
-	})
-}
+// Stage
+type Stage struct {
+	Name       string `json:"name"` // Name of the stage
+	Type       string `json:"type"` // Type of the stage
+	Operations []struct {
+		Name      string `json:"name"`       // Name of the opeartion
+		LocalPath string `json:"local_path"` // Argo operation file path
+	} `json:"opeartions"` // operations
+	//TODO: implement following
+	// K8sConfigmap k8s_configmap string
+	// StaticParameters static_parameters object
+} // @name Stage

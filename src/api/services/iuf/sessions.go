@@ -30,16 +30,14 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
-	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/uuid"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/yaml"
 )
 
 func (s iufService) GetSession(sessionName string) (iuf.Session, string, error) {
@@ -180,37 +178,175 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, act
 	return err
 }
 
-func (s iufService) CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error) {
-	var installWorkflow []byte
-	var getWorkflowErr error
-	installWorkflowFS := os.DirFS(s.env.IufInstallWorkflowFiles)
-	installWorkflow, getWorkflowErr = argo_templates.GetIufInstallWorkflow(installWorkflowFS, req, stageIndex)
-	if getWorkflowErr != nil {
-		s.logger.Error(getWorkflowErr)
-		return nil, getWorkflowErr
-	}
-
-	jsonTmp, err := yaml.YAMLToJSONStrict(installWorkflow)
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-
-	var myWorkflow v1alpha1.Workflow
-	err = json.Unmarshal(jsonTmp, &myWorkflow)
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
+func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, error) {
+	myWorkflow := s.workflowGen(session)
 
 	res, err := s.workflowCient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
 		Workflow:  &myWorkflow,
 	})
 	if err != nil {
-		s.logger.Errorf("Creating workflow for: %v FAILED", req)
+		s.logger.Errorf("Creating workflow for: %v FAILED", session)
 		s.logger.Error(err)
 		return nil, err
 	}
 	return res, nil
 }
+
+func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
+	res := v1alpha1.Workflow{}
+	res.GenerateName = session.Name + "-"
+	res.ObjectMeta.Labels = map[string]string{"session": session.Name}
+	res.Spec.PodMetadata = &v1alpha1.Metadata{Annotations: map[string]string{"sidecar.istio.io/inject": "false"}}
+	hostPathDir := corev1.HostPathDirectory
+	res.Spec.Volumes = []corev1.Volume{
+		{
+			Name:         "iuf",
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/etc/iuf", Type: &hostPathDir}},
+		},
+		{
+			Name:         "ssh",
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/root/.ssh", Type: &hostPathDir}},
+		},
+		{
+			Name:         "host-usr-bin",
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/usr/bin", Type: &hostPathDir}},
+		},
+	}
+	res.Spec.PodPriorityClassName = "system-node-critical"
+	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
+	res.Spec.Tolerations = []corev1.Toleration{
+		{
+			Key:      "node-role.kubernetes.io/master",
+			Operator: corev1.TolerationOpExists,
+			Effect:   corev1.TaintEffectNoSchedule,
+		},
+	}
+	res.Spec.Affinity = &corev1.Affinity{
+		NodeAffinity: &corev1.NodeAffinity{
+			PreferredDuringSchedulingIgnoredDuringExecution: []corev1.PreferredSchedulingTerm{
+				{
+					Weight: 50,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{
+								Key:      "node-role.kubernetes.io/master",
+								Operator: corev1.NodeSelectorOpExists,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
+	res.Spec.Entrypoint = "main"
+	//todo: find stage info from stages.yaml
+	stageInfo := iuf.Stage{
+		Name: "process-media",
+		Type: "product",
+		Operations: []struct {
+			Name      string "json:\"name\""
+			LocalPath string "json:\"local_path\""
+		}{
+			{
+				Name:      "extract-release-distributions",
+				LocalPath: "operations/extract-release-distributions.yaml",
+			},
+		},
+	}
+	res.Spec.Templates = []v1alpha1.Template{
+		{
+			Name: "main",
+			DAG: &v1alpha1.DAGTemplate{
+				Tasks: s.getDagTasks(session, stageInfo),
+			},
+		},
+	}
+	return res
+}
+
+func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {
+	res := []v1alpha1.DAGTask{}
+	stage := session.InputParameters.Stages[len(session.Workflows)]
+	s.logger.Infof("create DAG for stage: %s", stage)
+	if stageInfo.Type == "product" {
+		for _, product := range session.Products {
+			for index, operation := range stageInfo.Operations {
+				task := v1alpha1.DAGTask{
+					Name: product.Name + "-" + operation.Name,
+					//Template: stageInfo.Name,
+				}
+				// dep with a stage
+				if index != 0 {
+					task.Dependencies = []string{
+						product.Name + "-" + stageInfo.Operations[index-1].Name,
+					}
+				}
+				b, _ := json.Marshal(product)
+				task.Arguments = v1alpha1.Arguments{
+					Parameters: []v1alpha1.Parameter{
+						{
+							Name:  "auth_token",
+							Value: v1alpha1.AnyStringPtr("todo"), // todo token
+						},
+						{
+							Name:  "stage_inputs",
+							Value: v1alpha1.AnyStringPtr("todo"), // todo generate input parameter
+						},
+						{
+							Name:  "product",
+							Value: v1alpha1.AnyStringPtr(string(b)),
+						},
+					},
+				}
+				task.TemplateRef = &v1alpha1.TemplateRef{
+					Name:     operation.Name,
+					Template: "main",
+				}
+				res = append(res, task)
+			}
+		}
+
+	} else {
+		s.logger.Infof("TODO: support global stage: %s", stageInfo.Type)
+	}
+	return res
+}
+
+// func (s iufService) getOpeartions(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.Template {
+// 	res := []v1alpha1.Template{}
+// 	return res
+// }
+
+// dag:
+// 	tasks:
+// 	# process each product defined in iuf session
+// 	{{ range $indexProduct,$product := $.Products }}
+// 	# generate tasks based on stages defined in iuf session
+// 	# Special handling:
+// 	#   1. rolling-reboot is a global step that should run only once
+// 	#   2. post-install-check should happen:
+// 	#       2.1 after rolling-reboot if it is defined
+// 	#       2.1 after other stages if rolling-reboot is NOT defined
+// 		{{ range $indexStage,$stage := $.Stages }}
+// 		{{ if and (ne $stage "rolling-reboot") (ne $stage "post-install-check") }}
+// 			{{ if ne $stage "sat-bootprep" }}
+// 	- name: {{$product.Name}}-{{$stage}}
+// 		template: {{$stage}}
+// 			{{ if ne $indexStage 0 }}
+// 		dependencies:
+// 		- {{$product.Name}}-{{ index $.Stages (add $indexStage -1) }}
+// 			{{ end }}
+// 		arguments:
+// 		parameters:
+// 		- name: product
+// 			value: {{$product.Name}}
+// 		- name: stageInput
+// 			value: {{$product.StageInput}}
+// 		- name: dryRun
+// 			value: "{{$.DryRun}}"
+// 			{{ end }}
+// 		{{ end }}
+// 		{{ end }}
+// 	{{ end }}

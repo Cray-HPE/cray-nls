@@ -64,7 +64,7 @@ type IufService interface {
 	ConfigMapDataToSession(data string) (iuf.Session, error)
 	UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error
 	UpdateSession(session iuf.Session, activityRef string) error
-	CreateIufWorkflow(req iuf.Session, stageIndex int) (*v1alpha1.Workflow, error)
+	CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error)
 }
 
 // IufService service layer
