@@ -27,13 +27,16 @@ package iuf
 
 // Stage
 type Stage struct {
-	Name       string `json:"name"` // Name of the stage
-	Type       string `json:"type"` // Type of the stage
+	Name       string `yaml:"name"` // Name of the stage
+	Type       string `yaml:"type"` // Type of the stage
 	Operations []struct {
-		Name      string `json:"name"`       // Name of the opeartion
-		LocalPath string `json:"local_path"` // Argo operation file path
-	} `json:"opeartions"` // operations
-	//TODO: implement following
-	// K8sConfigmap k8s_configmap string
-	// StaticParameters static_parameters object
+		Name      string `yaml:"name"`       // Name of the opeartion
+		LocalPath string `yaml:"local-path"` // Argo operation file path
+	} `yaml:"opeartions"` // operations
+	StaticParameters map[string]interface{} `yaml:"static-parameters"`
 } // @name Stage
+
+type Stages struct {
+	Version string  `yaml:"version"`
+	Stages  []Stage `yaml:"stages"`
+}

@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -243,19 +244,18 @@ func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
 	}
 	res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
 	res.Spec.Entrypoint = "main"
-	//todo: find stage info from stages.yaml
-	stageInfo := iuf.Stage{
-		Name: "process-media",
-		Type: "product",
-		Operations: []struct {
-			Name      string "json:\"name\""
-			LocalPath string "json:\"local_path\""
-		}{
-			{
-				Name:      "extract-release-distributions",
-				LocalPath: "operations/extract-release-distributions.yaml",
-			},
-		},
+
+	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
+	var stages iuf.Stages
+	err := yaml.Unmarshal(stagesBytes, &stages)
+	s.logger.Error(err)
+	stageName := session.InputParameters.Stages[len(session.Workflows)]
+	var stageInfo iuf.Stage
+	for _, stage := range stages.Stages {
+		if stage.Name == stageName {
+			stageInfo = stage
+			break
+		}
 	}
 	res.Spec.Templates = []v1alpha1.Template{
 		{
@@ -270,7 +270,7 @@ func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
 
 func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {
 	res := []v1alpha1.DAGTask{}
-	stage := session.InputParameters.Stages[len(session.Workflows)]
+	stage := stageInfo.Name
 	s.logger.Infof("create DAG for stage: %s", stage)
 	if stageInfo.Type == "product" {
 		for _, product := range session.Products {
