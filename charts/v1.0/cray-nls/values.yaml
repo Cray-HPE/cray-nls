@@ -53,14 +53,20 @@ cray-service:
     - name: iuf
       hostPath:
         path: /etc/iuf
+  tolerations:
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 50
           preference:
             matchExpressions:
-              - key: node-role.kubernetes.io/master
-                operator: Exists
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - ncn-m001
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
