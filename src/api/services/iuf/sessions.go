@@ -182,7 +182,11 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, act
 }
 
 func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, error) {
-	myWorkflow := s.workflowGen(session)
+	myWorkflow, err := s.workflowGen(session)
+	if err != nil {
+		s.logger.Error(err)
+		return nil, err
+	}
 
 	res, err := s.workflowCient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
@@ -196,7 +200,7 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 	return res, nil
 }
 
-func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
+func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) {
 	res := v1alpha1.Workflow{}
 	res.GenerateName = session.Name + "-"
 	res.ObjectMeta.Labels = map[string]string{"session": session.Name}
@@ -248,7 +252,10 @@ func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
 	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
 	var stages iuf.Stages
 	err := yaml.Unmarshal(stagesBytes, &stages)
-	s.logger.Error(err)
+	if err != nil {
+		s.logger.Error(err)
+		return v1alpha1.Workflow{}, err
+	}
 	stageName := session.InputParameters.Stages[len(session.Workflows)]
 	var stageInfo iuf.Stage
 	for _, stage := range stages.Stages {
@@ -256,6 +263,11 @@ func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
 			stageInfo = stage
 			break
 		}
+	}
+	if stageInfo.Name == "" {
+		err := fmt.Errorf("stage: %s is invalid", stageName)
+		s.logger.Error(err)
+		return v1alpha1.Workflow{}, err
 	}
 	res.Spec.Templates = []v1alpha1.Template{
 		{
@@ -265,7 +277,7 @@ func (s iufService) workflowGen(session iuf.Session) v1alpha1.Workflow {
 			},
 		},
 	}
-	return res
+	return res, nil
 }
 
 func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {

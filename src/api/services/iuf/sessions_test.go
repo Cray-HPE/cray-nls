@@ -50,12 +50,79 @@ func TestCreateIufWorkflow(t *testing.T) {
 		workflowSvc := iufService{
 			logger:        utils.GetLogger(),
 			workflowCient: wfServiceClientMock,
-			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname"},
+			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{})
+		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
-		assert.Contains(t, err.Error(), "template: pattern matches no files: `*.yaml`")
+		assert.Nil(t, err)
 	})
+	t.Run("It should not create a new iuf workflow with wrong stages.yaml", func(t *testing.T) {
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wfServiceClientMock.On(
+			"CreateWorkflow",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.Workflow), nil)
+
+		workflowSvc := iufService{
+			logger:        utils.GetLogger(),
+			workflowCient: wfServiceClientMock,
+			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+		}
+		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.NotNil(t, err)
+	})
+	t.Run("It should not create a new iuf workflow with wrong stage", func(t *testing.T) {
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wfServiceClientMock.On(
+			"CreateWorkflow",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.Workflow), nil)
+
+		workflowSvc := iufService{
+			logger:        utils.GetLogger(),
+			workflowCient: wfServiceClientMock,
+			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+		}
+		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.NotNil(t, err)
+	})
+}
+
+func TestGetDagTasks(t *testing.T) {
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	workflowSvc := iufService{
+		logger:        utils.GetLogger(),
+		workflowCient: wfServiceClientMock,
+		env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+	}
+	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
+		session := iuf.Session{
+			Products: []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{Name: "this_is_an_operationr_1"},
+				{Name: "this_is_an_operationr_2"},
+			},
+		}
+
+		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 4, len(dagTasks))
+	})
+
 }

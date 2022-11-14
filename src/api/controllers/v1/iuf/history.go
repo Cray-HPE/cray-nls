@@ -68,7 +68,7 @@ func (u IufController) GetHistory(c *gin.Context) {
 }
 
 // ReplaceHistoryComment
-// @Summary  Get a history item of an iuf activity
+// @Summary  replace comment of a history item of an iuf activity
 // @Param    start_time  path  string  true  "start time of a history item"
 // @Param    activity    body  iuf.ReplaceHistoryCommentRequest  true  "Modify comment of a history"
 // @Tags     History
