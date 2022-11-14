@@ -280,6 +280,37 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	return res, nil
 }
 
+func (s iufService) RunNextStage(session iuf.Session, activityRef string) (iuf.SyncResponse, error) {
+	// get list of stages
+	stages := session.InputParameters.Stages
+	workflow, err := s.CreateIufWorkflow(session)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.SyncResponse{}, err
+	}
+	s.logger.Infof("workflow: %s has been created", workflow.Name)
+
+	session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflow.Name})
+	session.CurrentStage = stages[len(session.Workflows)-1]
+	session.CurrentState = iuf.SessionStateInProgress
+	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
+	err = s.UpdateActivityStateFromSessionState(session, activityRef)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.SyncResponse{}, err
+	}
+	s.logger.Infof("Update session: %v", session)
+	err = s.UpdateSession(session, activityRef)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.SyncResponse{}, err
+	}
+	response := iuf.SyncResponse{
+		ResyncAfterSeconds: 5,
+	}
+	return response, nil
+}
+
 func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {
 	res := []v1alpha1.DAGTask{}
 	stage := stageInfo.Name

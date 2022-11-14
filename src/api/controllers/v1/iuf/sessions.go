@@ -78,7 +78,6 @@ func (u IufController) GetSession(c *gin.Context) {
 
 func (u IufController) Sync(c *gin.Context) {
 	var requestBody iuf.SyncRequest
-	// var response v1.SyncResponse
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		c.JSON(500, fmt.Sprint(err))
@@ -94,35 +93,9 @@ func (u IufController) Sync(c *gin.Context) {
 	switch session.CurrentState {
 	case "":
 		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
-		// get list of stages
-		stages := session.InputParameters.Stages
-		workflow, err := u.iufService.CreateIufWorkflow(session)
+		response, err := u.iufService.RunNextStage(session, activityRef)
 		if err != nil {
-			u.logger.Error(err)
 			c.JSON(500, fmt.Sprint(err))
-			return
-		}
-		u.logger.Infof("workflow: %s has been created", workflow.Name)
-
-		session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflow.Name})
-		session.CurrentStage = stages[0]
-		session.CurrentState = iuf.SessionStateInProgress
-		u.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-		err = u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
-		if err != nil {
-			u.logger.Error(err)
-			c.JSON(500, fmt.Sprint(err))
-			return
-		}
-		u.logger.Infof("Update session: %v", session)
-		err = u.iufService.UpdateSession(session, activityRef)
-		if err != nil {
-			u.logger.Error(err)
-			c.JSON(500, fmt.Sprint(err))
-			return
-		}
-		response = iuf.SyncResponse{
-			ResyncAfterSeconds: 5,
 		}
 		c.JSON(200, response)
 		return
@@ -146,7 +119,15 @@ func (u IufController) Sync(c *gin.Context) {
 			c.JSON(200, response)
 			return
 		}
-		// todo: move to next stage or complete
+		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
+			u.logger.Infof("Stage: %s is Succeeded, move to next stage", session.CurrentStage)
+			response, err := u.iufService.RunNextStage(session, activityRef)
+			if err != nil {
+				c.JSON(500, fmt.Sprint(err))
+			}
+			c.JSON(200, response)
+			return
+		}
 	case iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
 		u.logger.Infof("session state: %s", session.CurrentState)
 		response = iuf.SyncResponse{}
