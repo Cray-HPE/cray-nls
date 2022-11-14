@@ -52,7 +52,7 @@ cray-service:
         name: iuf-install-workflow-stages-files
   affinity:
     podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
+      requiredDuringSchedulingIgnoredDuringExecution:
         - topologyKey: kubernetes.io/hostname
           labelSelector:
             matchExpressions:
