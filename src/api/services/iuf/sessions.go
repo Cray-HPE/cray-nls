@@ -280,10 +280,10 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	return res, nil
 }
 
-func (s iufService) RunNextStage(session iuf.Session, activityRef string) (iuf.SyncResponse, error) {
+func (s iufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error) {
 	// get list of stages
 	stages := session.InputParameters.Stages
-	workflow, err := s.CreateIufWorkflow(session)
+	workflow, err := s.CreateIufWorkflow(*session)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err
@@ -294,13 +294,13 @@ func (s iufService) RunNextStage(session iuf.Session, activityRef string) (iuf.S
 	session.CurrentStage = stages[len(session.Workflows)-1]
 	session.CurrentState = iuf.SessionStateInProgress
 	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-	err = s.UpdateActivityStateFromSessionState(session, activityRef)
+	err = s.UpdateActivityStateFromSessionState(*session, activityRef)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err
 	}
 	s.logger.Infof("Update session: %v", session)
-	err = s.UpdateSession(session, activityRef)
+	err = s.UpdateSession(*session, activityRef)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err

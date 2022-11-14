@@ -63,7 +63,7 @@ spec:
       uri: /apis/iuf
     route:
       - destination:
-          host: cray-iuf
+          host: cray-nls
           port:
             number: 80
 {{- end -}}

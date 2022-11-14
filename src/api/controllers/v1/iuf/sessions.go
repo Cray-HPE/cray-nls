@@ -93,7 +93,7 @@ func (u IufController) Sync(c *gin.Context) {
 	switch session.CurrentState {
 	case "":
 		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
-		response, err := u.iufService.RunNextStage(session, activityRef)
+		response, err := u.iufService.RunNextStage(&session, activityRef)
 		if err != nil {
 			c.JSON(500, fmt.Sprint(err))
 		}
@@ -120,8 +120,17 @@ func (u IufController) Sync(c *gin.Context) {
 			return
 		}
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
+			if len(session.Workflows) == len(session.InputParameters.Stages) {
+				u.logger.Info("All Stage are Succeeded, update state")
+				session.CurrentState = iuf.SessionStateCompleted
+				u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
+				u.iufService.UpdateSession(session, activityRef)
+				response = iuf.SyncResponse{}
+				c.JSON(200, response)
+				return
+			}
 			u.logger.Infof("Stage: %s is Succeeded, move to next stage", session.CurrentStage)
-			response, err := u.iufService.RunNextStage(session, activityRef)
+			response, err := u.iufService.RunNextStage(&session, activityRef)
 			if err != nil {
 				c.JSON(500, fmt.Sprint(err))
 			}

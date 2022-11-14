@@ -34,6 +34,8 @@ import (
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/stretchr/testify/mock"
+	"k8s.io/client-go/kubernetes"
+	fake "k8s.io/client-go/rest/fake"
 )
 
 func TestCreateIufWorkflow(t *testing.T) {
@@ -125,4 +127,83 @@ func TestGetDagTasks(t *testing.T) {
 		assert.Equal(t, 4, len(dagTasks))
 	})
 
+}
+
+func TestRunNextStage(t *testing.T) {
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wfServiceClientMock.On(
+		"CreateWorkflow",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.Workflow), nil)
+	fakeClient := fake.RESTClient{}
+	workflowSvc := iufService{
+		logger:           utils.GetLogger(),
+		workflowCient:    wfServiceClientMock,
+		k8sRestClientSet: kubernetes.New(&fakeClient),
+		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
+	}
+	type wanted struct {
+		err          bool
+		sessionState iuf.SessionState
+		sessionStage string
+	}
+	var tests = []struct {
+		name    string
+		session iuf.Session
+		wanted  wanted
+	}{
+		{
+			name: "first stage",
+			session: iuf.Session{
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process_media"},
+				},
+			},
+			wanted: wanted{
+				err:          true,
+				sessionState: iuf.SessionStateInProgress,
+				sessionStage: "process_media",
+			},
+		},
+		{
+			name: "next stage",
+			session: iuf.Session{
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process_media", "deliver_product"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          true,
+				sessionState: iuf.SessionStateInProgress,
+				sessionStage: "deliver_product",
+			},
+		},
+		{
+			name: "last stage",
+			session: iuf.Session{
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process_media", "deliver_product"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          true,
+				sessionState: iuf.SessionStateInProgress,
+				sessionStage: "deliver_product",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := workflowSvc.RunNextStage(&tt.session, "test")
+			if (err != nil) != tt.wanted.err {
+				t.Errorf("got %v, wantErr %v", err, tt.wanted.err)
+				return
+			}
+			assert.Equal(t, tt.wanted.sessionState, tt.session.CurrentState)
+			assert.Equal(t, tt.wanted.sessionStage, tt.session.CurrentStage)
+		})
+	}
 }

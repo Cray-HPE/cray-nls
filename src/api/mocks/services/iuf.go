@@ -185,7 +185,7 @@ func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomo
 }
 
 // RunNextStage mocks base method.
-func (m *MockIufService) RunNextStage(session iuf.Session, activityRef string) (iuf.SyncResponse, error) {
+func (m *MockIufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunNextStage", session, activityRef)
 	ret0, _ := ret[0].(iuf.SyncResponse)
