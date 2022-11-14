@@ -359,7 +359,7 @@ func (s iufService) getStageInputs(session iuf.Session, in_product iuf.Product) 
 	res := map[string]interface{}{
 		"products":     make(map[string]interface{}),
 		"input_params": make(map[string]interface{}),
-		//"site_params":  make(map[string]interface{}),
+		"site_params":  make(map[string]interface{}),
 	}
 
 	// products
@@ -390,11 +390,11 @@ func (s iufService) getStageInputs(session iuf.Session, in_product iuf.Product) 
 	res["input_params"] = map[string]interface{}{
 		"products":  productsArray,
 		"media_dir": session.InputParameters.MediaDir,
-		//todo: site_parameters
 		//todo: bootprep_config_managed
 		//todo: bootprep_config_management
 		"limit_nodes": session.InputParameters.LimitNodes,
 	}
+	//todo: site_parameters
 	//todo: stage params
 	return res
 }

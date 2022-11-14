@@ -51,15 +51,13 @@ cray-service:
       configMap:
         name: iuf-install-workflow-stages-files
   affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 50
+          preference:
             matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                  - cray-nls
+              - key: node-role.kubernetes.io/master
+                operator: Exists
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
