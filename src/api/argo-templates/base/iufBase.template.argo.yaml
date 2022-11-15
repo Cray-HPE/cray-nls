@@ -44,7 +44,7 @@ spec:
          maxDuration: "1m"
       script:
         # use portainer/kubectl-shell that has:
-        #  - kubectl, craycli, loftsman, git, jq, culr 
+        #  - kubectl, craycli, loftsman, git, manifestgen, and more
         image: artifactory.algol60.net/csm-docker/stable/iuf:v0.0.1
         command: [sh]
         source: |
