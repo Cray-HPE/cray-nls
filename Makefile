@@ -31,7 +31,7 @@ image:
 	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
 
 unittest:
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+	go mod tidy && go mod vendor && go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 snyk:
 	./scripts/runSnyk.sh
