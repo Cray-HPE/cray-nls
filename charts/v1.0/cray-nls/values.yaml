@@ -59,6 +59,14 @@ cray-service:
       effect: "NoSchedule"
   affinity:
     nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - ncn-m001
+            - ncn-m002
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 100
           preference:
@@ -67,13 +75,6 @@ cray-service:
                 operator: In
                 values:
                   - ncn-m001
-        - weight: 99
-          preference:
-            matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                  - ncn-m002
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
