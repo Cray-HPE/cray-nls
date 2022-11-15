@@ -60,13 +60,20 @@ cray-service:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 50
+        - weight: 100
           preference:
             matchExpressions:
               - key: kubernetes.io/hostname
                 operator: In
                 values:
                   - ncn-m001
+        - weight: 99
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - ncn-m002
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
