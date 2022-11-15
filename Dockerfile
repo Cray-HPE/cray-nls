@@ -39,7 +39,7 @@ RUN go env -w GO111MODULE=auto
 
 COPY go.mod  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.mod
 COPY go.sum  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.sum
-RUN go mod tidy && go mod vendor
+RUN go mod vendor
 
 # Copy all the necessary files to the image.
 COPY src/cmd $GOPATH/src/github.com/Cray-HPE/cray-nls/src/cmd
