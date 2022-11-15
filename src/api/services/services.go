@@ -32,6 +32,7 @@ import (
 
 // Module exports services present
 var Module = fx.Options(
+	fx.Provide(shared.NewK8sService),
 	fx.Provide(nls.NewNcnService),
 	fx.Provide(shared.NewWorkflowService),
 	fx.Provide(shared.NewArgoService),

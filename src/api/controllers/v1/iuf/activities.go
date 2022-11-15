@@ -101,7 +101,7 @@ func (u IufController) GetActivity(c *gin.Context) {
 }
 
 // PatchActivity
-// @Summary  Get an IUF activity
+// @Summary  Update an IUF activity
 // @Param    activity_name  path  string  true  "activity name"
 // @Param    activity       body  iuf.PatchActivityRequest  true  "IUF activity"
 // @Tags     Activities

@@ -155,7 +155,7 @@ const docTemplateIUF = `{
                 "tags": [
                     "History"
                 ],
-                "summary": "Get a history item of an iuf activity",
+                "summary": "replace comment of a history item of an iuf activity",
                 "parameters": [
                     {
                         "type": "string",
@@ -233,7 +233,7 @@ const docTemplateIUF = `{
                 "tags": [
                     "Activities"
                 ],
-                "summary": "Get an IUF activity",
+                "summary": "Update an IUF activity",
                 "parameters": [
                     {
                         "type": "string",

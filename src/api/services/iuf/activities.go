@@ -40,6 +40,7 @@ import (
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/google/uuid"
+	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -134,10 +135,21 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 		return iuf.Activity{}, err
 	}
 
-	// TODO: block request if activity is in_progress, paused
+	// block request if activity is in_progress, paused
+	if tmp.ActivityState == iuf.ActivityStateInProgress || tmp.ActivityState == iuf.ActivityStatePaused {
+		err := fmt.Errorf("update activity is not allowed, current state: %s", tmp.ActivityState)
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
 	// TODO: validate input parameters
-	// TODO: support partial update
-	tmp.InputParameters = req.InputParameters
+	// support partial update
+	original := tmp.InputParameters
+	request := req.InputParameters
+	if err := mergo.Merge(&request, original); err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+	tmp.InputParameters = request
 	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)

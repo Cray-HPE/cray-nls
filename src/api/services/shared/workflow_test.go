@@ -30,7 +30,6 @@ import (
 	"testing"
 
 	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
-	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
@@ -223,31 +222,4 @@ func TestGetWorkflowByName(t *testing.T) {
 		wfServiceClientMock.AssertExpectations(t)
 	})
 
-}
-
-func TestCreateIufWorkflow(t *testing.T) {
-
-	t.Run("It can create a new iuf workflow", func(t *testing.T) {
-		// setup mocks
-		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
-		wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
-		wfServiceClientMock.On(
-			"CreateWorkflow",
-			mock.Anything,
-			mock.Anything,
-		).Return(new(v1alpha1.Workflow), nil)
-
-		workflowSvc := workflowService{
-			logger:                utils.GetLogger(),
-			ctx:                   context.Background(),
-			workflowCient:         wfServiceClientMock,
-			workflowTemplateCient: wftServiceSclientMock,
-			env:                   utils.Env{WorkerRebuildWorkflowFiles: "badname"},
-		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{})
-
-		// we don't actually test the template render/upload
-		// this is tested in the render package
-		assert.Contains(t, err.Error(), "template: pattern matches no files: `*.yaml`")
-	})
 }

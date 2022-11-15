@@ -30,16 +30,15 @@ package services_iuf
 import (
 	_ "embed"
 	"encoding/json"
-	"os"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 const (
@@ -60,37 +59,30 @@ type IufService interface {
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
-	GetSession(activityName string, sessionName string) (iuf.Session, error)
+	GetSession(sessionName string) (iuf.Session, string, error)
+	// session operator
+	ConfigMapDataToSession(data string) (iuf.Session, error)
+	UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error
+	UpdateSession(session iuf.Session, activityRef string) error
+	CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error)
+	RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error)
 }
 
 // IufService service layer
 type iufService struct {
 	logger           utils.Logger
+	workflowCient    workflow.WorkflowServiceClient
 	k8sRestClientSet *kubernetes.Clientset
 	env              utils.Env
 }
 
 // NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, env utils.Env) IufService {
-
-	var config *rest.Config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		// use k3d kubeconfig in development mode
-		home, _ := os.UserHomeDir()
-		config, err = clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
-		if err != nil {
-			panic(err.Error())
-		}
-	}
-	k8sRestClientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
+func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, k8sSvc services_shared.K8sService, env utils.Env) IufService {
 
 	iufSvc := iufService{
 		logger:           logger,
-		k8sRestClientSet: k8sRestClientSet,
+		workflowCient:    argoService.Client.NewWorkflowServiceClient(),
+		k8sRestClientSet: k8sSvc.Client,
 		env:              env,
 	}
 	return iufSvc

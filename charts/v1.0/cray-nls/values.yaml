@@ -50,16 +50,31 @@ cray-service:
     - name: iuf-install-workflow-stages-files
       configMap:
         name: iuf-install-workflow-stages-files
+    - name: iuf
+      hostPath:
+        path: /etc/iuf
+  tolerations:
+    - key: "node-role.kubernetes.io/master"
+      operator: "Exists"
+      effect: "NoSchedule"
   affinity:
-    podAntiAffinity:
+    nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - ncn-m001
+            - ncn-m002
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
             matchExpressions:
-              - key: app.kubernetes.io/name
+              - key: kubernetes.io/hostname
                 operator: In
                 values:
-                  - cray-nls
+                  - ncn-m001
   strategy:
     rollingUpdate:
       maxUnavailable: 50%
@@ -95,10 +110,12 @@ cray-service:
         - name: iuf-install-workflow-stages-files
           readOnly: true
           mountPath: /workflows/iuf/stages
+        - name: iuf
+          mountPath: /etc/iuf
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.3.4
+        tag: 0.4.0
       resources:
         limits:
           cpu: 1
@@ -148,8 +165,8 @@ cray-service:
       - "services/services-gateway"
       - "services/customer-admin-gateway"
     enabled: true
-    prefix: /apis
-    uri: /apis
+    prefix: /apis/nls
+    uri: /apis/nls
 
 cray-service-pg-only:
   type: ""

@@ -53,6 +53,7 @@ func (s IufRoutes) Setup() {
 		// session CRUD
 		api.GET("/activities/:activity_name/sessions", s.iufController.ListSessions)
 		api.GET("/activities/:activity_name/sessions/:session_name", s.iufController.GetSession)
+		api.POST("/session/sync", s.iufController.Sync)
 	}
 }
 

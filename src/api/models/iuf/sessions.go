@@ -25,6 +25,10 @@
  */
 package iuf
 
+import (
+	core_v1 "k8s.io/api/core/v1"
+)
+
 // IufSession
 type Session struct {
 	InputParameters InputParameters   `json:"input_parameters"`
@@ -48,3 +52,11 @@ type SessionWorkflow struct {
 	Id  string `json:"id"`  // id of argo workflow
 	Url string `json:"url"` // url to the argo workflow
 } // @name Session.Workflow
+
+type SyncRequest struct {
+	Object core_v1.ConfigMap `json:"object"`
+}
+
+type SyncResponse struct {
+	ResyncAfterSeconds int `json:"resyncAfterSeconds,omitempty"`
+}
