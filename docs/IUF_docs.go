@@ -113,38 +113,6 @@ const docTemplateIUF = `{
             }
         },
         "/iuf/v1/activities/{activity_id}/history/{start_time}": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "History"
-                ],
-                "summary": "Get a history item of an iuf activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "start time of a history item",
-                        "name": "start_time",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/History"
-                        }
-                    },
-                    "501": {
-                        "description": "Not Implemented"
-                    }
-                }
-            },
             "patch": {
                 "consumes": [
                     "application/json"
@@ -501,6 +469,49 @@ const docTemplateIUF = `{
                 "responses": {
                     "201": {
                         "description": "Created"
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/iuf/v1/activities/{activity_name}/history/{start_time}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Get a history item of an iuf activity",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "start time of a history item",
+                        "name": "start_time",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/History"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",

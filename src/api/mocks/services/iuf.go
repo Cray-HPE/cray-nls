@@ -94,6 +94,21 @@ func (mr *MockIufServiceMockRecorder) GetActivity(name interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivity", reflect.TypeOf((*MockIufService)(nil).GetActivity), name)
 }
 
+// GetActivityHistory mocks base method.
+func (m *MockIufService) GetActivityHistory(activityName string, startTime int32) (iuf.History, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActivityHistory", activityName, startTime)
+	ret0, _ := ret[0].(iuf.History)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActivityHistory indicates an expected call of GetActivityHistory.
+func (mr *MockIufServiceMockRecorder) GetActivityHistory(activityName, startTime interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActivityHistory", reflect.TypeOf((*MockIufService)(nil).GetActivityHistory), activityName, startTime)
+}
+
 // GetSession mocks base method.
 func (m *MockIufService) GetSession(sessionName string) (iuf.Session, string, error) {
 	m.ctrl.T.Helper()

@@ -28,6 +28,7 @@ package iuf
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -61,10 +62,33 @@ func (u IufController) ListHistory(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.History
-// @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_id}/history/{start_time} [get]
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name}/history/{start_time} [get]
 func (u IufController) GetHistory(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	startTime, err := strconv.Atoi(c.Param("start_time"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.GetActivityHistory(c.Param("activity_name"), int32(startTime))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	if res.StartTime == 0 {
+		err := fmt.Errorf("history with start_time:%d not found", startTime)
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		c.JSON(http.StatusNotFound, errResponse)
+		return
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 // ReplaceHistoryComment
@@ -76,7 +100,7 @@ func (u IufController) GetHistory(c *gin.Context) {
 // @Produce  json
 // @Success  200  {object}  iuf.History
 // @Failure  501  "Not Implemented"
-// @Router   /iuf/v1/activities/{activity_id}/history/{start_time} [patch]
+// @Router   /iuf/v1/activities/{activity_name}/history/{start_time} [patch]
 func (u IufController) ReplaceHistoryComment(c *gin.Context) {
 	c.JSON(501, "not implemented")
 }

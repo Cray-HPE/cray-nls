@@ -62,6 +62,35 @@ func (s iufService) ListActivityHistory(activityName string) ([]iuf.History, err
 	return res, nil
 }
 
+func (s iufService) GetActivityHistory(activityName string, startTime int32) (iuf.History, error) {
+	rawConfigMapList, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		List(
+			context.TODO(),
+			v1.ListOptions{
+				LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+			},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	var res iuf.History
+	for _, rawConfigMap := range rawConfigMapList.Items {
+		tmp, err := s.configMapDataToHistory(rawConfigMap.Data[LABEL_HISTORY])
+		if err != nil {
+			s.logger.Error(err)
+			return iuf.History{}, err
+		}
+		if tmp.StartTime == startTime {
+			res = tmp
+			break
+		}
+	}
+	return res, nil
+}
+
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
 	patchReq := iuf.PatchActivityRequest{InputParameters: req.InputParameters}
 	activity, err := s.PatchActivity(activityName, patchReq)

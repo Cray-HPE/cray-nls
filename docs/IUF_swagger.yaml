@@ -267,27 +267,6 @@ paths:
       tags:
       - Activities
   /iuf/v1/activities/{activity_id}/history/{start_time}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: start time of a history item
-        in: path
-        name: start_time
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/History'
-        "501":
-          description: Not Implemented
-      summary: Get a history item of an iuf activity
-      tags:
-      - History
     patch:
       consumes:
       - application/json
@@ -392,6 +371,34 @@ paths:
           schema:
             $ref: '#/definitions/ResponseError'
       summary: List history of an iuf activity
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/{start_time}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: start time of a history item
+        in: path
+        name: start_time
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/History'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: Get a history item of an iuf activity
       tags:
       - History
   /iuf/v1/activities/{activity_name}/history/abort:
