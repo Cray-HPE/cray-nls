@@ -37,9 +37,11 @@ FROM build-base AS base
 
 RUN go env -w GO111MODULE=auto
 
-# Copy all the necessary files to the image.
-COPY vendor $GOPATH/src/github.com/Cray-HPE/cray-nls/vendor
+COPY go.mod  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.mod
+COPY go.sum  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.sum
+RUN go mod tidy && go mod vendor
 
+# Copy all the necessary files to the image.
 COPY src/cmd $GOPATH/src/github.com/Cray-HPE/cray-nls/src/cmd
 COPY src/api $GOPATH/src/github.com/Cray-HPE/cray-nls/src/api
 COPY src/bootstrap $GOPATH/src/github.com/Cray-HPE/cray-nls/src/bootstrap
@@ -47,6 +49,7 @@ COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/docs
 COPY src/utils $GOPATH/src/github.com/Cray-HPE/cray-nls/src/utils
 COPY main.go $GOPATH/src/github.com/Cray-HPE/cray-nls/main.go
 COPY .version $GOPATH/src/github.com/Cray-HPE/cray-nls/.version
+
 
 ### Build Stage ###
 FROM base AS builder

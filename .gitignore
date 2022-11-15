@@ -11,3 +11,4 @@ charts/v1.0/cray-nls/Chart.lock
 charts/v1.0/cray-iuf/charts/metacontroller-helm-v4.4.0.tgz
 charts/v1.0/cray-iuf/Chart.lock
 charts/v1.0/cray-nls/tmpcharts
+vendor
