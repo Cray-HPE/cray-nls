@@ -37,10 +37,6 @@ FROM build-base AS base
 
 RUN go env -w GO111MODULE=auto
 
-COPY go.mod  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.mod
-COPY go.sum  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.sum
-RUN cd /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls && go mod vendor
-
 # Copy all the necessary files to the image.
 COPY src/cmd $GOPATH/src/github.com/Cray-HPE/cray-nls/src/cmd
 COPY src/api $GOPATH/src/github.com/Cray-HPE/cray-nls/src/api
@@ -49,11 +45,9 @@ COPY docs $GOPATH/src/github.com/Cray-HPE/cray-nls/docs
 COPY src/utils $GOPATH/src/github.com/Cray-HPE/cray-nls/src/utils
 COPY main.go $GOPATH/src/github.com/Cray-HPE/cray-nls/main.go
 COPY .version $GOPATH/src/github.com/Cray-HPE/cray-nls/.version
-
-
-### Build Stage ###
-FROM base AS builder
-
+COPY go.mod  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.mod
+COPY go.sum  $GOPATH/src/github.com/Cray-HPE/cray-nls/go.sum
+RUN cd $GOPATH/src/github.com/Cray-HPE/cray-nls && go mod vendor
 RUN set -ex && CGO_ENABLED=0 go build -o /usr/local/bin/ncn-lifecycle-service github.com/Cray-HPE/cray-nls
 
 ### Final Stage ###
@@ -63,7 +57,7 @@ EXPOSE 5000
 STOPSIGNAL SIGTERM
 
 # Get the boot-script-service from the builder stage.
-COPY --from=builder /usr/local/bin/ncn-lifecycle-service /
+COPY --from=base /usr/local/bin/ncn-lifecycle-service /
 
 COPY .version /
 COPY .env.example .env
