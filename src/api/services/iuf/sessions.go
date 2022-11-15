@@ -327,8 +327,8 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 						product.Name + "-" + stageInfo.Operations[index-1].Name,
 					}
 				}
-				stageInputs := s.getStageInputs(session, product)
-				b, _ := json.Marshal(stageInputs)
+				globaParams := s.getGlobalParams(session, product)
+				b, _ := json.Marshal(globaParams)
 				task.Arguments = v1alpha1.Arguments{
 					Parameters: []v1alpha1.Parameter{
 						{
@@ -336,7 +336,7 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 							Value: v1alpha1.AnyStringPtr("todo"), // todo token
 						},
 						{
-							Name:  "stage_inputs",
+							Name:  "global_params",
 							Value: v1alpha1.AnyStringPtr(string(b)),
 						},
 					},
@@ -355,7 +355,7 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 	return res
 }
 
-func (s iufService) getStageInputs(session iuf.Session, in_product iuf.Product) map[string]interface{} {
+func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
 	res := map[string]interface{}{
 		"products":     make(map[string]interface{}),
 		"input_params": make(map[string]interface{}),
@@ -381,12 +381,14 @@ func (s iufService) getStageInputs(session iuf.Session, in_product iuf.Product) 
 		}
 		productsArray = append(productsArray, product.Name)
 	}
-	resProducts["current_product"] = map[string]interface{}{
-		"name":              in_product.Name,
-		"manifest":          currentProductManifest,
-		"original_location": in_product.OriginalLocation,
+	res["product_manifest"] = map[string]interface{}{
+		"products": resProducts,
+		"current_product": map[string]interface{}{
+			"name":              in_product.Name,
+			"manifest":          currentProductManifest,
+			"original_location": in_product.OriginalLocation,
+		},
 	}
-	res["products"] = resProducts
 	res["input_params"] = map[string]interface{}{
 		"products":  productsArray,
 		"media_dir": session.InputParameters.MediaDir,
