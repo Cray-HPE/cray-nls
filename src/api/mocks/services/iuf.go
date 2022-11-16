@@ -199,6 +199,21 @@ func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), name, req)
 }
 
+// ReplaceHistoryComment mocks base method.
+func (m *MockIufService) ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReplaceHistoryComment", activityName, startTime, req)
+	ret0, _ := ret[0].(iuf.History)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReplaceHistoryComment indicates an expected call of ReplaceHistoryComment.
+func (mr *MockIufServiceMockRecorder) ReplaceHistoryComment(activityName, startTime, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReplaceHistoryComment", reflect.TypeOf((*MockIufService)(nil).ReplaceHistoryComment), activityName, startTime, req)
+}
+
 // RunNextStage mocks base method.
 func (m *MockIufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error) {
 	m.ctrl.T.Helper()

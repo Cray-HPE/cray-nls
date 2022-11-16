@@ -88,6 +88,13 @@ func (s iufService) GetActivityHistory(activityName string, startTime int32) (iu
 			break
 		}
 	}
+func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error) {
+	var res iuf.History
+	history,err:= s.GetActivityHistory(activityName,startTime)
+	if err != nil {
+		s.logger.Error(err)
+			return iuf.History{}, err
+	}
 	return res, nil
 }
 

@@ -58,6 +58,7 @@ type IufService interface {
 	ListActivityHistory(activityName string) ([]iuf.History, error)
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error
 	GetActivityHistory(activityName string, startTime int32) (iuf.History, error)
+	ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error)
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
 	GetSession(sessionName string) (iuf.Session, string, error)
