@@ -88,14 +88,37 @@ func (s iufService) GetActivityHistory(activityName string, startTime int32) (iu
 			break
 		}
 	}
+	return res, nil
+}
+
 func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error) {
-	var res iuf.History
-	history,err:= s.GetActivityHistory(activityName,startTime)
+	history, err := s.GetActivityHistory(activityName, startTime)
 	if err != nil {
 		s.logger.Error(err)
-			return iuf.History{}, err
+		return iuf.History{}, err
 	}
-	return res, nil
+	history.Comment = req.Comment
+
+	// update history
+	configmap, err := s.iufObjectToConfigMapData(history, history.Name, LABEL_HISTORY)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	configmap.Labels[LABEL_ACTIVITY_REF] = activityName
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Update(
+			context.TODO(),
+			&configmap,
+			v1.UpdateOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	return history, nil
 }
 
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
