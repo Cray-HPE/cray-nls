@@ -57,6 +57,8 @@ type IufService interface {
 	// history
 	ListActivityHistory(activityName string) ([]iuf.History, error)
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error
+	GetActivityHistory(activityName string, startTime int32) (iuf.History, error)
+	ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error)
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
 	GetSession(sessionName string) (iuf.Session, string, error)
@@ -72,7 +74,7 @@ type IufService interface {
 type iufService struct {
 	logger           utils.Logger
 	workflowCient    workflow.WorkflowServiceClient
-	k8sRestClientSet *kubernetes.Clientset
+	k8sRestClientSet kubernetes.Interface
 	env              utils.Env
 }
 

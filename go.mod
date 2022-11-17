@@ -76,6 +76,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/doublerebel/bellows v0.0.0-20160303004610-f177d92a03d3 // indirect
 	github.com/emicklei/go-restful/v3 v3.8.0 // indirect
+	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -139,9 +140,9 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.2
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.0
-	k8s.io/api v0.25.3
-	k8s.io/apimachinery v0.25.3
-	k8s.io/client-go v0.25.3
+	k8s.io/api v0.25.4
+	k8s.io/apimachinery v0.25.4
+	k8s.io/client-go v0.25.4
 	sigs.k8s.io/yaml v1.3.0
 )
 

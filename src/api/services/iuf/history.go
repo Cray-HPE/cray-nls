@@ -62,6 +62,65 @@ func (s iufService) ListActivityHistory(activityName string) ([]iuf.History, err
 	return res, nil
 }
 
+func (s iufService) GetActivityHistory(activityName string, startTime int32) (iuf.History, error) {
+	rawConfigMapList, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		List(
+			context.TODO(),
+			v1.ListOptions{
+				LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+			},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	var res iuf.History
+	for _, rawConfigMap := range rawConfigMapList.Items {
+		tmp, err := s.configMapDataToHistory(rawConfigMap.Data[LABEL_HISTORY])
+		if err != nil {
+			s.logger.Error(err)
+			return iuf.History{}, err
+		}
+		if tmp.StartTime == startTime {
+			res = tmp
+			break
+		}
+	}
+	return res, nil
+}
+
+func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error) {
+	history, err := s.GetActivityHistory(activityName, startTime)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	history.Comment = req.Comment
+
+	// update history
+	configmap, err := s.iufObjectToConfigMapData(history, history.Name, LABEL_HISTORY)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	configmap.Labels[LABEL_ACTIVITY_REF] = activityName
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Update(
+			context.TODO(),
+			&configmap,
+			v1.UpdateOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.History{}, err
+	}
+	return history, nil
+}
+
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
 	patchReq := iuf.PatchActivityRequest{InputParameters: req.InputParameters}
 	activity, err := s.PatchActivity(activityName, patchReq)

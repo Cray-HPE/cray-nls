@@ -49,7 +49,9 @@ func (s IufRoutes) Setup() {
 		api.PATCH("/activities/:activity_name", s.iufController.PatchActivity)
 		// history CRUD
 		api.GET("/activities/:activity_name/history", s.iufController.ListHistory)
+		api.GET("/activities/:activity_name/history/:start_time", s.iufController.GetHistory)
 		api.POST("/activities/:activity_name/history/run", s.iufController.HistoryRunAction)
+		api.PATCH("/activities/:activity_name/history/:start_time", s.iufController.ReplaceHistoryComment)
 		// session CRUD
 		api.GET("/activities/:activity_name/sessions", s.iufController.ListSessions)
 		api.GET("/activities/:activity_name/sessions/:session_name", s.iufController.GetSession)

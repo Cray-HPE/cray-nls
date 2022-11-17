@@ -266,55 +266,6 @@ paths:
       summary: Create an IUF activity
       tags:
       - Activities
-  /iuf/v1/activities/{activity_id}/history/{start_time}:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: start time of a history item
-        in: path
-        name: start_time
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/History'
-        "501":
-          description: Not Implemented
-      summary: Get a history item of an iuf activity
-      tags:
-      - History
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: start time of a history item
-        in: path
-        name: start_time
-        required: true
-        type: string
-      - description: Modify comment of a history
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/History.ReplaceHistoryCommentRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/History'
-        "501":
-          description: Not Implemented
-      summary: replace comment of a history item of an iuf activity
-      tags:
-      - History
   /iuf/v1/activities/{activity_name}:
     get:
       consumes:
@@ -392,6 +343,80 @@ paths:
           schema:
             $ref: '#/definitions/ResponseError'
       summary: List history of an iuf activity
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/{start_time}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: start time of a history item
+        in: path
+        name: start_time
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/History'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: Get a history item of an iuf activity
+      tags:
+      - History
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: start time of a history item
+        in: path
+        name: start_time
+        required: true
+        type: string
+      - description: Modify comment of a history
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/History.ReplaceHistoryCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/History'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: replace comment of a history item of an iuf activity
       tags:
       - History
   /iuf/v1/activities/{activity_name}/history/abort:
