@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.3.0
+version: 0.4.0
 type: object
 required:
 - iuf_version
@@ -499,6 +499,15 @@ properties:
         $ref: '#/$defs/StageHooks'
       post_install_check:
         $ref: '#/$defs/StageHooks'
+
+  insert_component_versions:
+    type: boolean
+    default: false
+    description: >
+      Whether this product should insert component version data into
+      the product catalog. This is intended only for backwards compatibility
+      with products that currently use 'prodmgr' for uninstall and downgrade
+      support.
 
 $defs:
   HookExecutionContext:
