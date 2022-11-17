@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.2.0
+version: 0.3.0
 type: object
 required:
 - iuf_version
@@ -373,6 +373,31 @@ properties:
                     this will default to the name of the tar file without the
                     ".tar.gz" extension.
                   type: string
+                recipe_type:
+                  description: >
+                    The recipe type being built.
+                  type: string
+                  examples:
+                  - "kiwi-ng"
+                  - "packer"
+                linux_distribution:
+                  description: >
+                    The Linux distribution for the image being built.
+                  type: string
+                  examples:
+                  - "sles12"
+                  - "sles15"
+                  - "centos7"
+                template_dictionary:
+                  description: >
+                    Key-value pairs to be templated into the recipe when
+                    building the image.
+                  type: object
+                  additionalProperties:
+                    type: string
+                md5sum:
+                  $ref: "#/$defs/MD5Sum"
+
           images:
             type: array
             items:
@@ -399,19 +424,29 @@ properties:
                     default to the name of the directory containing the image
                     artifacts.
                   type: string
-                rootfs_file:
+                rootfs:
                   description: >
-                    The name of the file defining the root filesystem for the
-                    image. This file should be in squashfs format.
-                  type: string
-                kernel_file:
+                    The image root squashfs file for the image.
+                  $ref: '#/$defs/IMSArtifact'
+                kernel:
                   description: >
-                    The name of the kernel file for the image.
-                  type: string
-                initrd_file:
+                    The kernel file for the image.
+                  $ref: '#/$defs/IMSArtifact'
+                initrd:
                   description: >
-                    The name of the initrd file for the image.
-                  type: string
+                    The initrd file for the image.
+                  $ref: '#/$defs/IMSArtifact'
+
+          content_dirs:
+            description: >
+              Paths to directories, each containing a `manifest.yaml` file and
+              IMS artifacts. The `manifest.yaml` file describes the artifacts
+              in the content directory. See the README in the `ims-load-artifacts`
+              repository for more information.
+              https://github.com/Cray-HPE/ims-load-artifacts#manifestyaml
+            type: array
+            items:
+              type: string
 
       s3:
         description: >
@@ -436,7 +471,6 @@ properties:
             key:
               description: >
                 The key of the object to be created in S3.
-
 
   hooks:
     type: object
@@ -486,6 +520,24 @@ $defs:
       The path to the script file which should be executed. This script
       should have executable permissions in the release distribution file.
     type: string
+  IMSArtifact:
+    type: object
+    required:
+    - path
+    additionalProperties: false
+    properties:
+      path:
+        type: string
+        description: >
+          The relative path to the IMS artifact within its image's directory
+      md5sum:
+        description: >
+          The MD5 checksum of the IMS artifact. If omitted, the checksum of the
+          artifact will not be verified.
+        $ref: "#/$defs/MD5Sum"
+  MD5Sum:
+    type: string
+    pattern: "^[0-9a-f]+$"
   PreHookScript:
     description: >
       A hook script that should be run before the IUF stage is started.
@@ -518,3 +570,4 @@ $defs:
         $ref: '#/$defs/PreHookScript'
       post:
         $ref: '#/$defs/PostHookScript'
+
