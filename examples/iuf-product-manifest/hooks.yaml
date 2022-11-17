@@ -1,0 +1,15 @@
+---
+name: myproduct
+version: 1.2.3
+iuf_version: ^0.1.0
+
+hooks:
+  deliver_product:
+    pre:
+      script_path: pre-deliver-product.sh
+      execution_context: master_host
+    post:
+      script_path: post-deliver-product.sh
+  post_install_check:
+    post:
+      script_path: post-install-check.sh

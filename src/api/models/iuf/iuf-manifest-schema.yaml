@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.1.0
+version: 0.2.0
 type: object
 required:
 - iuf_version
@@ -437,3 +437,84 @@ properties:
               description: >
                 The key of the object to be created in S3.
 
+
+  hooks:
+    type: object
+    additionalProperties: false
+    properties:
+
+      # TODO: How do we pass parameters to the hook scripts? Inclined to pass
+      # everything we know about and let them parse.
+      pre_install_check:
+        $ref: '#/$defs/StageHooks'
+      deliver_product:
+        $ref: '#/$defs/StageHooks'
+      update_vcs_config:
+        $ref: '#/$defs/StageHooks'
+      update_cfs_config:
+        $ref: '#/$defs/StageHooks'
+      deploy_product:
+        $ref: '#/$defs/StageHooks'
+      prepare_images:
+        $ref: '#/$defs/StageHooks'
+      management_nodes_rollout:
+        $ref: '#/$defs/StageHooks'
+      post_install_service_check:
+        $ref: '#/$defs/StageHooks'
+      managed_nodes_rollout:
+        $ref: '#/$defs/StageHooks'
+      post_install_check:
+        $ref: '#/$defs/StageHooks'
+
+$defs:
+  HookExecutionContext:
+    description: >
+      The context in which the script is executed. Allowed values are as
+      follows:
+
+
+      master_host: script will be executed on the master host with the
+        extracted product release distribution as the current working
+        directory. This is meant to emulate running the script directly
+        from the extracted release distribution.
+    type: string
+    default: master_host
+    enum:
+    - master_host # TODO: This name could be improved
+  HookScriptPath:
+    description: >
+      The path to the script file which should be executed. This script
+      should have executable permissions in the release distribution file.
+    type: string
+  PreHookScript:
+    description: >
+      A hook script that should be run before the IUF stage is started.
+    type: object
+    additionalProperties: false
+    required:
+    - script_path
+    properties:
+      execution_context:
+        $ref: '#/$defs/HookExecutionContext'
+      script_path:
+        $ref: '#/$defs/HookScriptPath'
+  PostHookScript:
+    description: >
+      A hook script that should be run after the IUF stage is finished.
+    type: object
+    additionalProperties: false
+    properties:
+      execution_context:
+        $ref: '#/$defs/HookExecutionContext'
+      script_path:
+        $ref: '#/$defs/HookScriptPath'
+  StageHooks:
+    description: >
+      The hooks associated with the given stage.
+    type: object
+    additionalProperties: false
+    properties:
+      pre:
+        $ref: '#/$defs/PreHookScript'
+      post:
+        $ref: '#/$defs/PostHookScript'
