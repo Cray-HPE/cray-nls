@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.4.0
+version: 0.5.0
 type: object
 required:
 - iuf_version
@@ -361,6 +361,8 @@ properties:
               type: object
               required:
               - path
+              - recipe_type
+              - linux_distribution
               additionalProperties: false
               properties:
                 path:
