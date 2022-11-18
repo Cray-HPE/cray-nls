@@ -31,14 +31,14 @@ function deployNLS() {
     kubectl get configmap -n loftsman loftsman-platform -o jsonpath='{.data.manifest\.yaml}' > "${BUILDDIR}/iuf.yaml"
     manifestgen -i "${BUILDDIR}/iuf.yaml" -c "${BUILDDIR}/customizations.yaml" -o "${BUILDDIR}/platform.yaml"
     yq w -i "${BUILDDIR}/platform.yaml" 'spec.charts[0].version' "$2"
-    charts="$(yq r /tmp/build/platform.yaml 'spec.charts[*].name')"
+    charts="$(yq r "${BUILDDIR}/platform.yaml" 'spec.charts[*].name')"
     for chart in $charts; do
         if [[ $chart != "cray-iuf" ]] && [[ $chart != "cray-nls" ]]; then
-            yq d -i /tmp/build/platform.yaml "spec.charts.(name==$chart)"
+            yq d -i "${BUILDDIR}/platform.yaml" "spec.charts.(name==$chart)"
         fi
     done
 
-    yq d -i /tmp/build/platform.yaml "spec.sources"
+    yq d -i "${BUILDDIR}/platform.yaml" "spec.sources"
 
     loftsman ship --charts-path "$1" --manifest-path /tmp/build/platform.yaml
 }
