@@ -351,7 +351,7 @@ func (s iufService) ProcessOutput(session iuf.Session, activityRef string, workf
 	case "global":
 		return fmt.Errorf("not implemented")
 	default:
-		return fmt.Errorf("wth") //todo
+		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
 	}
 
 }
@@ -363,6 +363,10 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	operationName string,
 	productName string,
 ) error {
+	// do nothing is there is no outputs
+	if nodeStatus.Outputs == nil {
+		return nil
+	}
 	if activity.OperationOutputs == nil {
 		activity.OperationOutputs = make(map[string]interface{})
 	}
