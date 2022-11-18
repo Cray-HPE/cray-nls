@@ -68,6 +68,7 @@ type IufService interface {
 	UpdateSession(session iuf.Session, activityRef string) error
 	CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error)
 	RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error)
+	ProcessOutput(session iuf.Session, activityRef string, workflow *v1alpha1.Workflow) error
 }
 
 // IufService service layer

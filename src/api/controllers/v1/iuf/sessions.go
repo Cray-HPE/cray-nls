@@ -120,6 +120,11 @@ func (u IufController) Sync(c *gin.Context) {
 			return
 		}
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
+			err := u.iufService.ProcessOutput(session, activityRef, activeWorkflow)
+			if err != nil {
+				u.logger.Error(err)
+				c.JSON(500, fmt.Sprint(err))
+			}
 			if len(session.Workflows) == len(session.InputParameters.Stages) {
 				u.logger.Info("All Stage are Succeeded, update state")
 				session.CurrentState = iuf.SessionStateCompleted
@@ -132,6 +137,7 @@ func (u IufController) Sync(c *gin.Context) {
 			u.logger.Infof("Stage: %s is Succeeded, move to next stage", session.CurrentStage)
 			response, err := u.iufService.RunNextStage(&session, activityRef)
 			if err != nil {
+				u.logger.Error(err)
 				c.JSON(500, fmt.Sprint(err))
 			}
 			c.JSON(200, response)
