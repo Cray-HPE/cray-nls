@@ -31,6 +31,7 @@ function deployNLS() {
     kubectl get configmap -n loftsman loftsman-platform -o jsonpath='{.data.manifest\.yaml}' > "${BUILDDIR}/iuf.yaml"
     manifestgen -i "${BUILDDIR}/iuf.yaml" -c "${BUILDDIR}/customizations.yaml" -o "${BUILDDIR}/platform.yaml"
     yq w -i "${BUILDDIR}/platform.yaml" 'spec.charts[0].version' "$2"
+    yq w -i "${BUILDDIR}/platform.yaml" 'metadata.name' "iuf"
     charts="$(yq r "${BUILDDIR}/platform.yaml" 'spec.charts[*].name')"
     for chart in $charts; do
         if [[ $chart != "cray-iuf" ]] && [[ $chart != "cray-nls" ]]; then
@@ -42,26 +43,26 @@ function deployNLS() {
 
     loftsman ship --charts-path "$1" --manifest-path /tmp/build/platform.yaml
 }
-
-rm -rf /tmp/nls
-git clone https://github.com/Cray-HPE/cray-nls.git /tmp/nls
-if [[ -n $1 ]]; then
-    cd /tmp/nls && git checkout "$1"
-fi
-cd /tmp/nls && helm dep update charts/v1.0/cray-nls/
-cd /tmp/nls && helm package charts/v1.0/cray-nls/
-cd /tmp/nls && helm dep update charts/v1.0/cray-iuf/
-cd /tmp/nls && helm package charts/v1.0/cray-iuf/
 CHART_PATH="/tmp/nls"
+rm -rf ${CHART_PATH}
+git clone https://github.com/Cray-HPE/cray-nls.git ${CHART_PATH}
+if [[ -n $1 ]]; then
+    cd ${CHART_PATH} && git checkout "$1"
+fi
+cd ${CHART_PATH} && helm dep update charts/v1.0/cray-nls/
+cd ${CHART_PATH} && helm package charts/v1.0/cray-nls/
+cd ${CHART_PATH} && helm dep update charts/v1.0/cray-iuf/
+cd ${CHART_PATH} && helm package charts/v1.0/cray-iuf/
+
 
 echo "Get NLS chart version"
-tarFileName=$(ls -l "$CHART_PATH" | awk '{print $9}' | grep "cray-nls")
+tarFileName=$(ls | cat | grep "cray-nls")
 tarFileName=${tarFileName#"cray-nls-"}
 version=${tarFileName%".tgz"}
 echo "Version: $version"
 
 echo "Get image version"
-imageVersion=$(yq r /tmp/nls/charts/v1.0/cray-nls/values.yaml 'cray-service.containers.cray-nls.image.tag')
+imageVersion=$(yq r ${CHART_PATH}/charts/v1.0/cray-nls/values.yaml 'cray-service.containers.cray-nls.image.tag')
 echo "image version: $imageVersion"
 echo "sync docker images"
 NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username}} | base64 -d)"
