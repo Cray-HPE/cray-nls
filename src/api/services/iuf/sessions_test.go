@@ -107,14 +107,32 @@ func TestCreateIufWorkflow(t *testing.T) {
 
 func TestGetDagTasks(t *testing.T) {
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	name := uuid.NewString()
+	activity := iuf.Activity{
+		Name: name,
+	}
+	reqBytes, _ := json.Marshal(activity)
+	configmap := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: DEFAULT_NAMESPACE,
+			Labels: map[string]string{
+				"type": LABEL_ACTIVITY,
+			},
+		},
+		Data: map[string]string{LABEL_ACTIVITY: string(reqBytes)},
+	}
+	fakeClient := fake.NewSimpleClientset(&configmap)
 	workflowSvc := iufService{
-		logger:        utils.GetLogger(),
-		workflowCient: wfServiceClientMock,
-		env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+		logger:           utils.GetLogger(),
+		workflowCient:    wfServiceClientMock,
+		k8sRestClientSet: fakeClient,
+		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 	}
 	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
 		session := iuf.Session{
-			Products: []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: name,
 		}
 		stageInfo := iuf.Stage{
 			Name: "this_is_a_stage_name",
