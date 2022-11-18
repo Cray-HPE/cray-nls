@@ -363,7 +363,7 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	operationName string,
 	productName string,
 ) error {
-	// do nothing is there is no outputs
+	// no-op if there is no outputs
 	if nodeStatus.Outputs == nil {
 		return nil
 	}
