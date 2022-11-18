@@ -30,12 +30,14 @@ package services_iuf
 import (
 	_ "embed"
 	"encoding/json"
+	"os"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"gopkg.in/yaml.v2"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -61,14 +63,14 @@ type IufService interface {
 	ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error)
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
-	GetSession(sessionName string) (iuf.Session, string, error)
+	GetSession(sessionName string) (iuf.Session, error)
 	// session operator
 	ConfigMapDataToSession(data string) (iuf.Session, error)
-	UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error
-	UpdateSession(session iuf.Session, activityRef string) error
+	UpdateActivityStateFromSessionState(session iuf.Session) error
+	UpdateSession(session iuf.Session) error
 	CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error)
-	RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error)
-	ProcessOutput(session iuf.Session, activityRef string, workflow *v1alpha1.Workflow) error
+	RunNextStage(session *iuf.Session) (iuf.SyncResponse, error)
+	ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error
 }
 
 // IufService service layer
@@ -107,4 +109,14 @@ func (s iufService) iufObjectToConfigMapData(activity interface{}, name string, 
 		Data: map[string]string{iufType: string(reqBytes)},
 	}
 	return res, nil
+}
+
+func (s iufService) getStages() (iuf.Stages, error) {
+	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
+	var stages iuf.Stages
+	err := yaml.Unmarshal(stagesBytes, &stages)
+	if err != nil {
+		s.logger.Error(err)
+	}
+	return stages, err
 }

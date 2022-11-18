@@ -37,6 +37,7 @@ type Session struct {
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
 	Name            string            `json:"name"`
+	ActivityRef     string            `json:"activityRef" swaggerignore:"true"`
 } // @name Session
 
 type SessionState string

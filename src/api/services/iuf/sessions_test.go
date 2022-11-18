@@ -159,6 +159,7 @@ func TestRunNextStage(t *testing.T) {
 		{
 			name: "first stage",
 			session: iuf.Session{
+				ActivityRef: "test",
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media"},
 				},
@@ -172,6 +173,7 @@ func TestRunNextStage(t *testing.T) {
 		{
 			name: "next stage",
 			session: iuf.Session{
+				ActivityRef: "test",
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media", "deliver_product"},
 				},
@@ -186,6 +188,7 @@ func TestRunNextStage(t *testing.T) {
 		{
 			name: "last stage",
 			session: iuf.Session{
+				ActivityRef: "test",
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media", "deliver_product"},
 				},
@@ -200,7 +203,7 @@ func TestRunNextStage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := workflowSvc.RunNextStage(&tt.session, "test")
+			_, err := workflowSvc.RunNextStage(&tt.session)
 			if (err != nil) != tt.wanted.err {
 				t.Errorf("got %v, wantErr %v", err, tt.wanted.err)
 				return
@@ -244,6 +247,7 @@ func TestProcessOutput(t *testing.T) {
 		{
 			name: "invalid stage type",
 			session: iuf.Session{
+				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media"},
 				},
@@ -269,6 +273,7 @@ func TestProcessOutput(t *testing.T) {
 		{
 			name: "global stage type (TODO)",
 			session: iuf.Session{
+				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media"},
 				},
@@ -294,6 +299,7 @@ func TestProcessOutput(t *testing.T) {
 		{
 			name: "product stage type: no outputs",
 			session: iuf.Session{
+				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media"},
 				},
@@ -443,6 +449,7 @@ func TestProcessOutput(t *testing.T) {
 		{
 			name: "product stage type: with outputs",
 			session: iuf.Session{
+				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
 					Stages: []string{"process_media"},
 				},
@@ -600,7 +607,7 @@ func TestProcessOutput(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := mySvc.ProcessOutput(tt.session, name, tt.workflow)
+			err := mySvc.ProcessOutput(tt.session, tt.workflow)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return

@@ -135,6 +135,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 		InputParameters: activity.InputParameters,
 		Products:        activity.Products,
 		Name:            name,
+		ActivityRef:     activityName,
 	}
 	configmap, err := s.iufObjectToConfigMapData(session, name, LABEL_SESSION)
 	if err != nil {
