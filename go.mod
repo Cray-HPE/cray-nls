@@ -151,5 +151,6 @@ require (
 	github.com/alecthomas/assert v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/exp v0.0.0-20221114191408-850992195362
 	google.golang.org/grpc v1.44.0
 )

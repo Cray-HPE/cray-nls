@@ -66,7 +66,7 @@ func (u IufController) ListSessions(c *gin.Context) {
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
 func (u IufController) GetSession(c *gin.Context) {
-	res, _, err := u.iufService.GetSession(c.Param("session_name"))
+	res, err := u.iufService.GetSession(c.Param("session_name"))
 	if err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
@@ -83,7 +83,7 @@ func (u IufController) Sync(c *gin.Context) {
 		c.JSON(500, fmt.Sprint(err))
 		return
 	}
-	session, activityRef, err := u.iufService.GetSession(requestBody.Object.Name)
+	session, err := u.iufService.GetSession(requestBody.Object.Name)
 	if err != nil {
 		u.logger.Error(err)
 		c.JSON(500, fmt.Sprint(err))
@@ -93,7 +93,7 @@ func (u IufController) Sync(c *gin.Context) {
 	switch session.CurrentState {
 	case "":
 		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
-		response, err := u.iufService.RunNextStage(&session, activityRef)
+		response, err := u.iufService.RunNextStage(&session)
 		if err != nil {
 			c.JSON(500, fmt.Sprint(err))
 		}
@@ -113,14 +113,14 @@ func (u IufController) Sync(c *gin.Context) {
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
 			u.logger.Infof("Workflow is in failed/error state: %s,resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
 			session.CurrentState = iuf.SessionStateDebug
-			u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
-			u.iufService.UpdateSession(session, activityRef)
+			u.iufService.UpdateActivityStateFromSessionState(session)
+			u.iufService.UpdateSession(session)
 			response = iuf.SyncResponse{}
 			c.JSON(200, response)
 			return
 		}
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
-			err := u.iufService.ProcessOutput(session, activityRef, activeWorkflow)
+			err := u.iufService.ProcessOutput(session, activeWorkflow)
 			if err != nil {
 				u.logger.Error(err)
 				c.JSON(500, fmt.Sprint(err))
@@ -128,14 +128,14 @@ func (u IufController) Sync(c *gin.Context) {
 			if len(session.Workflows) == len(session.InputParameters.Stages) {
 				u.logger.Info("All Stage are Succeeded, update state")
 				session.CurrentState = iuf.SessionStateCompleted
-				u.iufService.UpdateActivityStateFromSessionState(session, activityRef)
-				u.iufService.UpdateSession(session, activityRef)
+				u.iufService.UpdateActivityStateFromSessionState(session)
+				u.iufService.UpdateSession(session)
 				response = iuf.SyncResponse{}
 				c.JSON(200, response)
 				return
 			}
 			u.logger.Infof("Stage: %s is Succeeded, move to next stage", session.CurrentStage)
-			response, err := u.iufService.RunNextStage(&session, activityRef)
+			response, err := u.iufService.RunNextStage(&session)
 			if err != nil {
 				u.logger.Error(err)
 				c.JSON(500, fmt.Sprint(err))

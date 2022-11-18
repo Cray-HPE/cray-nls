@@ -29,7 +29,7 @@ package iuf
 type Stage struct {
 	Name             string                 `yaml:"name"`       // Name of the stage
 	Type             string                 `yaml:"type"`       // Type of the stage
-	Operations       []Operations           `yaml:"opeartions"` // operations
+	Operations       []Operations           `yaml:"operations"` // operations
 	StaticParameters map[string]interface{} `yaml:"static-parameters"`
 } // @name Stage
 

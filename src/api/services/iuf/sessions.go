@@ -30,20 +30,21 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/uuid"
+	"github.com/imdario/mergo"
+	"golang.org/x/exp/slices"
 	yaml_v2 "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
 
-func (s iufService) GetSession(sessionName string) (iuf.Session, string, error) {
+func (s iufService) GetSession(sessionName string) (iuf.Session, error) {
 	rawConfigMapData, err := s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
@@ -54,15 +55,15 @@ func (s iufService) GetSession(sessionName string) (iuf.Session, string, error) 
 		)
 	if err != nil {
 		s.logger.Error(err)
-		return iuf.Session{}, "", err
+		return iuf.Session{}, err
 	}
 
 	res, err := s.ConfigMapDataToSession(rawConfigMapData.Data[LABEL_SESSION])
 	if err != nil {
 		s.logger.Error(err)
-		return res, "", err
+		return res, err
 	}
-	return res, rawConfigMapData.Labels[LABEL_ACTIVITY_REF], err
+	return res, err
 }
 
 func (s iufService) ListSessions(activityName string) ([]iuf.Session, error) {
@@ -101,13 +102,13 @@ func (s iufService) ConfigMapDataToSession(data string) (iuf.Session, error) {
 	return res, err
 }
 
-func (s iufService) UpdateSession(session iuf.Session, activityRef string) error {
+func (s iufService) UpdateSession(session iuf.Session) error {
 	configmap, err := s.iufObjectToConfigMapData(session, session.Name, LABEL_SESSION)
 	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
-	configmap.Labels[LABEL_ACTIVITY_REF] = activityRef
+	configmap.Labels[LABEL_ACTIVITY_REF] = session.ActivityRef
 	// set completed label so metacontroller won't sync it again
 	if session.CurrentState == iuf.SessionStateCompleted {
 		configmap.Labels["completed"] = "true"
@@ -127,14 +128,14 @@ func (s iufService) UpdateSession(session iuf.Session, activityRef string) error
 	return nil
 }
 
-func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, activityRef string) error {
+func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) error {
 	var activityState iuf.ActivityState
 	if session.CurrentState == iuf.SessionStateCompleted {
 		activityState = iuf.ActivityStateWaitForAdmin
 	} else {
 		activityState = iuf.ActivityState(session.CurrentState)
 	}
-	activity, err := s.GetActivity(activityRef)
+	activity, err := s.GetActivity(session.ActivityRef)
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -205,9 +206,7 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 }
 
 func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) {
-	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
-	var stages iuf.Stages
-	err := yaml.Unmarshal(stagesBytes, &stages)
+	stages, err := s.getStages()
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err
@@ -287,7 +286,7 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	return res, nil
 }
 
-func (s iufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.SyncResponse, error) {
+func (s iufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error) {
 	// get list of stages
 	stages := session.InputParameters.Stages
 	workflow, err := s.CreateIufWorkflow(*session)
@@ -301,13 +300,13 @@ func (s iufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.
 	session.CurrentStage = stages[len(session.Workflows)-1]
 	session.CurrentState = iuf.SessionStateInProgress
 	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-	err = s.UpdateActivityStateFromSessionState(*session, activityRef)
+	err = s.UpdateActivityStateFromSessionState(*session)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err
 	}
 	s.logger.Infof("Update session: %v", session)
-	err = s.UpdateSession(*session, activityRef)
+	err = s.UpdateSession(*session)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err
@@ -318,9 +317,9 @@ func (s iufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.
 	return response, nil
 }
 
-func (s iufService) ProcessOutput(session iuf.Session, activityRef string, workflow *v1alpha1.Workflow) error {
+func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error {
 	// get activity
-	activity, err := s.GetActivity(activityRef)
+	activity, err := s.GetActivity(session.ActivityRef)
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -351,7 +350,7 @@ func (s iufService) ProcessOutput(session iuf.Session, activityRef string, workf
 	case "global":
 		return fmt.Errorf("not implemented")
 	default:
-		return fmt.Errorf("wth") //todo
+		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
 	}
 
 }
@@ -363,6 +362,10 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	operationName string,
 	productName string,
 ) error {
+	// no-op if there is no outputs
+	if nodeStatus.Outputs == nil {
+		return nil
+	}
 	if activity.OperationOutputs == nil {
 		activity.OperationOutputs = make(map[string]interface{})
 	}
@@ -441,7 +444,6 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 				res = append(res, task)
 			}
 		}
-
 	} else {
 		s.logger.Infof("TODO: support global stage: %s", stageInfo.Type)
 	}
@@ -449,14 +451,15 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 }
 
 func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
-	res := map[string]interface{}{
-		"products":     make(map[string]interface{}),
-		"input_params": make(map[string]interface{}),
-		"site_params":  make(map[string]interface{}),
+	return map[string]interface{}{
+		"product_manifest": s.getGlobalParamsProductManifest(session, in_product),
+		"input_params":     s.getGlobalParamsInputParams(session, in_product),
+		"site_params":      s.getGlobalParamsSiteParams(session, in_product),
+		"stage_params":     s.getGlobalParamsStageParams(session, in_product),
 	}
+}
 
-	// products
-	var productsArray []string
+func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_product iuf.Product) map[string]interface{} {
 	resProducts := make(map[string]interface{})
 	var currentProductManifest map[string]interface{}
 	for _, product := range session.Products {
@@ -472,9 +475,8 @@ func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product)
 			"manifest":          manifestJson,
 			"original_location": product.OriginalLocation,
 		}
-		productsArray = append(productsArray, product.Name)
 	}
-	res["product_manifest"] = map[string]interface{}{
+	return map[string]interface{}{
 		"products": resProducts,
 		"current_product": map[string]interface{}{
 			"name":              in_product.Name,
@@ -482,14 +484,53 @@ func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product)
 			"original_location": in_product.OriginalLocation,
 		},
 	}
-	res["input_params"] = map[string]interface{}{
+}
+
+func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
+	var productsArray []string
+	for _, product := range session.Products {
+		productsArray = append(productsArray, product.Name)
+	}
+	return map[string]interface{}{
 		"products":  productsArray,
 		"media_dir": session.InputParameters.MediaDir,
 		//todo: bootprep_config_managed
 		//todo: bootprep_config_management
 		"limit_nodes": session.InputParameters.LimitNodes,
 	}
-	//todo: site_parameters
-	//todo: stage params
+}
+
+func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
+	res := make(map[string]interface{})
+	activity, _ := s.GetActivity(session.ActivityRef)
+	stages, _ := s.getStages()
+	operationOutpus := activity.OperationOutputs
+	// loop through each stage's output
+	for stageName, v := range operationOutpus {
+		idx := slices.IndexFunc(stages.Stages, func(stage iuf.Stage) bool { return stage.Name == stageName })
+		stageType := stages.Stages[idx].Type
+		outputValue := v.(map[string]interface{})
+		res[stageName] = make(map[string]interface{})
+		s.logger.Debugf("stage: %s, type: %s, outputs: %v", stageName, stageType, v)
+		if stageType == "product" {
+			var currentProduct map[string]interface{}
+			var products map[string]interface{}
+			for _, value := range outputValue {
+				mergo.Merge(&products, value.(map[string]interface{}))
+				mergo.Merge(&currentProduct, value.(map[string]interface{})[in_product.Name])
+			}
+			res[stageName].(map[string]interface{})["products"] = products
+			res[stageName].(map[string]interface{})["current_product"] = currentProduct
+		} else {
+			//TODO: global output
+			s.logger.Warnf("TODO: %s is not supported yet", stageType)
+		}
+
+	}
 	return res
+}
+
+func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
+	//todo: site_parameters
+	return map[string]interface{}{}
 }
