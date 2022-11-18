@@ -50,6 +50,9 @@ spec:
       labelSelector:
         matchLabels:
           type: iuf_session
+        matchExpressions:
+          - key: "completed"
+            operator: "DoesNotExist"
   hooks:
     sync:
       webhook:

@@ -199,6 +199,20 @@ func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), name, req)
 }
 
+// ProcessOutput mocks base method.
+func (m *MockIufService) ProcessOutput(session iuf.Session, activityRef string, workflow *v1alpha1.Workflow) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ProcessOutput", session, activityRef, workflow)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ProcessOutput indicates an expected call of ProcessOutput.
+func (mr *MockIufServiceMockRecorder) ProcessOutput(session, activityRef, workflow interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessOutput", reflect.TypeOf((*MockIufService)(nil).ProcessOutput), session, activityRef, workflow)
+}
+
 // ReplaceHistoryComment mocks base method.
 func (m *MockIufService) ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error) {
 	m.ctrl.T.Helper()

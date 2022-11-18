@@ -108,6 +108,10 @@ func (s iufService) UpdateSession(session iuf.Session, activityRef string) error
 		return err
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = activityRef
+	// set completed label so metacontroller won't sync it again
+	if session.CurrentState == iuf.SessionStateCompleted {
+		configmap.Labels["completed"] = "true"
+	}
 	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
@@ -201,9 +205,33 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 }
 
 func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) {
+	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
+	var stages iuf.Stages
+	err := yaml.Unmarshal(stagesBytes, &stages)
+	if err != nil {
+		s.logger.Error(err)
+		return v1alpha1.Workflow{}, err
+	}
+	stageName := session.InputParameters.Stages[len(session.Workflows)]
+	var stageInfo iuf.Stage
+	for _, stage := range stages.Stages {
+		if stage.Name == stageName {
+			stageInfo = stage
+			break
+		}
+	}
+	if stageInfo.Name == "" {
+		err := fmt.Errorf("stage: %s is invalid", stageName)
+		s.logger.Error(err)
+		return v1alpha1.Workflow{}, err
+	}
 	res := v1alpha1.Workflow{}
 	res.GenerateName = session.Name + "-"
-	res.ObjectMeta.Labels = map[string]string{"session": session.Name}
+	res.ObjectMeta.Labels = map[string]string{
+		"session":    session.Name,
+		"stage":      stageInfo.Name,
+		"stage_type": stageInfo.Type,
+	}
 	res.Spec.PodMetadata = &v1alpha1.Metadata{Annotations: map[string]string{"sidecar.istio.io/inject": "false"}}
 	hostPathDir := corev1.HostPathDirectory
 	res.Spec.Volumes = []corev1.Volume{
@@ -248,27 +276,6 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	}
 	res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
 	res.Spec.Entrypoint = "main"
-
-	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
-	var stages iuf.Stages
-	err := yaml.Unmarshal(stagesBytes, &stages)
-	if err != nil {
-		s.logger.Error(err)
-		return v1alpha1.Workflow{}, err
-	}
-	stageName := session.InputParameters.Stages[len(session.Workflows)]
-	var stageInfo iuf.Stage
-	for _, stage := range stages.Stages {
-		if stage.Name == stageName {
-			stageInfo = stage
-			break
-		}
-	}
-	if stageInfo.Name == "" {
-		err := fmt.Errorf("stage: %s is invalid", stageName)
-		s.logger.Error(err)
-		return v1alpha1.Workflow{}, err
-	}
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
@@ -309,6 +316,92 @@ func (s iufService) RunNextStage(session *iuf.Session, activityRef string) (iuf.
 		ResyncAfterSeconds: 5,
 	}
 	return response, nil
+}
+
+func (s iufService) ProcessOutput(session iuf.Session, activityRef string, workflow *v1alpha1.Workflow) error {
+	// get activity
+	activity, err := s.GetActivity(activityRef)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	// get tasks we care about (top level dag)
+	tasks := workflow.Spec.Templates[0].DAG.Tasks
+	switch workflow.Labels["stage_type"] {
+	case "product":
+		for _, task := range tasks {
+			operationName := task.TemplateRef.Name
+			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
+			var productName string
+			for _, param := range nodeStatus.Inputs.Parameters {
+				if param.Name == "global_params" {
+					var valueJson map[string]interface{}
+					json.Unmarshal([]byte(param.Value.String()), &valueJson)
+					productManifest := valueJson["product_manifest"].(map[string]interface{})
+					currentProduct := productManifest["current_product"].(map[string]interface{})
+					manifest := currentProduct["manifest"].(map[string]interface{})
+					productName = manifest["name"].(string)
+					break
+				}
+			}
+			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productName, nodeStatus.Outputs)
+			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, productName)
+		}
+		return nil
+	case "global":
+		return fmt.Errorf("not implemented")
+	default:
+		return fmt.Errorf("wth") //todo
+	}
+
+}
+
+func (s iufService) updateActivityOperationOutputFromWorkflow(
+	activity iuf.Activity,
+	session iuf.Session,
+	nodeStatus *v1alpha1.NodeStatus,
+	operationName string,
+	productName string,
+) error {
+	if activity.OperationOutputs == nil {
+		activity.OperationOutputs = make(map[string]interface{})
+	}
+	if activity.OperationOutputs[session.CurrentStage] == nil {
+		activity.OperationOutputs[session.CurrentStage] = make(map[string]interface{})
+	}
+	outputStage := activity.OperationOutputs[session.CurrentStage].(map[string]interface{})
+	if outputStage[operationName] == nil {
+		outputStage[operationName] = make(map[string]interface{})
+	}
+	outputOperation := outputStage[operationName].(map[string]interface{})
+	if outputOperation[productName] == nil {
+		outputOperation[productName] = make(map[string]interface{})
+	}
+	operationOutputOfProduct := outputOperation[productName].(map[string]interface{})
+	for _, param := range nodeStatus.Outputs.Parameters {
+		operationOutputOfProduct[param.Name] = param.Value
+	}
+	activity.OperationOutputs[session.CurrentStage] = outputStage
+	s.logger.Debugf("%v", activity.OperationOutputs)
+	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Update(
+			context.TODO(),
+			&configmap,
+			v1.UpdateOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {
