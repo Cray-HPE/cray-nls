@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # MIT License
 #
@@ -21,24 +22,51 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-# Temporary script to deploy argo onto a system for testing
-#     NOTE: this will be removed once we have deployment work done
+set -e
 
-# csm 1.2
+function deployNLS() {
+    BUILDDIR="/tmp/build"
+    mkdir -p "$BUILDDIR"
+    kubectl get secrets -n loftsman site-init -o jsonpath='{.data.customizations\.yaml}' | base64 -d > "${BUILDDIR}/customizations.yaml"
+    kubectl get configmap -n loftsman loftsman-platform -o jsonpath='{.data.manifest\.yaml}' > "${BUILDDIR}/iuf.yaml"
+    manifestgen -i "${BUILDDIR}/iuf.yaml" -c "${BUILDDIR}/customizations.yaml" -o "${BUILDDIR}/platform.yaml"
+    yq w -i "${BUILDDIR}/platform.yaml" 'spec.charts[0].version' "$2"
+    yq w -i "${BUILDDIR}/platform.yaml" 'metadata.name' "iuf"
+    charts="$(yq r "${BUILDDIR}/platform.yaml" 'spec.charts[*].name')"
+    for chart in $charts; do
+        if [[ $chart != "cray-iuf" ]] && [[ $chart != "cray-nls" ]]; then
+            yq d -i "${BUILDDIR}/platform.yaml" "spec.charts.(name==$chart)"
+        fi
+    done
+
+    yq d -i "${BUILDDIR}/platform.yaml" "spec.sources"
+
+    loftsman ship --charts-path "$1" --manifest-path /tmp/build/platform.yaml
+}
+CHART_PATH="/tmp/nls"
+rm -rf ${CHART_PATH}
+git clone https://github.com/Cray-HPE/cray-nls.git ${CHART_PATH}
+if [[ -n $1 ]]; then
+    cd ${CHART_PATH} && git checkout "$1"
+fi
+cd ${CHART_PATH} && helm dep update charts/v1.0/cray-nls/
+cd ${CHART_PATH} && helm package charts/v1.0/cray-nls/
+cd ${CHART_PATH} && helm dep update charts/v1.0/cray-iuf/
+cd ${CHART_PATH} && helm package charts/v1.0/cray-iuf/
+
+
+echo "Get NLS chart version"
+tarFileName=$(ls | cat | grep "cray-nls")
+tarFileName=${tarFileName#"cray-nls-"}
+version=${tarFileName%".tgz"}
+echo "Version: $version"
+
+echo "Get image version"
+imageVersion=$(yq r ${CHART_PATH}/charts/v1.0/cray-nls/values.yaml 'cray-service.containers.cray-nls.image.tag')
+echo "image version: $imageVersion"
+echo "sync docker images"
 NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.username}} | base64 -d)"
 NEXUS_PASSWORD="$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.password}} | base64 -d)"
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://quay.io/argoproj/argocli:latest docker://registry.local/argoproj/argocli:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://quay.io/argoproj/argoexec:latest docker://registry.local/argoproj/argoexec:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://quay.io/argoproj/workflow-controller:latest docker://registry.local/argoproj/workflow-controller:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://postgres:12-alpine docker://registry.local/library/postgres:12-alpine
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://minio/minio docker://registry.local/docker.io/minio/minio
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://kennethreitz/httpbin:latest docker://registry.local/docker.io/kennethreitz/httpbin:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://portainer/kubectl-shell:latest-v1.21.1-amd64 docker://registry.local/docker.io/portainer/kubectl-shell:latest-v1.21.1-amd64
+podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://artifactory.algol60.net/csm-docker/stable/cray-nls:$imageVersion docker://registry.local/artifactory.algol60.net/csm-docker/stable/cray-nls:$imageVersion
 
-
-# csm 1.0
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-creds "admin:admin" docker://quay.io/argoproj/argocli:latest docker://registry.local/argoproj/argocli:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-creds "admin:admin" docker://quay.io/argoproj/argoexec:latest docker://registry.local/argoproj/argoexec:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-creds "admin:admin" docker://quay.io/argoproj/workflow-controller:latest docker://registry.local/argoproj/workflow-controller:latest
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-creds "admin:admin" docker://postgres:12-alpine docker://registry.local/library/postgres:12-alpine
-podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-creds "admin:admin" docker://minio/minio docker://registry.local/library/minio/minio
+deployNLS "$CHART_PATH" "$version"
