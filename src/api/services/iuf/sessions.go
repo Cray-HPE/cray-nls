@@ -246,6 +246,10 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 			Name:         "host-usr-bin",
 			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/usr/bin", Type: &hostPathDir}},
 		},
+		{
+			Name:         "ca-bundle",
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/ca-certificates", Type: &hostPathDir}},
+		},
 	}
 	res.Spec.PodPriorityClassName = "system-node-critical"
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
