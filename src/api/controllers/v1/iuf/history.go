@@ -136,7 +136,7 @@ func (u IufController) ReplaceHistoryComment(c *gin.Context) {
 // @Tags     History
 // @Accept   json
 // @Produce  json
-// @Success  201  "Created"
+// @Success  201  {object}  iuf.Session
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name}/history/run [post]
 func (u IufController) HistoryRunAction(c *gin.Context) {
@@ -147,14 +147,14 @@ func (u IufController) HistoryRunAction(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	err := u.iufService.HistoryRunAction(c.Param("activity_name"), requestBody)
+	res, err := u.iufService.HistoryRunAction(c.Param("activity_name"), requestBody)
 	if err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
-	c.JSON(http.StatusCreated, nil)
+	c.JSON(http.StatusCreated, res)
 }
 
 // HistoryBlockedAction

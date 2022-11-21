@@ -51,11 +51,12 @@ func (mr *MockIufServiceMockRecorder) ConfigMapDataToSession(data interface{}) *
 }
 
 // CreateActivity mocks base method.
-func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) error {
+func (m *MockIufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateActivity", req)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(iuf.Activity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateActivity indicates an expected call of CreateActivity.
@@ -125,11 +126,12 @@ func (mr *MockIufServiceMockRecorder) GetSession(sessionName interface{}) *gomoc
 }
 
 // HistoryRunAction mocks base method.
-func (m *MockIufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
+func (m *MockIufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HistoryRunAction", activityName, req)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // HistoryRunAction indicates an expected call of HistoryRunAction.

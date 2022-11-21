@@ -95,7 +95,10 @@ const docTemplateIUF = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": ""
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/Activity"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -425,7 +428,10 @@ const docTemplateIUF = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created"
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/Session"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error",

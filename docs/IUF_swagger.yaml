@@ -254,7 +254,9 @@ paths:
       - application/json
       responses:
         "201":
-          description: ""
+          description: Created
+          schema:
+            $ref: '#/definitions/Activity'
         "400":
           description: Bad Request
           schema:
@@ -544,6 +546,8 @@ paths:
       responses:
         "201":
           description: Created
+          schema:
+            $ref: '#/definitions/Session'
         "500":
           description: Internal Server Error
           schema:

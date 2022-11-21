@@ -41,32 +41,33 @@ import (
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/google/uuid"
 	"github.com/imdario/mergo"
+	"golang.org/x/exp/slices"
 	"gopkg.in/yaml.v2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
+func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error) {
 	// construct activity object from create req
 	reqBytes, _ := json.Marshal(req)
 	var activity iuf.Activity
 	err := json.Unmarshal(reqBytes, &activity)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Activity{}, err
 	}
 
 	// processing individual field of request
-	err = s.processCreateActivityRequest(&activity)
+	err = s.processActivityInputParameters(&activity)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Activity{}, err
 	}
 
 	// store activity
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Activity{}, err
 	}
 	_, err = s.k8sRestClientSet.
 		CoreV1().
@@ -78,7 +79,7 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 		)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Activity{}, err
 	}
 
 	// store history
@@ -91,7 +92,7 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 	configmap, err = s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Activity{}, err
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
 	_, err = s.k8sRestClientSet.
@@ -103,7 +104,7 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) error {
 			v1.CreateOptions{},
 		)
 
-	return err
+	return activity, err
 }
 
 func (s iufService) GetActivity(name string) (iuf.Activity, error) {
@@ -150,6 +151,11 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 		return iuf.Activity{}, err
 	}
 	tmp.InputParameters = request
+	err = s.processActivityInputParameters(&tmp)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
 	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
@@ -207,7 +213,7 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 	return res, err
 }
 
-func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {
+func (s iufService) processActivityInputParameters(activity *iuf.Activity) error {
 	if activity.InputParameters.MediaDir != "" {
 		s.logger.Infof("Processing media: %s", activity.InputParameters.MediaDir)
 		// find all tarball files
@@ -241,13 +247,15 @@ func (s iufService) processCreateActivityRequest(activity *iuf.Activity) error {
 				validated = false
 			}
 			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
-			// add product to activity object
-			activity.Products = append(activity.Products, iuf.Product{
-				Name:             fmt.Sprintf("%v", manifest["name"]),
-				Version:          fmt.Sprintf("%v", manifest["version"]),
-				Validated:        validated,
-				OriginalLocation: file,
-			})
+			if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
+				// add product to activity object
+				activity.Products = append(activity.Products, iuf.Product{
+					Name:             fmt.Sprintf("%v", manifest["name"]),
+					Version:          fmt.Sprintf("%v", manifest["version"]),
+					Validated:        validated,
+					OriginalLocation: file,
+				})
+			}
 		}
 	}
 
