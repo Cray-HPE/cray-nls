@@ -60,7 +60,7 @@ func TestProcessCreateActivityRequest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := mySvc.processCreateActivityRequest(&tt.activity)
+			err := mySvc.processActivityInputParameters(&tt.activity)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return
@@ -95,7 +95,7 @@ func TestCreateActivity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := mySvc.CreateActivity(tt.req)
+			_, err := mySvc.CreateActivity(tt.req)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return

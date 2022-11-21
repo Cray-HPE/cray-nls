@@ -52,13 +52,13 @@ const (
 )
 
 type IufService interface {
-	CreateActivity(req iuf.CreateActivityRequest) error
+	CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error)
 	ListActivities() ([]iuf.Activity, error)
 	GetActivity(name string) (iuf.Activity, error)
 	PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error)
 	// history
 	ListActivityHistory(activityName string) ([]iuf.History, error)
-	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error
+	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error)
 	GetActivityHistory(activityName string, startTime int32) (iuf.History, error)
 	ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error)
 	// session

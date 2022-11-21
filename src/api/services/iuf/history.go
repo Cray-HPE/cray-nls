@@ -121,12 +121,12 @@ func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, 
 	return history, nil
 }
 
-func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) error {
+func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
 	patchReq := iuf.PatchActivityRequest{InputParameters: req.InputParameters}
 	activity, err := s.PatchActivity(activityName, patchReq)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Session{}, err
 	}
 
 	// store session
@@ -140,7 +140,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	configmap, err := s.iufObjectToConfigMapData(session, name, LABEL_SESSION)
 	if err != nil {
 		s.logger.Error(err)
-		return err
+		return iuf.Session{}, err
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
 	_, err = s.k8sRestClientSet.
@@ -151,7 +151,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 			&configmap,
 			v1.CreateOptions{},
 		)
-	return err
+	return session, err
 }
 
 func (s iufService) configMapDataToHistory(data string) (iuf.History, error) {

@@ -40,7 +40,7 @@ import (
 // @Tags     Activities
 // @Accept   json
 // @Produce  json
-// @Success  201
+// @Success  201  {object}  iuf.Activity
 // @Failure  400  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities [post]
@@ -52,13 +52,14 @@ func (u IufController) CreateActivity(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	if err := u.iufService.CreateActivity(requestBody); err != nil {
+	res, err := u.iufService.CreateActivity(requestBody)
+	if err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
-	c.JSON(http.StatusCreated, nil)
+	c.JSON(http.StatusCreated, res)
 }
 
 // ListActivities
