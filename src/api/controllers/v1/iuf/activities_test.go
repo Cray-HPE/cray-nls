@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
+	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	"github.com/gin-gonic/gin"
@@ -63,7 +64,7 @@ func TestCreateActivity(t *testing.T) {
 
 		workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
 		iufServiceMock := mocks.NewMockIufService(ctrl)
-		iufServiceMock.EXPECT().CreateActivity(gomock.Any()).Return(nil).AnyTimes()
+		iufServiceMock.EXPECT().CreateActivity(gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
 		var tests = []struct {
 			name        string
 			requestBody string
