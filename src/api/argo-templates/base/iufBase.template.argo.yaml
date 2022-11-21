@@ -35,6 +35,9 @@ spec:
        parameters:
          - name: scriptContent
          - name: dryRun
+      metadata:
+        annotations:
+          sidecar.istio.io/inject: "false"
       retryStrategy:
        limit: "2"
        retryPolicy: "Always"
