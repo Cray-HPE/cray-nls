@@ -107,14 +107,10 @@ spec:
             echo "=======DRY RUN======="
             echo "====================="
             cat /tmp/${ts}.sh
-            echo "======== POD INFO: Annotations ========"
-            cat /etc/podinfo/annotations
           else
             bash -e /tmp/${ts}.sh
           fi
         volumeMounts:
-          - name: podinfo
-            mountPath: /etc/podinfo
           # mount csi from host to docker
           # csi is go compiled so it can be used from host to container
           - name: host-usr-bin

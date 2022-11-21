@@ -147,6 +147,24 @@ func TestGetDagTasks(t *testing.T) {
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
 	})
+	t.Run("It should get a dag task for global stage", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: name,
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "global",
+			Operations: []iuf.Operations{
+				{Name: "this_is_an_operationr_1"},
+				{Name: "this_is_an_operationr_2"},
+			},
+		}
+
+		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 2, len(dagTasks))
+	})
 
 }
 
@@ -274,32 +292,6 @@ func TestProcessOutput(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"stage_type": "INVALID_STAGE_TYPE",
-					},
-				},
-				Spec: v1alpha1.WorkflowSpec{
-					Templates: []v1alpha1.Template{
-						{
-							DAG: &v1alpha1.DAGTemplate{
-								Tasks: []v1alpha1.DAGTask{},
-							},
-						},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "global stage type (TODO)",
-			session: iuf.Session{
-				ActivityRef: name,
-				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
-				},
-			},
-			workflow: &v1alpha1.Workflow{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{
-						"stage_type": "global",
 					},
 				},
 				Spec: v1alpha1.WorkflowSpec{
@@ -476,6 +468,164 @@ func TestProcessOutput(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
 						"stage_type": "product",
+					},
+				},
+				Spec: v1alpha1.WorkflowSpec{
+					Templates: []v1alpha1.Template{
+						{
+							DAG: &v1alpha1.DAGTemplate{
+								Tasks: []v1alpha1.DAGTask{
+									{
+										Name: "product-name-dash-operation-name",
+										TemplateRef: &v1alpha1.TemplateRef{
+											Name: "this-is-a-name-of-templateRef",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Inputs: &v1alpha1.Inputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name: "global_params",
+										Value: v1alpha1.AnyStringPtr(`
+										{
+											"product_manifest": {
+											  "products": {
+												"cos": {
+												  "manifest": {
+													"iuf_version": "^0.1.0",
+													"name": "cos",
+													"description": "The Cray Operating System (COS).\n",
+													"version": "2.5.34-20221012230953",
+													"content": {
+													  "docker": [
+														{
+														  "path": "docker/cray"
+														}
+													  ],
+													  "rest of the file snipped in this example": []
+													}
+												  }
+												},
+												"sdu": {
+												  "manifest": {
+													"iuf_version": "^0.1.0",
+													"name": "sdu",
+													"rest of the file snipped in this example": {}
+												  }
+												}
+											  },
+											  "current_product": {
+												"manifest": {
+												  "iuf_version": "^0.1.0",
+												  "name": "cos",
+												  "description": "The Cray Operating System (COS).\n",
+												  "version": "2.5.34-20221012230953",
+												  "content": {
+													"docker": [
+													  {
+														"path": "docker/cray"
+													  }
+													],
+													"rest of the file snipped in this example": []
+												  }
+												}
+											  }
+											},
+											"input_params": {
+											  "products": ["cos", "sdu"],
+											  "media_dir": "/iuf/alice_230116",
+											  "bootprep_config_managed": [
+												{
+												  "contents": "boot prep file contents as a string"
+												}
+											  ],
+											  "bootprep_config_management": [
+												{
+												  "contents": "boot prep file contents as a string"
+												}
+											  ],
+											  "limit_nodes": ["x12413515", "x15464574"]
+											},
+											"site_params": {
+											  "global": {
+												"some_global_site_parameter": "lorem ipsum"
+											  },
+											  "products": {
+												"cos": {
+												  "vcs_branch": "integration-2.5.34",
+												  "some_cos_site_parameter": "lorem ipsum"
+												},
+												"sdu": {
+												  "vcs_branch": "integration-1.2.3",
+												  "some_sdu_site_parameter": "lorem ipsum"
+												}
+											  },
+											  "current_product": {
+												"vcs_branch": "integration-2.5.34",
+												"some_cos_site_parameter": "lorem ipsum"
+											  }
+											},
+											"stage_params": {
+											  "process_media": {
+												"global": {},
+												"products": {
+												  "cos": {
+													"parent_directory": "path to parent directory containing COS's iuf-product-manifest.yaml",
+													"output_of_cos": "whatever"
+												  },
+												  "sdu": {
+													"parent_directory": "path to parent directory containing COS's iuf-product-manifest.yaml",
+													"output_of_sdu": "whatever"
+												  }
+												},
+												"current_product": {
+												  "parent_directory": "path to parent directory containing COS's iuf-product-manifest.yaml",
+												  "output_of_cos": "whatever"
+												}
+											  },
+											  "pre_install_check": {
+												"global": {}
+											  }
+											}
+										  }
+										  `),
+									},
+								},
+							},
+							Outputs: &v1alpha1.Outputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name:  "this_is_the_name_of_an_output",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_an_output"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "global stage type: with outputs",
+			session: iuf.Session{
+				ActivityRef: name,
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process_media"},
+				},
+			},
+			workflow: &v1alpha1.Workflow{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{
+						"stage_type": "global",
 					},
 				},
 				Spec: v1alpha1.WorkflowSpec{
