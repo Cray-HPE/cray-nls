@@ -352,7 +352,13 @@ func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workfl
 		}
 		return nil
 	case "global":
-		return fmt.Errorf("not implemented")
+		for _, task := range tasks {
+			operationName := task.TemplateRef.Name
+			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
+			s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
+			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, "")
+		}
+		return nil
 	default:
 		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
 	}
@@ -381,12 +387,19 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 		outputStage[operationName] = make(map[string]interface{})
 	}
 	outputOperation := outputStage[operationName].(map[string]interface{})
-	if outputOperation[productName] == nil {
-		outputOperation[productName] = make(map[string]interface{})
-	}
-	operationOutputOfProduct := outputOperation[productName].(map[string]interface{})
-	for _, param := range nodeStatus.Outputs.Parameters {
-		operationOutputOfProduct[param.Name] = param.Value
+	if productName != "" {
+		if outputOperation[productName] == nil {
+			outputOperation[productName] = make(map[string]interface{})
+		}
+		operationOutputOfProduct := outputOperation[productName].(map[string]interface{})
+		for _, param := range nodeStatus.Outputs.Parameters {
+			operationOutputOfProduct[param.Name] = param.Value
+		}
+
+	} else {
+		for _, param := range nodeStatus.Outputs.Parameters {
+			outputOperation[param.Name] = param.Value
+		}
 	}
 	activity.OperationOutputs[session.CurrentStage] = outputStage
 	s.logger.Debugf("%v", activity.OperationOutputs)
@@ -449,7 +462,36 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 			}
 		}
 	} else {
-		s.logger.Infof("TODO: support global stage: %s", stageInfo.Type)
+		for index, operation := range stageInfo.Operations {
+			task := v1alpha1.DAGTask{
+				Name: operation.Name,
+			}
+			// dep with a stage
+			if index != 0 {
+				task.Dependencies = []string{
+					stageInfo.Operations[index-1].Name,
+				}
+			}
+			globaParams := s.getGlobalParams(session, iuf.Product{})
+			b, _ := json.Marshal(globaParams)
+			task.Arguments = v1alpha1.Arguments{
+				Parameters: []v1alpha1.Parameter{
+					{
+						Name:  "auth_token",
+						Value: v1alpha1.AnyStringPtr("todo"), // todo token
+					},
+					{
+						Name:  "global_params",
+						Value: v1alpha1.AnyStringPtr(string(b)),
+					},
+				},
+			}
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     operation.Name,
+				Template: "main",
+			}
+			res = append(res, task)
+		}
 	}
 	return res
 }
@@ -526,8 +568,7 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 			res[stageName].(map[string]interface{})["products"] = products
 			res[stageName].(map[string]interface{})["current_product"] = currentProduct
 		} else {
-			//TODO: global output
-			s.logger.Warnf("TODO: %s is not supported yet", stageType)
+			res[stageName].(map[string]interface{})["global"] = outputValue
 		}
 
 	}
