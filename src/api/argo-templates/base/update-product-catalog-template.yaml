@@ -34,10 +34,8 @@ spec:
       - name: product-catalog-configmap-namespace
         value: "services"
       - name: yaml-content
-        # TODO: release stable build of cray-product-catalog-update and update the "value" line to use stable 1.7.0 release.
-        # see: https://github.com/Cray-HPE/cray-product-catalog/pull/166
       - name: cray-product-catalog-update-image
-        value: "artifactory.algol60.net/csm-docker/unstable/cray-product-catalog-update:1.7.0-alpha.14_2cea794"
+        value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.7.0"
       - name: set-active-version
         value: ""
   entrypoint: catalog-update
