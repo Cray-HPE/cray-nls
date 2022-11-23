@@ -46,7 +46,6 @@ func (s IufRoutes) Setup() {
 		api.POST("/activities", s.iufController.CreateActivity)
 		api.GET("/activities", s.iufController.ListActivities)
 		api.GET("/activities/:activity_name", s.iufController.GetActivity)
-		api.PATCH("/activities/:activity_name", s.iufController.PatchActivity)
 		// history CRUD
 		api.GET("/activities/:activity_name/history", s.iufController.ListHistory)
 		api.GET("/activities/:activity_name/history/:start_time", s.iufController.GetHistory)

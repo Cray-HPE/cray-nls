@@ -150,50 +150,6 @@ const docTemplateIUF = `{
                         }
                     }
                 }
-            },
-            "patch": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Activities"
-                ],
-                "summary": "Update an IUF activity",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "activity name",
-                        "name": "activity_name",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "IUF activity",
-                        "name": "activity",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/Activity.PatchActivityRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/Activity"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ResponseError"
-                        }
-                    }
-                }
             }
         },
         "/iuf/v1/activities/{activity_name}/history": {
@@ -695,17 +651,6 @@ const docTemplateIUF = `{
                 "name": {
                     "description": "Name of activity",
                     "type": "string"
-                }
-            }
-        },
-        "Activity.PatchActivityRequest": {
-            "type": "object",
-            "required": [
-                "input_parameters"
-            ],
-            "properties": {
-                "input_parameters": {
-                    "$ref": "#/definitions/InputParameters"
                 }
             }
         },

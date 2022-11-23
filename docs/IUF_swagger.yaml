@@ -66,13 +66,6 @@ definitions:
     required:
     - name
     type: object
-  Activity.PatchActivityRequest:
-    properties:
-      input_parameters:
-        $ref: '#/definitions/InputParameters'
-    required:
-    - input_parameters
-    type: object
   History:
     properties:
       activity_state:
@@ -290,35 +283,6 @@ paths:
           schema:
             $ref: '#/definitions/ResponseError'
       summary: Get an IUF activity
-      tags:
-      - Activities
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: activity name
-        in: path
-        name: activity_name
-        required: true
-        type: string
-      - description: IUF activity
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/Activity.PatchActivityRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/Activity'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ResponseError'
-      summary: Update an IUF activity
       tags:
       - Activities
   /iuf/v1/activities/{activity_name}/history:
