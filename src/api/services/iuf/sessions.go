@@ -236,7 +236,7 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	res.Spec.Volumes = []corev1.Volume{
 		{
 			Name:         "iuf",
-			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/etc/iuf", Type: &hostPathDir}},
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/opt/cray/iuf", Type: &hostPathDir}},
 		},
 		{
 			Name:         "ssh",

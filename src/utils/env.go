@@ -59,7 +59,7 @@ func NewEnv(log Logger) Env {
 
 	// for the intiial realse, this is hard coded
 	if len(env.MediaDirBase) == 0 {
-		env.MediaDirBase = "/etc/iuf"
+		env.MediaDirBase = "/opt/cray/iuf"
 	}
 
 	log.Infof("%+v \n", env)

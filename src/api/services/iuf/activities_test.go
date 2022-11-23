@@ -53,7 +53,7 @@ func TestProcessCreateActivityRequest(t *testing.T) {
 		},
 		{
 			name:     "valid media dir with tar files",
-			activity: iuf.Activity{InputParameters: iuf.InputParameters{MediaDir: "/etc/iufasdf"}},
+			activity: iuf.Activity{InputParameters: iuf.InputParameters{MediaDir: "/opt/cray/iufasdf"}},
 			wantErr:  true,
 		},
 	}
