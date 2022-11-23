@@ -56,9 +56,8 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 		return iuf.Activity{}, err
 	}
 
-	// processing individual field of request
-	err = s.processActivityInputParameters(&activity)
-	if err != nil {
+	if activity.Name == "" {
+		err := fmt.Errorf("activity name is not set")
 		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
@@ -129,7 +128,7 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 	return res, err
 }
 
-func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error) {
+func (s iufService) patchActivity(name string, inputParams iuf.InputParameters) (iuf.Activity, error) {
 	tmp, err := s.GetActivity(name)
 	if err != nil {
 		s.logger.Error(err)
@@ -145,7 +144,7 @@ func (s iufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iu
 	// TODO: validate input parameters
 	// support partial update
 	original := tmp.InputParameters
-	request := req.InputParameters
+	request := inputParams
 	if err := mergo.Merge(&request, original); err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err

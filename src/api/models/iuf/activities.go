@@ -35,14 +35,9 @@ type Activity struct {
 } // @name Activity
 
 type CreateActivityRequest struct {
-	Name            string          `json:"name" binding:"required"` // Name of activity
-	InputParameters InputParameters `json:"input_parameters"`        // Input parameters by admin
-	ActivityState   ActivityState   `json:"activity_state" swaggerignore:"true"`
+	Name          string        `json:"name" binding:"required"` // Name of activity
+	ActivityState ActivityState `json:"activity_state" swaggerignore:"true"`
 } // @name Activity.CreateActivityRequest
-
-type PatchActivityRequest struct {
-	InputParameters InputParameters `json:"input_parameters" binding:"required"`
-} // @name Activity.PatchActivityRequest
 
 type ActivityState string
 

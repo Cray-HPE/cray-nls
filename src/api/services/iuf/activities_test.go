@@ -31,8 +31,7 @@ import (
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
-	"k8s.io/client-go/kubernetes"
-	fake "k8s.io/client-go/rest/fake"
+	fake "k8s.io/client-go/kubernetes/fake"
 )
 
 func TestProcessCreateActivityRequest(t *testing.T) {
@@ -70,27 +69,22 @@ func TestProcessCreateActivityRequest(t *testing.T) {
 }
 
 func TestCreateActivity(t *testing.T) {
-	fakeClient := fake.RESTClient{}
-	mySvc := iufService{logger: utils.GetLogger(), k8sRestClientSet: kubernetes.New(&fakeClient)}
+	fakeClient := fake.NewSimpleClientset()
+	mySvc := iufService{logger: utils.GetLogger(), k8sRestClientSet: fakeClient}
 	var tests = []struct {
 		name    string
 		req     iuf.CreateActivityRequest
 		wantErr bool
 	}{
 		{
-			name:    "empty",
+			name:    "no name",
 			req:     iuf.CreateActivityRequest{},
 			wantErr: true,
 		},
 		{
-			name:    "invalid media dir",
-			req:     iuf.CreateActivityRequest{InputParameters: iuf.InputParameters{MediaDir: "/asdf"}},
-			wantErr: true,
-		},
-		{
-			name:    "valid media dir with tar files",
-			req:     iuf.CreateActivityRequest{InputParameters: iuf.InputParameters{MediaDir: "/etc/iuf"}},
-			wantErr: true,
+			name:    "has name",
+			req:     iuf.CreateActivityRequest{Name: "this-is-a-name"},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

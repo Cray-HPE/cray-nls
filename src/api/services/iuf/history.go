@@ -122,8 +122,7 @@ func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, 
 }
 
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
-	patchReq := iuf.PatchActivityRequest{InputParameters: req.InputParameters}
-	activity, err := s.PatchActivity(activityName, patchReq)
+	activity, err := s.patchActivity(activityName, req.InputParameters)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Session{}, err

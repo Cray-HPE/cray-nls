@@ -185,21 +185,6 @@ func (mr *MockIufServiceMockRecorder) ListSessions(activityName interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSessions", reflect.TypeOf((*MockIufService)(nil).ListSessions), activityName)
 }
 
-// PatchActivity mocks base method.
-func (m *MockIufService) PatchActivity(name string, req iuf.PatchActivityRequest) (iuf.Activity, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PatchActivity", name, req)
-	ret0, _ := ret[0].(iuf.Activity)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// PatchActivity indicates an expected call of PatchActivity.
-func (mr *MockIufServiceMockRecorder) PatchActivity(name, req interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), name, req)
-}
-
 // ProcessOutput mocks base method.
 func (m *MockIufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error {
 	m.ctrl.T.Helper()
