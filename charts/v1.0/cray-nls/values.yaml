@@ -52,7 +52,7 @@ cray-service:
         name: iuf-install-workflow-stages-files
     - name: iuf
       hostPath:
-        path: /etc/iuf
+        path: /opt/cray/iuf
   tolerations:
     - key: "node-role.kubernetes.io/master"
       operator: "Exists"
@@ -110,7 +110,7 @@ cray-service:
           readOnly: true
           mountPath: /workflows/iuf/stages
         - name: iuf
-          mountPath: /etc/iuf
+          mountPath: /opt/cray/iuf
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
