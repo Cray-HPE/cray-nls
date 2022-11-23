@@ -57,9 +57,6 @@ definitions:
     type: object
   Activity.CreateActivityRequest:
     properties:
-      input_parameters:
-        $ref: '#/definitions/InputParameters'
-        description: Input parameters by admin
       name:
         description: Name of activity
         type: string

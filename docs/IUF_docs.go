@@ -644,10 +644,6 @@ const docTemplateIUF = `{
                 "name"
             ],
             "properties": {
-                "input_parameters": {
-                    "description": "Input parameters by admin",
-                    "$ref": "#/definitions/InputParameters"
-                },
                 "name": {
                     "description": "Name of activity",
                     "type": "string"
