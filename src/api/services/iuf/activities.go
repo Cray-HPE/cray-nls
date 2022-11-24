@@ -213,51 +213,49 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 }
 
 func (s iufService) processActivityInputParameters(activity *iuf.Activity) error {
-	if activity.InputParameters.MediaDir != "" {
-		s.logger.Infof("Processing media: %s", activity.InputParameters.MediaDir)
-		// find all tarball files
-		pattern := activity.InputParameters.MediaDir + "/*.tar.gz"
-		tarballFiles, err := filepath.Glob(pattern)
+	absMediaPath := s.env.MediaDirBase + activity.InputParameters.MediaDir
+	s.logger.Infof("Processing media: %s", absMediaPath)
+	// find all tarball files
+	pattern := absMediaPath + "/*.tar.gz"
+	tarballFiles, err := filepath.Glob(pattern)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	// make sure there are product tarballs
+	if len(tarballFiles) == 0 {
+		err := fmt.Errorf("no tarball files found: %s", absMediaPath)
+		s.logger.Error(err)
+		return err
+	}
+
+	s.logger.Infof("Find tarballs: %v", tarballFiles)
+	// processing each tarball file
+	for _, file := range tarballFiles {
+		manifest, err := s.extractManifestFromTarballFile(file)
 		if err != nil {
 			s.logger.Error(err)
 			return err
 		}
-		// make sure there are product tarballs
-		if len(tarballFiles) == 0 {
-			err := fmt.Errorf("no tarball files found: %s", activity.InputParameters.MediaDir)
+		// validate iuf product manifest
+		data, _ := yaml.Marshal(manifest)
+		validated := true
+		err = iuf.Validate(data)
+		if err != nil {
 			s.logger.Error(err)
-			return err
+			validated = false
 		}
-
-		s.logger.Infof("Find tarballs: %v", tarballFiles)
-		// processing each tarball file
-		for _, file := range tarballFiles {
-			manifest, err := s.extractManifestFromTarballFile(file)
-			if err != nil {
-				s.logger.Error(err)
-				return err
-			}
-			// validate iuf product manifest
-			data, _ := yaml.Marshal(manifest)
-			validated := true
-			err = iuf.Validate(data)
-			if err != nil {
-				s.logger.Error(err)
-				validated = false
-			}
-			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
-			if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
-				// add product to activity object
-				activity.Products = append(activity.Products, iuf.Product{
-					Name:             fmt.Sprintf("%v", manifest["name"]),
-					Version:          fmt.Sprintf("%v", manifest["version"]),
-					Validated:        validated,
-					OriginalLocation: file,
-				})
-			}
+		s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
+		if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
+			// add product to activity object
+			activity.Products = append(activity.Products, iuf.Product{
+				Name:             fmt.Sprintf("%v", manifest["name"]),
+				Version:          fmt.Sprintf("%v", manifest["version"]),
+				Validated:        validated,
+				OriginalLocation: file,
+			})
 		}
 	}
-
 	activity.ActivityState = iuf.ActivityStateWaitForAdmin
 	return nil
 }

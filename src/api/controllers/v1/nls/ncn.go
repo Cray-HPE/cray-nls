@@ -26,8 +26,6 @@
 package controllers_v1
 
 import (
-	"fmt"
-
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	services_nls "github.com/Cray-HPE/cray-nls/src/api/services/nls"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
@@ -65,7 +63,7 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models_nls.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(400, errResponse)
 		return
 	}
@@ -87,7 +85,7 @@ func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	var requestBody models_nls.CreateRebootWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(400, errResponse)
 		return
 	}
@@ -100,7 +98,7 @@ func (u NcnController) createRebuildWorkflow(req models_nls.CreateRebuildWorkflo
 	err := u.validator.ValidateHostnames(req.Hosts)
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(400, errResponse)
 		return
 	}
@@ -110,7 +108,7 @@ func (u NcnController) createRebuildWorkflow(req models_nls.CreateRebuildWorkflo
 
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	} else {

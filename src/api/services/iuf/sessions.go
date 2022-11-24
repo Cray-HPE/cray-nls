@@ -236,7 +236,7 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	res.Spec.Volumes = []corev1.Volume{
 		{
 			Name:         "iuf",
-			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/opt/cray/iuf", Type: &hostPathDir}},
+			VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: s.env.MediaDirBase, Type: &hostPathDir}},
 		},
 		{
 			Name:         "ssh",
@@ -539,7 +539,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 	}
 	return map[string]interface{}{
 		"products":  productsArray,
-		"media_dir": session.InputParameters.MediaDir,
+		"media_dir": s.env.MediaDirBase + session.InputParameters.MediaDir,
 		//todo: bootprep_config_managed
 		//todo: bootprep_config_management
 		"limit_nodes": session.InputParameters.LimitNodes,

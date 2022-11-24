@@ -48,7 +48,7 @@ func (u IufController) ListSessions(c *gin.Context) {
 	res, err := u.iufService.ListSessions(c.Param("activity_name"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -69,7 +69,7 @@ func (u IufController) GetSession(c *gin.Context) {
 	res, err := u.iufService.GetSession(c.Param("session_name"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -80,13 +80,13 @@ func (u IufController) Sync(c *gin.Context) {
 	var requestBody iuf.SyncRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		c.JSON(500, fmt.Sprint(err))
+		c.JSON(500, err.Error())
 		return
 	}
 	session, err := u.iufService.GetSession(requestBody.Object.Name)
 	if err != nil {
 		u.logger.Error(err)
-		c.JSON(500, fmt.Sprint(err))
+		c.JSON(500, err.Error())
 		return
 	}
 	var response iuf.SyncResponse
@@ -95,7 +95,7 @@ func (u IufController) Sync(c *gin.Context) {
 		u.logger.Infof("State is empty, creating workflow: %s, resoure version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
 		response, err := u.iufService.RunNextStage(&session)
 		if err != nil {
-			c.JSON(500, fmt.Sprint(err))
+			c.JSON(500, err.Error())
 		}
 		c.JSON(200, response)
 		return
@@ -123,7 +123,7 @@ func (u IufController) Sync(c *gin.Context) {
 			err := u.iufService.ProcessOutput(session, activeWorkflow)
 			if err != nil {
 				u.logger.Error(err)
-				c.JSON(500, fmt.Sprint(err))
+				c.JSON(500, err.Error())
 			}
 			if len(session.Workflows) == len(session.InputParameters.Stages) {
 				u.logger.Info("All Stage are Succeeded, update state")
@@ -138,7 +138,7 @@ func (u IufController) Sync(c *gin.Context) {
 			response, err := u.iufService.RunNextStage(&session)
 			if err != nil {
 				u.logger.Error(err)
-				c.JSON(500, fmt.Sprint(err))
+				c.JSON(500, err.Error())
 			}
 			c.JSON(200, response)
 			return
@@ -151,7 +151,7 @@ func (u IufController) Sync(c *gin.Context) {
 	default:
 		err := fmt.Errorf("unknow state: session.CurrentState")
 		u.logger.Error(err)
-		c.JSON(500, utils.ResponseError{Message: fmt.Sprint(err)})
+		c.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
 	}
 }

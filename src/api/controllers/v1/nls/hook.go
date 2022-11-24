@@ -26,8 +26,6 @@
 package controllers_v1
 
 import (
-	"fmt"
-
 	v1 "github.com/Cray-HPE/cray-nls/src/api/models/nls/v1"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -54,7 +52,7 @@ func (u HookController) AddHooks(c *gin.Context) {
 	var response v1.SyncResponse
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(400, errResponse)
 		return
 	}
