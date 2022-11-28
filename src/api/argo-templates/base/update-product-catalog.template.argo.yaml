@@ -29,38 +29,30 @@ metadata:
 spec:
   arguments:
     parameters:
+      - name: product-name
+      - name: product-version
+      - name: yaml-content
       - name: product-catalog-configmap-name
         value: "cray-product-catalog"
       - name: product-catalog-configmap-namespace
         value: "services"
-      - name: yaml-content
       - name: cray-product-catalog-update-image
         value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.7.0"
-      - name: set-active-version
-        value: ""
   entrypoint: catalog-update
   templates:
   - name: catalog-update
-    inputs:
-      parameters:
-        - name: product-name
-          value: "{{=jsonpath(workflow.parameters.product_manifest, '$.current_product.manifest.name')}}"
-        - name: product-version
-          value: "{{=jsonpath(workflow.parameters.product_manifest, '$.current_product.manifest.version')}}"
     container:
       image: "{{workflow.parameters.cray-product-catalog-update-image}}"
       command: [catalog_update]
       env:
         - name: PRODUCT
-          value: "{{inputs.parameters.product-name}}"
+          value: "{{workflow.parameters.product-name}}"
         - name: PRODUCT_VERSION
-          value: "{{inputs.parameters.product-version}}"
+          value: "{{workflow.parameters.product-version}}"
         - name: CONFIG_MAP
           value: "{{workflow.parameters.product-catalog-configmap-name}}"
         - name: CONFIG_MAP_NAMESPACE
           value: "{{workflow.parameters.product-catalog-configmap-namespace}}"
-        - name: SET_ACTIVE_VERSION
-          value: "{{workflow.parameters.set-active-version}}"
         - name: YAML_CONTENT_STRING
           value: "{{workflow.parameters.yaml-content}}"
         - name: VALIDATE_SCHEMA
