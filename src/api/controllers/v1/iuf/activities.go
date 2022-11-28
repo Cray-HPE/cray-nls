@@ -26,7 +26,6 @@
 package iuf
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -48,14 +47,14 @@ func (u IufController) CreateActivity(c *gin.Context) {
 	var requestBody iuf.CreateActivityRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	res, err := u.iufService.CreateActivity(requestBody)
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -74,7 +73,7 @@ func (u IufController) ListActivities(c *gin.Context) {
 	res, err := u.iufService.ListActivities()
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -94,7 +93,7 @@ func (u IufController) GetActivity(c *gin.Context) {
 	res, err := u.iufService.GetActivity(c.Param("activity_name"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}

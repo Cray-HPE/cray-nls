@@ -24,8 +24,6 @@
 package controllers_v1
 
 import (
-	"fmt"
-
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -60,7 +58,7 @@ func NewWorkflowController(Service services_shared.WorkflowService, logger utils
 func (u WorkflowController) GetWorkflows(c *gin.Context) {
 	workflowList, err := u.service.GetWorkflows(c)
 	if err != nil {
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	}
@@ -92,7 +90,7 @@ func (u WorkflowController) GetWorkflows(c *gin.Context) {
 func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 	err := u.service.DeleteWorkflow(c)
 	if err != nil {
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	}
@@ -114,7 +112,7 @@ func (u WorkflowController) DeleteWorkflow(c *gin.Context) {
 func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 	err := u.service.RetryWorkflow(c)
 	if err != nil {
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	}
@@ -135,7 +133,7 @@ func (u WorkflowController) RetryWorkflow(c *gin.Context) {
 func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	err := u.service.RerunWorkflow(c)
 	if err != nil {
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	}

@@ -48,7 +48,7 @@ func (u IufController) ListHistory(c *gin.Context) {
 	res, err := u.iufService.ListActivityHistory(c.Param("activity_name"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -70,21 +70,21 @@ func (u IufController) GetHistory(c *gin.Context) {
 	startTime, err := strconv.Atoi(c.Param("start_time"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	res, err := u.iufService.GetActivityHistory(c.Param("activity_name"), int32(startTime))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
 	if res.StartTime == 0 {
 		err := fmt.Errorf("history with start_time:%d not found", startTime)
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusNotFound, errResponse)
 		return
 	}
@@ -108,21 +108,21 @@ func (u IufController) ReplaceHistoryComment(c *gin.Context) {
 	startTime, err := strconv.Atoi(c.Param("start_time"))
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	var requestBody iuf.ReplaceHistoryCommentRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	res, err := u.iufService.ReplaceHistoryComment(c.Param("activity_name"), int32(startTime), requestBody)
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
@@ -143,14 +143,14 @@ func (u IufController) HistoryRunAction(c *gin.Context) {
 	var requestBody iuf.HistoryRunActionRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	res, err := u.iufService.HistoryRunAction(c.Param("activity_name"), requestBody)
 	if err != nil {
 		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}

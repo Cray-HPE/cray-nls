@@ -197,7 +197,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 	var requestBody models_nls.RetryWorkflowRequestBody
 	if err := ctx.BindJSON(&requestBody); err != nil {
 		s.logger.Error(err)
-		errResponse := utils.ResponseError{Message: fmt.Sprint(err)}
+		errResponse := utils.ResponseError{Message: err.Error()}
 		ctx.JSON(400, errResponse)
 		return err
 	}
