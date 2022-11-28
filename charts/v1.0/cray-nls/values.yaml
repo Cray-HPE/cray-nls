@@ -142,6 +142,8 @@ cray-service:
           value: "/workflows/storage"
         - name: IUF_INSTALL_WORKFLOW_FILES
           value: "/workflows/iuf"
+        - name: MEDIA_DIR_BASE
+          value: "/opt/cray/iuf"
       ports:
         - name: http
           containerPort: 3000
