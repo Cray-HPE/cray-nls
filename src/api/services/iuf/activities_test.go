@@ -68,10 +68,9 @@ func TestProcessCreateActivityRequest(t *testing.T) {
 		{
 			name:    "valid media dir with valid tar files",
 			path:    "/" + uuid.NewString(),
-			tarFile: "H4sIAEN+f2MAA+1YT2/jRBT3roQQFgcucOA0gsMCkp0Zj8eOU4qUNJG6S91sNslCORC5zqRxif+sZ9xtcoCvwZlPwkdAghOfhhknTYrVJN1s6O7S/OTReN68N2/+vN/4yXrPj5lm6ETHpmZAw0AQGQaGDsHKtgAhtAkBeW1Na2iY01oCiwYyMbYtm1g2BBCZBrEUALc2gxXIGPdSMZX+JM5W6Qm1wWBF/3QpYF6/K3jvk/eVh4riej5otsH3YAYpUz4QxRDlN1Fk+6/bDVntdJ7NXqXFr6J8XVB5sJB/7Meh7iXJiOovMi/1Ih5EVHlRgrCM9ixsOmWLkr2DYRqHdK9axbBuYqQ5yLY1EzfKWq1qWRo0nRoitTKGpL6FTbk/eOpdHlKvT9PSf3cPrOW/VeS/JR4FXG5hfWtxz/mPIQh5ENJ9ZFmO4TjIKOsYOQhD27ZVhBxw9LhWfXZw+Ph5Q7/0OE/1m/i679arptthhjtpkWb9h9Fxh9e9wycXp9917Va3MXEbLehOGrzZaeDjMYQu7JpH3Se14/MT7tZbpHXeQK3zs4lbf95QHQLawuPRySqPG98P6pve87cJS1lf2p6PdfyXfCl8/xEyFUC2N4XluOf8X37+ei/IBlqSxv3M51roRcGAMq6PvXD0ij7Eflimufz8TTS//21omwAayLDQLv+7E9wm//tbyfO/Bx/ebshF/pdb/C7KUUHl4Uz+kaJ8urjdRx7jGaP9vsfp50/bM90/lBV5Iv75F18q/flV9pmsd3njq2E5/xeZ4eveA+v4T6wi/7F4dvnfXaCY/9m2oYtDsBAiDv6f5n/WykUVLqF9F5PSycuqQL3zbdQNqjlU4iybY3GA4hX1VuWfy/m/ra//Wv4jGxnF7z80d/9/7gTilHsXNGVBHFXAj1BHOlQjL6QVICJD7VPmp0HC895vVAA6QwoOUm8MmglNPcHDM9AeM05D8MVBs/2lrs7HujGoVNWPI04jXhFj9WP/J5rKNw0kHh9WZpKSLxyoQjyko/B6t2xL+SgecCZC8nrfVYQyVWYvgn69K8kZFbPhaUbznj5NRvF4JhCSiF5mrHc6ik97jMcpZZVcTcZ5bzryo1xFkypTjZwEjxbGKU1iFoiuYLn1dZ2FfZqE7PoiZDtfvcZGlCGisQRrkR/lg86HGPfmB3QzdaW1hogwLhrycSIMU++lutYr5Zt4lmZz7xobSj246SxMbfOlC9s4TDJON3cu1/J6OzCfxK124sL/VzCIppQG4SyoUuoHyVWEXSmJ3tKs403fJDvssMO7hn8AZuukMAAcAAA=",
+			tarFile: "H4sIAAAAAAAAA+2VTXObMBCGfeZX6Jb2AJYEguCZ9pJLb+lMei5DsBwzBcRIIjX/vitiOw6J69QZu810nwuwH1oJ9l2C6dd89UXmc6nNtFBmcgIoEEfRcAXGV8pCPmFRGDGWMC7CCWUMjBOyOsVmxnTG5hq2co5a/yAhJbUta/mJxXEai4SLNEhpTAUPWeyBN3/qjYM0uaSXgseJ8xb7c//2yZDXAJKfnrqG03gixF79u/uR/uMI9C9OvTHHRv9aKfu7uEP+8eHeCe777/wBym7ht1rNu8L6dd6UC2ls0Od19ZYafzT/XRwTseA4/8/B8/nPA0ZjFlGaJi/M/5EX5/87x+n/JKLf4YD+QfXhSP/QTNGEnEWT//n8h2+f3cPkL1UzI99pwALqNXktZwQ6w5tLU+iytYP3s0fIt6UkVzrvyXUrNYyG5o7c9MbKmny4ur75GHjbtXgggjDyOeWcUcZ5SFMRel6hGisbO4O15qr4IbW780mb2+VsbZkWUMAD81JW9a7bPTt7pRbWQKPu+jZ9a8BGSGdktrHcSdiN1Z0cPHPZVqpfG8DSyFVnsttK3WbGKi3NbAhz3Z89rHwxhPgu5CFikMbFY7KWrTIluMr92bsxj/m6rc3uIdzzcHrfVNIw4Zs29JuiGRbdLtFn2w/kv/iWXbbPBCSPE23fQqLOf3oHq0p7TGWXtq3um6WLo8fuIvKPPzrkqrrtrDy+uDvL297AdhOvehP3xZNmgEdnLet1U2lZlO2mwzZB4J2uHfjDRRAEQRAEQRAEQRAEQRAEQRDkgV8bNSO9ACgAAA==",
 			wanted: wanted{
-				err:    true,
-				errMsg: "yaml: control characters are not allowed",
+				err: false,
 			},
 		},
 		{
