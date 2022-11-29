@@ -186,7 +186,7 @@ func (mr *MockIufServiceMockRecorder) ListSessions(activityName interface{}) *go
 }
 
 // ProcessOutput mocks base method.
-func (m *MockIufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error {
+func (m *MockIufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ProcessOutput", session, workflow)
 	ret0, _ := ret[0].(error)

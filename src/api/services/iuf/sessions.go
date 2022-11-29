@@ -38,7 +38,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/imdario/mergo"
 	"golang.org/x/exp/slices"
-	yaml_v2 "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
@@ -321,7 +320,7 @@ func (s iufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error)
 	return response, nil
 }
 
-func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error {
+func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error {
 	// get activity
 	activity, err := s.GetActivity(session.ActivityRef)
 	if err != nil {
@@ -348,15 +347,51 @@ func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workfl
 				}
 			}
 			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, productName)
+			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productName)
 		}
 		return nil
 	case "global":
+		// special handling of process media
+		if workflow.Labels["stage"] == "process-media" {
+			nodesWithOutputs := workflow.Status.Nodes.Filter(func(nodeStatus v1alpha1.NodeStatus) bool {
+				return nodeStatus.Outputs.HasOutputs() && len(nodeStatus.Outputs.Parameters) == 2
+			})
+			for _, nodeStatus := range nodesWithOutputs {
+				var manifest map[string]interface{}
+				s.logger.Debugf("....: %v", nodeStatus.Outputs)
+				err := yaml.Unmarshal([]byte(nodeStatus.Outputs.Parameters[0].Value.String()), &manifest)
+				if err != nil {
+					s.logger.Error(err)
+					return err
+				}
+				// validate iuf product manifest
+				data, _ := yaml.Marshal(manifest)
+				validated := true
+				err = iuf.Validate(data)
+				if err != nil {
+					s.logger.Error(err)
+					validated = false
+				}
+				jsonManifest, _ := json.Marshal(manifest)
+				s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
+				if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
+					// add product to activity object
+					activity.Products = append(activity.Products, iuf.Product{
+						Name:             fmt.Sprintf("%v", manifest["name"]),
+						Version:          fmt.Sprintf("%v", manifest["version"]),
+						Validated:        validated,
+						Manifest:         string(jsonManifest),
+						OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
+					})
+				}
+			}
+			session.Products = activity.Products
+		}
 		for _, task := range tasks {
 			operationName := task.TemplateRef.Name
 			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
 			s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, "")
+			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
 		}
 		return nil
 	default:
@@ -509,8 +544,7 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 	resProducts := make(map[string]interface{})
 	var currentProductManifest map[string]interface{}
 	for _, product := range session.Products {
-		manifest, _ := s.extractManifestFromTarballFile(product.OriginalLocation)
-		manifestBytes, _ := yaml_v2.Marshal(manifest)
+		manifestBytes := []byte(product.Manifest)
 		manifestJsonBytes, _ := yaml.YAMLToJSON(manifestBytes)
 		var manifestJson map[string]interface{}
 		json.Unmarshal(manifestJsonBytes, &manifestJson)

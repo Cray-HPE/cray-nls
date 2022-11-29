@@ -120,7 +120,7 @@ func (u IufController) Sync(c *gin.Context) {
 			return
 		}
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
-			err := u.iufService.ProcessOutput(session, activeWorkflow)
+			err := u.iufService.ProcessOutput(&session, activeWorkflow)
 			if err != nil {
 				u.logger.Error(err)
 				c.JSON(500, err.Error())

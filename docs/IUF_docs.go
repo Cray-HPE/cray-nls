@@ -776,6 +776,10 @@ const docTemplateIUF = `{
                 "version"
             ],
             "properties": {
+                "manifest": {
+                    "description": "the content of manifest",
+                    "type": "string"
+                },
                 "name": {
                     "description": "The name of the product",
                     "type": "string"
