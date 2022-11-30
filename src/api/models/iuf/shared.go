@@ -34,6 +34,8 @@ type Product struct {
 	OriginalLocation string `json:"original_location"  validate:"required"`
 	// The flag indicates md5 of a product tarball file has been validated
 	Validated bool `json:"validated"  validate:"required"`
+	// the content of manifest
+	Manifest string `json:"manifest"`
 } // @name Product
 
 type InputParameters struct {

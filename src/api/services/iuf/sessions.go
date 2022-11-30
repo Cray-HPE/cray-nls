@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"path"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -38,7 +39,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/imdario/mergo"
 	"golang.org/x/exp/slices"
-	yaml_v2 "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
@@ -321,7 +321,7 @@ func (s iufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error)
 	return response, nil
 }
 
-func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workflow) error {
+func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error {
 	// get activity
 	activity, err := s.GetActivity(session.ActivityRef)
 	if err != nil {
@@ -348,15 +348,76 @@ func (s iufService) ProcessOutput(session iuf.Session, workflow *v1alpha1.Workfl
 				}
 			}
 			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, productName)
+			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productName)
 		}
 		return nil
 	case "global":
+		// special handling of process media
+		if workflow.Labels["stage"] == "process-media" {
+			nodesWithOutputs := workflow.Status.Nodes.Filter(func(nodeStatus v1alpha1.NodeStatus) bool {
+				return nodeStatus.Outputs.HasOutputs() && len(nodeStatus.Outputs.Parameters) == 2
+			})
+			activity.OperationOutputs = make(map[string]interface{})
+			activity.OperationOutputs["stage_params"] = make(map[string]interface{})
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"] = make(map[string]interface{})
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"] = make(map[string]interface{})
+			for _, nodeStatus := range nodesWithOutputs {
+				var manifest map[string]interface{}
+				err := yaml.Unmarshal([]byte(nodeStatus.Outputs.Parameters[0].Value.String()), &manifest)
+				if err != nil {
+					s.logger.Error(err)
+					return err
+				}
+				// validate iuf product manifest
+				data, _ := yaml.Marshal(manifest)
+				validated := true
+				err = iuf.Validate(data)
+				if err != nil {
+					s.logger.Error(err)
+					validated = false
+				}
+				jsonManifest, _ := json.Marshal(manifest)
+				s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
+				if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
+					// add product to activity object
+					activity.Products = append(activity.Products, iuf.Product{
+						Name:             fmt.Sprintf("%v", manifest["name"]),
+						Version:          fmt.Sprintf("%v", manifest["version"]),
+						Validated:        validated,
+						Manifest:         string(jsonManifest),
+						OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
+					})
+					activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])] = make(map[string]interface{})
+					activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
+				}
+			}
+			session.Products = activity.Products
+			// update activity
+			configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+
+			_, err = s.k8sRestClientSet.
+				CoreV1().
+				ConfigMaps(DEFAULT_NAMESPACE).
+				Update(
+					context.TODO(),
+					&configmap,
+					v1.UpdateOptions{},
+				)
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+			return nil
+		}
 		for _, task := range tasks {
 			operationName := task.TemplateRef.Name
 			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
 			s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, session, nodeStatus, operationName, "")
+			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
 		}
 		return nil
 	default:
@@ -402,7 +463,6 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 		}
 	}
 	activity.OperationOutputs[session.CurrentStage] = outputStage
-	s.logger.Debugf("%v", activity.OperationOutputs)
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
@@ -466,7 +526,6 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 			task := v1alpha1.DAGTask{
 				Name: operation.Name,
 			}
-			// dep with a stage
 			if index != 0 {
 				task.Dependencies = []string{
 					stageInfo.Operations[index-1].Name,
@@ -509,8 +568,7 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 	resProducts := make(map[string]interface{})
 	var currentProductManifest map[string]interface{}
 	for _, product := range session.Products {
-		manifest, _ := s.extractManifestFromTarballFile(product.OriginalLocation)
-		manifestBytes, _ := yaml_v2.Marshal(manifest)
+		manifestBytes := []byte(product.Manifest)
 		manifestJsonBytes, _ := yaml.YAMLToJSON(manifestBytes)
 		var manifestJson map[string]interface{}
 		json.Unmarshal(manifestJsonBytes, &manifestJson)
@@ -539,7 +597,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 	}
 	return map[string]interface{}{
 		"products":  productsArray,
-		"media_dir": s.env.MediaDirBase + session.InputParameters.MediaDir,
+		"media_dir": path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
 		//todo: bootprep_config_managed
 		//todo: bootprep_config_management
 		"limit_nodes": session.InputParameters.LimitNodes,
@@ -549,16 +607,19 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
 	res := make(map[string]interface{})
 	activity, _ := s.GetActivity(session.ActivityRef)
+	if activity.OperationOutputs == nil {
+		return map[string]interface{}{}
+	}
 	stages, _ := s.getStages()
-	operationOutpus := activity.OperationOutputs
+	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
 	// loop through each stage's output
-	for stageName, v := range operationOutpus {
+	for stageName, v := range stageParams {
 		idx := slices.IndexFunc(stages.Stages, func(stage iuf.Stage) bool { return stage.Name == stageName })
 		stageType := stages.Stages[idx].Type
 		outputValue := v.(map[string]interface{})
 		res[stageName] = make(map[string]interface{})
 		s.logger.Debugf("stage: %s, type: %s, outputs: %v", stageName, stageType, v)
-		if stageType == "product" {
+		if stageType == "product" || stageName == "process-media" {
 			var currentProduct map[string]interface{}
 			var products map[string]interface{}
 			for _, value := range outputValue {
