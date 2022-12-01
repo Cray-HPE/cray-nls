@@ -354,76 +354,80 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 	case "global":
 		// special handling of process media
 		if workflow.Labels["stage"] == "process-media" {
-			nodesWithOutputs := workflow.Status.Nodes.Filter(func(nodeStatus v1alpha1.NodeStatus) bool {
-				return nodeStatus.Outputs.HasOutputs() && len(nodeStatus.Outputs.Parameters) == 2
-			})
-			activity.OperationOutputs = make(map[string]interface{})
-			activity.OperationOutputs["stage_params"] = make(map[string]interface{})
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"] = make(map[string]interface{})
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"] = make(map[string]interface{})
-			for _, nodeStatus := range nodesWithOutputs {
-				var manifest map[string]interface{}
-				err := yaml.Unmarshal([]byte(nodeStatus.Outputs.Parameters[0].Value.String()), &manifest)
-				if err != nil {
-					s.logger.Error(err)
-					return err
-				}
-				// validate iuf product manifest
-				data, _ := yaml.Marshal(manifest)
-				validated := true
-				err = iuf.Validate(data)
-				if err != nil {
-					s.logger.Error(err)
-					validated = false
-				}
-				jsonManifest, _ := json.Marshal(manifest)
-				s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
-				if idx := slices.IndexFunc(activity.Products, func(product iuf.Product) bool { return product.Name == manifest["name"] }); idx == -1 {
-					// add product to activity object
-					activity.Products = append(activity.Products, iuf.Product{
-						Name:             fmt.Sprintf("%v", manifest["name"]),
-						Version:          fmt.Sprintf("%v", manifest["version"]),
-						Validated:        validated,
-						Manifest:         string(jsonManifest),
-						OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
-					})
-					activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])] = make(map[string]interface{})
-					activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
-				}
-			}
-			session.Products = activity.Products
-			// update activity
-			configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
+			err := s.processOutputOfProcessMedia(&activity, workflow)
 			if err != nil {
 				s.logger.Error(err)
 				return err
 			}
-
-			_, err = s.k8sRestClientSet.
-				CoreV1().
-				ConfigMaps(DEFAULT_NAMESPACE).
-				Update(
-					context.TODO(),
-					&configmap,
-					v1.UpdateOptions{},
-				)
+			session.Products = activity.Products
+			// update activity
+			_, err = s.updateActivity(activity)
 			if err != nil {
 				s.logger.Error(err)
 				return err
 			}
 			return nil
+		} else {
+			for _, task := range tasks {
+				operationName := task.TemplateRef.Name
+				nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
+				s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
+				s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
+			}
+			return nil
 		}
-		for _, task := range tasks {
-			operationName := task.TemplateRef.Name
-			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-			s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
-		}
-		return nil
 	default:
 		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
 	}
 
+}
+
+func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow *v1alpha1.Workflow) error {
+	nodesWithOutputs := workflow.Status.Nodes.Filter(func(nodeStatus v1alpha1.NodeStatus) bool {
+		return nodeStatus.Outputs.HasOutputs() && len(nodeStatus.Outputs.Parameters) == 2
+	})
+	if len(nodesWithOutputs) == 0 {
+		return nil
+	}
+	activity.OperationOutputs = map[string]interface{}{
+		"stage_params": map[string]interface{}{
+			"process-media": map[string]interface{}{
+				"products": map[string]interface{}{},
+			},
+		},
+	}
+	activity.Products = []iuf.Product{}
+	for _, nodeStatus := range nodesWithOutputs {
+		var manifest map[string]interface{}
+		err := yaml.Unmarshal([]byte(nodeStatus.Outputs.Parameters[0].Value.String()), &manifest)
+		if err != nil {
+			s.logger.Error(err)
+			return err
+		}
+		// validate iuf product manifest
+		data, _ := yaml.Marshal(manifest)
+		validated := true
+		err = iuf.Validate(data)
+		if err != nil {
+			s.logger.Error(err)
+			validated = false
+		}
+		jsonManifest, _ := json.Marshal(manifest)
+		if manifest["name"] != nil {
+			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
+			// add product to activity object
+			activity.Products = append(activity.Products, iuf.Product{
+				Name:             fmt.Sprintf("%v", manifest["name"]),
+				Version:          fmt.Sprintf("%v", manifest["version"]),
+				Validated:        validated,
+				Manifest:         string(jsonManifest),
+				OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
+			})
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])] = make(map[string]interface{})
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
+		}
+	}
+	return nil
 }
 
 func (s iufService) updateActivityOperationOutputFromWorkflow(

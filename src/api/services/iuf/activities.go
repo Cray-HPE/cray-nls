@@ -143,25 +143,7 @@ func (s iufService) patchActivity(name string, inputParams iuf.InputParameters) 
 	}
 	tmp.InputParameters = request
 	tmp.ActivityState = iuf.ActivityStateWaitForAdmin
-	configmap, err := s.iufObjectToConfigMapData(tmp, tmp.Name, LABEL_ACTIVITY)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
-	}
-
-	_, err = s.k8sRestClientSet.
-		CoreV1().
-		ConfigMaps(DEFAULT_NAMESPACE).
-		Update(
-			context.TODO(),
-			&configmap,
-			v1.UpdateOptions{},
-		)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
-	}
-	return tmp, err
+	return s.updateActivity(tmp)
 }
 
 func (s iufService) ListActivities() ([]iuf.Activity, error) {
@@ -198,4 +180,26 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 		return res, err
 	}
 	return res, err
+}
+
+func (s iufService) updateActivity(activity iuf.Activity) (iuf.Activity, error) {
+	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Update(
+			context.TODO(),
+			&configmap,
+			v1.UpdateOptions{},
+		)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+	return activity, err
 }
