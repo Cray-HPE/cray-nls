@@ -1129,6 +1129,7 @@ func TestProcessOutputOfProcessMedia(t *testing.T) {
 						Name:             "this-is-a-name",
 						Version:          "this-is-a-version",
 						OriginalLocation: "this_is_the_value_of_parent-directory",
+						Validated:        false,
 						Manifest:         `{"name":"this-is-a-name","version":"this-is-a-version"}`,
 					},
 				},
