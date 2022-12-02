@@ -1089,7 +1089,7 @@ func TestProcessOutputOfProcessMedia(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "two outputs - valid yaml but 'alomot' valid iuf-manifest",
+			name: "two outputs - valid yaml, invalid manifest with only product name and version",
 			workflow: &v1alpha1.Workflow{
 				Status: v1alpha1.WorkflowStatus{
 					Nodes: v1alpha1.Nodes{
