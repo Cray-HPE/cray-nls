@@ -146,6 +146,15 @@ definitions:
           type: string
         type: array
     type: object
+  Operations:
+    properties:
+      localPath:
+        description: Argo operation file path
+        type: string
+      name:
+        description: Name of the opeartion
+        type: string
+    type: object
   Product:
     properties:
       manifest:
@@ -208,6 +217,32 @@ definitions:
         type: string
       url:
         description: url to the argo workflow
+        type: string
+    type: object
+  Stage:
+    properties:
+      name:
+        description: Name of the stage
+        type: string
+      operations:
+        description: operations
+        items:
+          $ref: '#/definitions/Operations'
+        type: array
+      staticParameters:
+        additionalProperties: true
+        type: object
+      type:
+        description: Type of the stage
+        type: string
+    type: object
+  Stages:
+    properties:
+      stages:
+        items:
+          $ref: '#/definitions/Stage'
+        type: array
+      version:
         type: string
     type: object
 info:
@@ -574,4 +609,20 @@ paths:
       summary: Get a session of an IUF activity
       tags:
       - Sessions
+  /iuf/v1/stages:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Stages'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: Get the IUF stages
+      tags:
+      - Stages
 swagger: "2.0"

@@ -25,20 +25,30 @@
  */
 package iuf
 
-// Stage
-type Stage struct {
-	Name             string                 `yaml:"name"`       // Name of the stage
-	Type             string                 `yaml:"type"`       // Type of the stage
-	Operations       []Operations           `yaml:"operations"` // operations
-	StaticParameters map[string]interface{} `yaml:"static-parameters"`
-} // @name Stage
+import (
+	"net/http"
 
-type Stages struct {
-	Version string  `yaml:"version"`
-	Stages  []Stage `yaml:"stages"`
-} // @name Stages
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/gin-gonic/gin"
+)
 
-type Operations struct {
-	Name      string `yaml:"name"`       // Name of the opeartion
-	LocalPath string `yaml:"local-path"` // Argo operation file path
-} // @name Operations
+// GetStages
+// @Summary  Get the IUF stages
+// @Tags     Stages
+// @Produce  json
+// @Success  200  {object}  iuf.Stages
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/stages [get]
+func (u IufController) GetStages(c *gin.Context) {
+
+	res, err := u.iufService.GetStages()
+
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}

@@ -55,6 +55,8 @@ func (s IufRoutes) Setup() {
 		api.GET("/activities/:activity_name/sessions", s.iufController.ListSessions)
 		api.GET("/activities/:activity_name/sessions/:session_name", s.iufController.GetSession)
 		api.POST("/session/sync", s.iufController.Sync)
+		// stages
+		api.GET("/stages", s.iufController.GetStages)
 	}
 }
 

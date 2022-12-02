@@ -23,22 +23,22 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package iuf
+package services_iuf
 
-// Stage
-type Stage struct {
-	Name             string                 `yaml:"name"`       // Name of the stage
-	Type             string                 `yaml:"type"`       // Type of the stage
-	Operations       []Operations           `yaml:"operations"` // operations
-	StaticParameters map[string]interface{} `yaml:"static-parameters"`
-} // @name Stage
+import (
+	_ "embed"
+	"os"
 
-type Stages struct {
-	Version string  `yaml:"version"`
-	Stages  []Stage `yaml:"stages"`
-} // @name Stages
+	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"sigs.k8s.io/yaml"
+)
 
-type Operations struct {
-	Name      string `yaml:"name"`       // Name of the opeartion
-	LocalPath string `yaml:"local-path"` // Argo operation file path
-} // @name Operations
+func (s iufService) GetStages() (iuf.Stages, error) {
+	stagesBytes, _ := os.ReadFile(s.env.IufInstallWorkflowFiles + "/stages.yaml")
+	var stages iuf.Stages
+	err := yaml.Unmarshal(stagesBytes, &stages)
+	if err != nil {
+		s.logger.Error(err)
+	}
+	return stages, err
+}
