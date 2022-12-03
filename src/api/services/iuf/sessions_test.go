@@ -34,6 +34,7 @@ import (
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/api/core/v1"
@@ -942,6 +943,209 @@ func TestProcessOutput(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestProcessOutputOfProcessMedia(t *testing.T) {
+	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	name := uuid.NewString()
+	activity := iuf.Activity{
+		Name:     name,
+		Products: []iuf.Product{},
+	}
+	reqBytes, _ := json.Marshal(activity)
+	configmap := v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: DEFAULT_NAMESPACE,
+			Labels: map[string]string{
+				"type": LABEL_ACTIVITY,
+			},
+		},
+		Data: map[string]string{LABEL_ACTIVITY: string(reqBytes)},
+	}
+	fakeClient := fake.NewSimpleClientset(&configmap)
+	mySvc := iufService{
+		logger:           utils.GetLogger(),
+		workflowCient:    wfServiceClientMock,
+		k8sRestClientSet: fakeClient,
+	}
+
+	var tests = []struct {
+		name         string
+		workflow     *v1alpha1.Workflow
+		wantActivity iuf.Activity
+		wantErr      bool
+	}{
+		{
+			name: "no outputs",
+			workflow: &v1alpha1.Workflow{
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Outputs:     &v1alpha1.Outputs{},
+						},
+					},
+				},
+			},
+			wantActivity: activity,
+			wantErr:      false,
+		},
+		{
+			name: "only one output",
+			workflow: &v1alpha1.Workflow{
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Outputs: &v1alpha1.Outputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name:  "this_is_the_name_of_an_output",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_an_output"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantActivity: activity,
+			wantErr:      false,
+		},
+		{
+			name: "two outputs - invalid yaml",
+			workflow: &v1alpha1.Workflow{
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Outputs: &v1alpha1.Outputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name:  "this_is_the_name_of_an_output",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_an_output"),
+									},
+									{
+										Name:  "this_is_the_name_of_another_output",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_another_output"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantActivity: iuf.Activity{
+				Name: activity.Name,
+				OperationOutputs: map[string]interface{}{
+					"stage_params": map[string]interface{}{
+						"process-media": map[string]interface{}{
+							"products": map[string]interface{}{},
+						},
+					},
+				},
+				Products: activity.Products,
+			},
+			wantErr: true,
+		},
+		{
+			name: "two outputs - valid yaml but invalid iuf-manifest",
+			workflow: &v1alpha1.Workflow{
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Outputs: &v1alpha1.Outputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name:  "this_is_the_name_of_an_output",
+										Value: v1alpha1.AnyStringPtr("valid: yaml"),
+									},
+									{
+										Name:  "this_is_the_name_of_another_output",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_another_output"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantActivity: iuf.Activity{
+				Name: activity.Name,
+				OperationOutputs: map[string]interface{}{
+					"stage_params": map[string]interface{}{
+						"process-media": map[string]interface{}{
+							"products": map[string]interface{}{},
+						},
+					},
+				},
+				Products: activity.Products,
+			},
+			wantErr: false,
+		},
+		{
+			name: "two outputs - valid yaml, invalid manifest with only product name and version",
+			workflow: &v1alpha1.Workflow{
+				Status: v1alpha1.WorkflowStatus{
+					Nodes: v1alpha1.Nodes{
+						"this-is-a-name-of-templateRef": v1alpha1.NodeStatus{
+							DisplayName: "product-name-dash-operation-name",
+							Outputs: &v1alpha1.Outputs{
+								Parameters: []v1alpha1.Parameter{
+									{
+										Name:  "this_is_the_name_of_product",
+										Value: v1alpha1.AnyStringPtr("name: this-is-a-name\nversion: this-is-a-version"),
+									},
+									{
+										Name:  "this_is_the_parent-directory",
+										Value: v1alpha1.AnyStringPtr("this_is_the_value_of_parent-directory"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantActivity: iuf.Activity{
+				Name: activity.Name,
+				OperationOutputs: map[string]interface{}{
+					"stage_params": map[string]interface{}{
+						"process-media": map[string]interface{}{
+							"products": map[string]interface{}{
+								"this-is-a-name": map[string]interface{}{
+									"parent_directory": "this_is_the_value_of_parent-directory",
+								},
+							},
+						},
+					},
+				},
+				Products: []iuf.Product{
+					{
+						Name:             "this-is-a-name",
+						Version:          "this-is-a-version",
+						OriginalLocation: "this_is_the_value_of_parent-directory",
+						Validated:        false,
+						Manifest:         `{"name":"this-is-a-name","version":"this-is-a-version"}`,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := mySvc.processOutputOfProcessMedia(&activity, tt.workflow)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !cmp.Equal(activity, tt.wantActivity) {
+				t.Errorf("Wrong object received, got=%s", cmp.Diff(tt.wantActivity, activity))
 			}
 		})
 	}
