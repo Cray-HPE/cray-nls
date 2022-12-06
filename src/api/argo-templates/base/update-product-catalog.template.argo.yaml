@@ -27,33 +27,33 @@ metadata:
   name: update-product-catalog-template
   namespace: argo
 spec:
-  arguments:
-    parameters:
-      - name: product-name
-      - name: product-version
-      - name: yaml-content
-      - name: product-catalog-configmap-name
-        value: "cray-product-catalog"
-      - name: product-catalog-configmap-namespace
-        value: "services"
-      - name: cray-product-catalog-update-image
-        value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.7.0"
   entrypoint: catalog-update
   templates:
   - name: catalog-update
+    inputs:
+      parameters:
+        - name: cray-product-catalog-update-image
+          value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.7.0"
+        - name: product-catalog-configmap-name
+          value: "cray-product-catalog"
+        - name: product-catalog-configmap-namespace
+          value: "services"
+        - name: product-name
+        - name: product-version
+        - name: yaml-content
     container:
-      image: "{{workflow.parameters.cray-product-catalog-update-image}}"
+      image: "{{inputs.parameters.cray-product-catalog-update-image}}"
       command: [catalog_update]
       env:
         - name: PRODUCT
-          value: "{{workflow.parameters.product-name}}"
+          value: "{{inputs.parameters.product-name}}"
         - name: PRODUCT_VERSION
-          value: "{{workflow.parameters.product-version}}"
+          value: "{{inputs.parameters.product-version}}"
         - name: CONFIG_MAP
-          value: "{{workflow.parameters.product-catalog-configmap-name}}"
+          value: "{{inputs.parameters.product-catalog-configmap-name}}"
         - name: CONFIG_MAP_NAMESPACE
-          value: "{{workflow.parameters.product-catalog-configmap-namespace}}"
+          value: "{{inputs.parameters.product-catalog-configmap-namespace}}"
         - name: YAML_CONTENT_STRING
-          value: "{{workflow.parameters.yaml-content}}"
+          value: "{{inputs.parameters.yaml-content}}"
         - name: VALIDATE_SCHEMA
           value: "true"
