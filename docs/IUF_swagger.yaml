@@ -148,12 +148,19 @@ definitions:
     type: object
   Operations:
     properties:
-      localPath:
+      local-path:
         description: Argo operation file path
         type: string
       name:
-        description: Name of the opeartion
+        description: Name of the operation
         type: string
+      static-parameters:
+        additionalProperties: true
+        type: object
+    required:
+    - local-path
+    - name
+    - static-parameters
     type: object
   Product:
     properties:
@@ -229,12 +236,13 @@ definitions:
         items:
           $ref: '#/definitions/Operations'
         type: array
-      staticParameters:
-        additionalProperties: true
-        type: object
       type:
         description: Type of the stage
         type: string
+    required:
+    - name
+    - operations
+    - type
     type: object
   Stages:
     properties:
@@ -244,6 +252,9 @@ definitions:
         type: array
       version:
         type: string
+    required:
+    - stages
+    - version
     type: object
 info:
   contact: {}

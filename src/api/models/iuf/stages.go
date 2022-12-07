@@ -27,18 +27,18 @@ package iuf
 
 // Stage
 type Stage struct {
-	Name             string                 `yaml:"name"`       // Name of the stage
-	Type             string                 `yaml:"type"`       // Type of the stage
-	Operations       []Operations           `yaml:"operations"` // operations
-	StaticParameters map[string]interface{} `yaml:"static-parameters"`
+	Name       string       `yaml:"name" json:"name" binding:"required"`             // Name of the stage
+	Type       string       `yaml:"type" json:"type" binding:"required"`             // Type of the stage
+	Operations []Operations `yaml:"operations" json:"operations" binding:"required"` // operations
 } // @name Stage
 
 type Stages struct {
-	Version string  `yaml:"version"`
-	Stages  []Stage `yaml:"stages"`
+	Version string  `yaml:"version" json:"version" binding:"required"`
+	Stages  []Stage `yaml:"stages" json:"stages" binding:"required"`
 } // @name Stages
 
 type Operations struct {
-	Name      string `yaml:"name"`       // Name of the opeartion
-	LocalPath string `yaml:"local-path"` // Argo operation file path
+	Name             string                 `yaml:"name" json:"name" binding:"required"`             // Name of the operation
+	LocalPath        string                 `yaml:"local-path" json:"local-path" binding:"required"` // Argo operation file path
+	StaticParameters map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
 } // @name Operations

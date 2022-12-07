@@ -794,14 +794,23 @@ const docTemplateIUF = `{
         },
         "Operations": {
             "type": "object",
+            "required": [
+                "local-path",
+                "name",
+                "static-parameters"
+            ],
             "properties": {
-                "localPath": {
+                "local-path": {
                     "description": "Argo operation file path",
                     "type": "string"
                 },
                 "name": {
-                    "description": "Name of the opeartion",
+                    "description": "Name of the operation",
                     "type": "string"
+                },
+                "static-parameters": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
@@ -897,6 +906,11 @@ const docTemplateIUF = `{
         },
         "Stage": {
             "type": "object",
+            "required": [
+                "name",
+                "operations",
+                "type"
+            ],
             "properties": {
                 "name": {
                     "description": "Name of the stage",
@@ -909,10 +923,6 @@ const docTemplateIUF = `{
                         "$ref": "#/definitions/Operations"
                     }
                 },
-                "staticParameters": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
                 "type": {
                     "description": "Type of the stage",
                     "type": "string"
@@ -921,6 +931,10 @@ const docTemplateIUF = `{
         },
         "Stages": {
             "type": "object",
+            "required": [
+                "stages",
+                "version"
+            ],
             "properties": {
                 "stages": {
                     "type": "array",
