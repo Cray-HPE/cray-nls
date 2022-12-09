@@ -373,7 +373,14 @@ properties:
                   description: >
                     The name of the recipe to be created in IMS. If omitted,
                     this will default to the name of the tar file without the
-                    ".tar.gz" extension.
+                    ".tar.gz" extension. If multiple recipes are listed
+                    which have the same name, only the last recipe in the list
+                    will be uploaded. If the name of the recipe matches the
+                    name of a recipe listed in a manifest in a content
+                    directory listed under the "content_dirs" property, then
+                    the recipe listed in the IUF product manifest will take
+                    precedence, and the recipe in the content directory
+                    manifest will be ignored.
                   type: string
                 recipe_type:
                   description: >
@@ -423,8 +430,14 @@ properties:
                 name:
                   description: >
                     The name of the image to create. If omitted, this will
-                    default to the name of the directory containing the image
-                    artifacts.
+                    default to the basename of the directory containing the
+                    image artifacts. If multiple images are listed which have
+                    the same name, only the last image in the list will be
+                    uploaded. If the name of the image matches the name of a
+                    image listed in a manifest in a content directory listed
+                    under the "content_dirs" property, then the image listed in
+                    the IUF product manifest will take precedence, and the
+                    image in the content directory manifest will be ignored.
                   type: string
                 rootfs:
                   description: >
