@@ -593,6 +593,31 @@ const docTemplateIUF = `{
                     }
                 }
             }
+        },
+        "/iuf/v1/stages": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stages"
+                ],
+                "summary": "Get the IUF stages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Stages"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -767,6 +792,28 @@ const docTemplateIUF = `{
                 }
             }
         },
+        "Operations": {
+            "type": "object",
+            "required": [
+                "local-path",
+                "name",
+                "static-parameters"
+            ],
+            "properties": {
+                "local-path": {
+                    "description": "Argo operation file path",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name of the operation",
+                    "type": "string"
+                },
+                "static-parameters": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
         "Product": {
             "type": "object",
             "required": [
@@ -853,6 +900,49 @@ const docTemplateIUF = `{
                 },
                 "url": {
                     "description": "url to the argo workflow",
+                    "type": "string"
+                }
+            }
+        },
+        "Stage": {
+            "type": "object",
+            "required": [
+                "name",
+                "operations",
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "description": "Name of the stage",
+                    "type": "string"
+                },
+                "operations": {
+                    "description": "operations",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Operations"
+                    }
+                },
+                "type": {
+                    "description": "Type of the stage",
+                    "type": "string"
+                }
+            }
+        },
+        "Stages": {
+            "type": "object",
+            "required": [
+                "stages",
+                "version"
+            ],
+            "properties": {
+                "stages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Stage"
+                    }
+                },
+                "version": {
                     "type": "string"
                 }
             }

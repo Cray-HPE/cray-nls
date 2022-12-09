@@ -125,6 +125,21 @@ func (mr *MockIufServiceMockRecorder) GetSession(sessionName interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockIufService)(nil).GetSession), sessionName)
 }
 
+// GetStages mocks base method.
+func (m *MockIufService) GetStages() (iuf.Stages, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStages")
+	ret0, _ := ret[0].(iuf.Stages)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStages indicates an expected call of GetStages.
+func (mr *MockIufServiceMockRecorder) GetStages() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStages", reflect.TypeOf((*MockIufService)(nil).GetStages))
+}
+
 // HistoryRunAction mocks base method.
 func (m *MockIufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
 	m.ctrl.T.Helper()

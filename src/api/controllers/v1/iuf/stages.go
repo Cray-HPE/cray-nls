@@ -25,20 +25,30 @@
  */
 package iuf
 
-// Stage
-type Stage struct {
-	Name       string       `yaml:"name" json:"name" binding:"required"`             // Name of the stage
-	Type       string       `yaml:"type" json:"type" binding:"required"`             // Type of the stage
-	Operations []Operations `yaml:"operations" json:"operations" binding:"required"` // operations
-} // @name Stage
+import (
+	"net/http"
 
-type Stages struct {
-	Version string  `yaml:"version" json:"version" binding:"required"`
-	Stages  []Stage `yaml:"stages" json:"stages" binding:"required"`
-} // @name Stages
+	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/gin-gonic/gin"
+)
 
-type Operations struct {
-	Name             string                 `yaml:"name" json:"name" binding:"required"`             // Name of the operation
-	LocalPath        string                 `yaml:"local-path" json:"local-path" binding:"required"` // Argo operation file path
-	StaticParameters map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
-} // @name Operations
+// GetStages
+// @Summary  Get the IUF stages
+// @Tags     Stages
+// @Produce  json
+// @Success  200  {object}  iuf.Stages
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/stages [get]
+func (u IufController) GetStages(c *gin.Context) {
+
+	res, err := u.iufService.GetStages()
+
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}

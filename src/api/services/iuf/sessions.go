@@ -206,7 +206,7 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 }
 
 func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) {
-	stages, err := s.getStages()
+	stages, err := s.GetStages()
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err
@@ -614,7 +614,7 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 	if activity.OperationOutputs == nil {
 		return map[string]interface{}{}
 	}
-	stages, _ := s.getStages()
+	stages, _ := s.GetStages()
 	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
 	// loop through each stage's output
 	for stageName, v := range stageParams {
