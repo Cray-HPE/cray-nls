@@ -144,7 +144,8 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
 	})
@@ -162,7 +163,8 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
 	})

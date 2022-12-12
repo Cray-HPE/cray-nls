@@ -279,11 +279,18 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	}
 	res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
 	res.Spec.Entrypoint = "main"
+
+	dagTasks, err := s.getDagTasks(session, stageInfo)
+	if err != nil {
+		s.logger.Error(err)
+		return v1alpha1.Workflow{}, err
+	}
+
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
 			DAG: &v1alpha1.DAGTemplate{
-				Tasks: s.getDagTasks(session, stageInfo),
+				Tasks: dagTasks,
 			},
 		},
 	}
@@ -488,10 +495,16 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	return nil
 }
 
-func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1alpha1.DAGTask {
+func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) ([]v1alpha1.DAGTask, error) {
 	res := []v1alpha1.DAGTask{}
 	stage := stageInfo.Name
 	s.logger.Infof("create DAG for stage: %s", stage)
+
+	authToken, err := s.keycloakService.NewKeycloakAccessToken()
+	if err != nil {
+		return []v1alpha1.DAGTask{}, err
+	}
+
 	if stageInfo.Type == "product" {
 		for _, product := range session.Products {
 			for index, operation := range stageInfo.Operations {
@@ -510,7 +523,7 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 					Parameters: []v1alpha1.Parameter{
 						{
 							Name:  "auth_token",
-							Value: v1alpha1.AnyStringPtr("todo"), // todo token
+							Value: v1alpha1.AnyStringPtr(authToken),
 						},
 						{
 							Name:  "global_params",
@@ -541,7 +554,7 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 				Parameters: []v1alpha1.Parameter{
 					{
 						Name:  "auth_token",
-						Value: v1alpha1.AnyStringPtr("todo"), // todo token
+						Value: v1alpha1.AnyStringPtr(authToken),
 					},
 					{
 						Name:  "global_params",
@@ -556,7 +569,8 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) []v1al
 			res = append(res, task)
 		}
 	}
-	return res
+
+	return res, nil
 }
 
 func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
