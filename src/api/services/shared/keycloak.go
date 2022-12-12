@@ -57,8 +57,8 @@ func NewKeycloakService(logger utils.Logger, env utils.Env, k8sService K8sServic
 	var adminClientAuthClientId string
 	var adminClientAuthClientSecret string
 
-	if !k8sService.IsDevMode {
-		// only production and remote development have access to admin-client-auth
+	if env.Environment != "development" {
+		// only production have access to admin-client-auth
 		secret, err := k8sService.Client.CoreV1().Secrets("services").Get(context.TODO(), "admin-client-auth", k8sMetaV1.GetOptions{})
 		if err != nil {
 			panic(err.Error())
@@ -78,7 +78,7 @@ func NewKeycloakService(logger utils.Logger, env utils.Env, k8sService K8sServic
 }
 
 func (ks KeycloakService) NewKeycloakAccessToken() (string, error) {
-	if ks.k8sService.IsDevMode {
+	if ks.env.Environment == "development" {
 		return "fake_dev_access_token", nil
 	}
 

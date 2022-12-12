@@ -30,23 +30,16 @@ import (
 )
 
 type K8sService struct {
-	Client    *kubernetes.Clientset
-	IsDevMode bool
+	Client *kubernetes.Clientset
 }
 
 func NewK8sService() K8sService {
 	var config *rest.Config
 
-	IsDevMode := true
-
 	// first try local development mode
 	home, _ := os.UserHomeDir()
 	config, err := clientcmd.BuildConfigFromFlags("", home+"/.k3d/kubeconfig-mycluster.yaml")
 	if err != nil {
-		IsDevMode = false
-
-		// try production mode ...
-
 		// first try: running within a pod
 		config, err = rest.InClusterConfig()
 		if err != nil {
@@ -62,11 +55,7 @@ func NewK8sService() K8sService {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	k := K8sService{
-		Client:    k8sRestClientSet,
-		IsDevMode: IsDevMode,
+	return K8sService{
+		Client: k8sRestClientSet,
 	}
-
-	return k
 }
