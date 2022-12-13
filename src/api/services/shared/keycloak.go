@@ -108,7 +108,5 @@ func (ks KeycloakService) NewKeycloakAccessToken() (string, error) {
 		return "", NewKeycloakAccessTokenError{body: err.Error()}
 	}
 
-	utils.GetLogger().Infof("The access token %v", token.AccessToken)
-
 	return token.AccessToken, nil
 }
