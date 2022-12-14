@@ -33,7 +33,11 @@ import (
 	k8sMetaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type KeycloakService struct {
+type KeycloakService interface {
+	NewKeycloakAccessToken() (string, error)
+}
+
+type keycloakService struct {
 	logger                      utils.Logger
 	env                         utils.Env
 	k8sService                  K8sService
@@ -68,7 +72,7 @@ func NewKeycloakService(logger utils.Logger, env utils.Env, k8sService K8sServic
 		adminClientAuthClientSecret = string(secret.Data["client-secret"])
 	}
 
-	return KeycloakService{
+	return keycloakService{
 		logger:                      logger,
 		env:                         env,
 		k8sService:                  k8sService,
@@ -77,12 +81,12 @@ func NewKeycloakService(logger utils.Logger, env utils.Env, k8sService K8sServic
 	}
 }
 
-func (ks KeycloakService) NewKeycloakAccessToken() (string, error) {
+func (ks keycloakService) NewKeycloakAccessToken() (string, error) {
 	if ks.env.Environment != "production" {
 		return "fake_dev_access_token", nil
 	}
 
-	resp, err := http.PostForm("https://"+ks.env.ApiGatewayHost+"/keycloak/realms/shasta/protocol/openid-connect/token", url.Values{
+	resp, err := http.PostForm(ks.env.ApiGatewayURL+"/keycloak/realms/shasta/protocol/openid-connect/token", url.Values{
 		"grant_type":    {"client_credentials"},
 		"client_id":     {ks.adminClientAuthClientId},
 		"client_secret": {ks.adminClientAuthClientSecret},

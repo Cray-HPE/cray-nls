@@ -31,7 +31,7 @@ type Env struct {
 	Environment                 string `mapstructure:"ENV"`
 	ArgoToken                   string `mapstructure:"ARGO_TOKEN"`
 	ArgoServerURL               string `mapstructure:"ARGO_SERVER_URL"`
-	ApiGatewayHost              string `mapstructure:"API_GATEWAY_HOST"`
+	ApiGatewayURL               string `mapstructure:"API_GATEWAY_URL"`
 	WorkerRebuildWorkflowFiles  string `mapstructure:"WORKER_REBUILD_WORKFLOW_FILES"`
 	StorageRebuildWorkflowFiles string `mapstructure:"STORAGE_REBUILD_WORKFLOW_FILES"`
 	IufInstallWorkflowFiles     string `mapstructure:"IUF_INSTALL_WORKFLOW_FILES"`
