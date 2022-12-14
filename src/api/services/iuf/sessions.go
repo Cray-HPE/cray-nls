@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"path"
 	"time"
 
@@ -193,7 +194,7 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 		return nil, err
 	}
 
-	res, err := s.workflowCient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
+	res, err := s.workflowClient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
 		Workflow:  &myWorkflow,
 	})
@@ -500,6 +501,19 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) ([]v1a
 	stage := stageInfo.Name
 	s.logger.Infof("create DAG for stage: %s", stage)
 
+	listTemplates := workflowtemplate.WorkflowTemplateListRequest{
+		Namespace: DEFAULT_NAMESPACE,
+	}
+	templates, err := s.workflowTemplateClient.ListWorkflowTemplates(context.TODO(), &listTemplates)
+	if err != nil {
+		return []v1alpha1.DAGTask{}, err
+	}
+	var templateMap = map[string]bool{}
+
+	for _, t := range templates.Items {
+		templateMap[t.Name] = true
+	}
+
 	authToken, err := s.keycloakService.NewKeycloakAccessToken()
 	if err != nil {
 		return []v1alpha1.DAGTask{}, err
@@ -508,13 +522,29 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) ([]v1a
 	if stageInfo.Type == "product" {
 		for _, product := range session.Products {
 			for index, operation := range stageInfo.Operations {
+				if !templateMap[operation.Name] {
+					s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+					continue
+				}
+
 				task := v1alpha1.DAGTask{
 					Name: product.Name + "-" + operation.Name,
 				}
 				// dep with a stage
 				if index != 0 {
-					task.Dependencies = []string{
-						product.Name + "-" + stageInfo.Operations[index-1].Name,
+					// check the last dependency is available
+					var lastDependencyOpName string
+					for i := index - 1; i >= 0; i-- {
+						if templateMap[stageInfo.Operations[i].Name] {
+							lastDependencyOpName = stageInfo.Operations[i].Name
+							break
+						}
+					}
+
+					if lastDependencyOpName != "" {
+						task.Dependencies = []string{
+							product.Name + "-" + lastDependencyOpName,
+						}
 					}
 				}
 				globaParams := s.getGlobalParams(session, product)
@@ -540,12 +570,28 @@ func (s iufService) getDagTasks(session iuf.Session, stageInfo iuf.Stage) ([]v1a
 		}
 	} else {
 		for index, operation := range stageInfo.Operations {
+			if !templateMap[operation.Name] {
+				s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+				continue
+			}
+
 			task := v1alpha1.DAGTask{
 				Name: operation.Name,
 			}
 			if index != 0 {
-				task.Dependencies = []string{
-					stageInfo.Operations[index-1].Name,
+				// check the last dependency is available
+				var lastDependencyOpName string
+				for i := index - 1; i >= 0; i-- {
+					if templateMap[stageInfo.Operations[i].Name] {
+						lastDependencyOpName = stageInfo.Operations[i].Name
+						break
+					}
+				}
+
+				if lastDependencyOpName != "" {
+					task.Dependencies = []string{
+						lastDependencyOpName,
+					}
 				}
 			}
 			globaParams := s.getGlobalParams(session, iuf.Product{})
