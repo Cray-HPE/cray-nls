@@ -27,6 +27,8 @@ package services_iuf
 
 import (
 	"encoding/json"
+	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
+	"github.com/golang/mock/gomock"
 	"testing"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -44,6 +46,12 @@ import (
 
 func TestCreateIufWorkflow(t *testing.T) {
 
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockTokenValue := "mock_token"
+	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
+	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
+
 	t.Run("It can create a new iuf workflow", func(t *testing.T) {
 		// setup mocks
 		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
@@ -54,9 +62,10 @@ func TestCreateIufWorkflow(t *testing.T) {
 		).Return(new(v1alpha1.Workflow), nil)
 
 		workflowSvc := iufService{
-			logger:        utils.GetLogger(),
-			workflowCient: wfServiceClientMock,
-			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
+			logger:          utils.GetLogger(),
+			workflowCient:   wfServiceClientMock,
+			keycloakService: keycloakServiceMock,
+			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
 
@@ -74,9 +83,10 @@ func TestCreateIufWorkflow(t *testing.T) {
 		).Return(new(v1alpha1.Workflow), nil)
 
 		workflowSvc := iufService{
-			logger:        utils.GetLogger(),
-			workflowCient: wfServiceClientMock,
-			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			logger:          utils.GetLogger(),
+			workflowCient:   wfServiceClientMock,
+			keycloakService: keycloakServiceMock,
+			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
 
@@ -94,9 +104,10 @@ func TestCreateIufWorkflow(t *testing.T) {
 		).Return(new(v1alpha1.Workflow), nil)
 
 		workflowSvc := iufService{
-			logger:        utils.GetLogger(),
-			workflowCient: wfServiceClientMock,
-			env:           utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			logger:          utils.GetLogger(),
+			workflowCient:   wfServiceClientMock,
+			keycloakService: keycloakServiceMock,
+			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
 
@@ -107,6 +118,8 @@ func TestCreateIufWorkflow(t *testing.T) {
 }
 
 func TestGetDagTasks(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
 	name := uuid.NewString()
 	activity := iuf.Activity{
@@ -124,10 +137,16 @@ func TestGetDagTasks(t *testing.T) {
 		Data: map[string]string{LABEL_ACTIVITY: string(reqBytes)},
 	}
 	fakeClient := fake.NewSimpleClientset(&configmap)
+
+	mockTokenValue := "mock_token"
+	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
+	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
+
 	workflowSvc := iufService{
 		logger:           utils.GetLogger(),
 		workflowCient:    wfServiceClientMock,
 		k8sRestClientSet: fakeClient,
+		keycloakService:  keycloakServiceMock,
 		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 	}
 	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
@@ -144,9 +163,13 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
+		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
 	})
 	t.Run("It should get a dag task for global stage", func(t *testing.T) {
 		session := iuf.Session{
@@ -162,25 +185,38 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks := workflowSvc.getDagTasks(session, stageInfo)
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
+		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
 	})
 
 }
 
 func TestRunNextStage(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
 	wfServiceClientMock.On(
 		"CreateWorkflow",
 		mock.Anything,
 		mock.Anything,
 	).Return(new(v1alpha1.Workflow), nil)
+
+	mockTokenValue := "mock_token"
+	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
+	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
+
 	fakeClient := fake.NewSimpleClientset()
 	workflowSvc := iufService{
 		logger:           utils.GetLogger(),
 		workflowCient:    wfServiceClientMock,
 		k8sRestClientSet: fakeClient,
+		keycloakService:  keycloakServiceMock,
 		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 	}
 	type wanted struct {

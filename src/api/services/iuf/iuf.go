@@ -76,16 +76,18 @@ type iufService struct {
 	logger           utils.Logger
 	workflowCient    workflow.WorkflowServiceClient
 	k8sRestClientSet kubernetes.Interface
+	keycloakService  services_shared.KeycloakService
 	env              utils.Env
 }
 
 // NewIufService creates a new Iufservice
-func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, k8sSvc services_shared.K8sService, env utils.Env) IufService {
+func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, k8sSvc services_shared.K8sService, keycloakService services_shared.KeycloakService, env utils.Env) IufService {
 
 	iufSvc := iufService{
 		logger:           logger,
 		workflowCient:    argoService.Client.NewWorkflowServiceClient(),
 		k8sRestClientSet: k8sSvc.Client,
+		keycloakService:  keycloakService,
 		env:              env,
 	}
 	return iufSvc

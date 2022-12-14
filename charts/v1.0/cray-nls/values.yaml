@@ -126,6 +126,8 @@ cray-service:
           value: release
         - name: ARGO_SERVER_URL
           value: argo-server-internal.argo.svc.cluster.local:2746
+        - name: API_GATEWAY_URL
+          value: https://api-gw-service-nmn.local
         - name: WORKER_REBUILD_WORKFLOW_FILES
           value: "/workflows/worker"
         - name: STORAGE_REBUILD_WORKFLOW_FILES
