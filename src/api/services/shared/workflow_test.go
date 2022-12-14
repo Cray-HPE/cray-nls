@@ -56,11 +56,11 @@ func TestInitializeWorkflowTemplate(t *testing.T) {
 	).Return(nil, nil)
 
 	workflowSvc := workflowService{
-		logger:                utils.GetLogger(),
-		ctx:                   context.Background(),
-		workflowCient:         wfServiceClientMock,
-		workflowTemplateCient: wftServiceSclientMock,
-		env:                   utils.Env{},
+		logger:                 utils.GetLogger(),
+		ctx:                    context.Background(),
+		workflowClient:         wfServiceClientMock,
+		workflowTemplateClient: wftServiceSclientMock,
+		env:                    utils.Env{},
 	}
 	t.Run("It should initialize workflow template", func(t *testing.T) {
 		workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
@@ -90,11 +90,11 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 		).Return(new(v1alpha1.Workflow), nil)
 
 		workflowSvc := workflowService{
-			logger:                utils.GetLogger(),
-			ctx:                   context.Background(),
-			workflowCient:         wfServiceClientMock,
-			workflowTemplateCient: wftServiceSclientMock,
-			env:                   utils.Env{WorkerRebuildWorkflowFiles: "../argo-templates/_test_data_"},
+			logger:                 utils.GetLogger(),
+			ctx:                    context.Background(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wftServiceSclientMock,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "../argo-templates/_test_data_"},
 		}
 		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001"},
@@ -116,11 +116,11 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 		).Return(&v1alpha1.WorkflowList{Items: make(v1alpha1.Workflows, 2)}, nil)
 
 		workflowSvc := workflowService{
-			logger:                utils.GetLogger(),
-			ctx:                   context.Background(),
-			workflowCient:         wfServiceClientMock,
-			workflowTemplateCient: wftServiceSclientMock,
-			env:                   utils.Env{},
+			logger:                 utils.GetLogger(),
+			ctx:                    context.Background(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wftServiceSclientMock,
+			env:                    utils.Env{},
 		}
 		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001"},
@@ -138,11 +138,11 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 	})
 	t.Run("It should NOT create a new workflow when request has mixed type", func(t *testing.T) {
 		workflowSvc := workflowService{
-			logger:                utils.GetLogger(),
-			ctx:                   context.Background(),
-			workflowCient:         nil,
-			workflowTemplateCient: nil,
-			env:                   utils.Env{},
+			logger:                 utils.GetLogger(),
+			ctx:                    context.Background(),
+			workflowClient:         nil,
+			workflowTemplateClient: nil,
+			env:                    utils.Env{},
 		}
 		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-w001", "ncn-s001"},
@@ -152,11 +152,11 @@ func TestCreateRebuildWorkflow(t *testing.T) {
 	})
 	t.Run("It should NOT create a new workflow when request has wrong hostname", func(t *testing.T) {
 		workflowSvc := workflowService{
-			logger:                utils.GetLogger(),
-			ctx:                   context.Background(),
-			workflowCient:         nil,
-			workflowTemplateCient: nil,
-			env:                   utils.Env{},
+			logger:                 utils.GetLogger(),
+			ctx:                    context.Background(),
+			workflowClient:         nil,
+			workflowTemplateClient: nil,
+			env:                    utils.Env{},
 		}
 		req := models_nls.CreateRebuildWorkflowRequest{
 			Hosts: []string{"ncn-ws1", "ncn-s001"},
@@ -177,11 +177,11 @@ func TestGetWorkflows(t *testing.T) {
 	).Return(nil, nil)
 
 	workflowSvc := workflowService{
-		logger:                utils.GetLogger(),
-		ctx:                   context.Background(),
-		workflowCient:         wfServiceClientMock,
-		workflowTemplateCient: wftServiceSclientMock,
-		env:                   utils.Env{},
+		logger:                 utils.GetLogger(),
+		ctx:                    context.Background(),
+		workflowClient:         wfServiceClientMock,
+		workflowTemplateClient: wftServiceSclientMock,
+		env:                    utils.Env{},
 	}
 	t.Run("It should get workflows", func(t *testing.T) {
 		response := httptest.NewRecorder()
@@ -206,11 +206,11 @@ func TestGetWorkflowByName(t *testing.T) {
 	).Return(nil, nil)
 
 	workflowSvc := workflowService{
-		logger:                utils.GetLogger(),
-		ctx:                   context.Background(),
-		workflowCient:         wfServiceClientMock,
-		workflowTemplateCient: wftServiceSclientMock,
-		env:                   utils.Env{},
+		logger:                 utils.GetLogger(),
+		ctx:                    context.Background(),
+		workflowClient:         wfServiceClientMock,
+		workflowTemplateClient: wftServiceSclientMock,
+		env:                    utils.Env{},
 	}
 	t.Run("It should get workflow", func(t *testing.T) {
 		response := httptest.NewRecorder()
