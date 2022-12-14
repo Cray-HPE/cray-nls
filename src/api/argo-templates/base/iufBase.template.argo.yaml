@@ -48,7 +48,7 @@ spec:
       script:
         # use portainer/kubectl-shell that has:
         #  - kubectl, craycli, loftsman, git, manifestgen, and more
-        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.0.5
+        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.0.6
         command: [sh]
         source: |
           #!/host_usr_bin/bash
@@ -83,7 +83,7 @@ spec:
               token: ${token}
           EOF
           export KUBECONFIG=mykubeconfig/admin.conf
-          
+
           export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
             -d client_id=admin-client \
             -d client_secret=`kubectl get secrets admin-client-auth -o jsonpath='{.data.client-secret}' | base64 -d` \
@@ -117,5 +117,5 @@ spec:
             mountPath: /host_usr_bin
           - name: ca-bundle
             mountPath: /var/lib/ca-certificates
-
-
+          - name: iuf
+            mountPath: /opt/cray/iuf
