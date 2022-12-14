@@ -795,15 +795,10 @@ const docTemplateIUF = `{
         "Operations": {
             "type": "object",
             "required": [
-                "local-path",
                 "name",
                 "static-parameters"
             ],
             "properties": {
-                "local-path": {
-                    "description": "Argo operation file path",
-                    "type": "string"
-                },
                 "name": {
                     "description": "Name of the operation",
                     "type": "string"

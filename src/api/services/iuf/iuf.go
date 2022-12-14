@@ -30,6 +30,7 @@ package services_iuf
 import (
 	_ "embed"
 	"encoding/json"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
@@ -73,22 +74,29 @@ type IufService interface {
 
 // IufService service layer
 type iufService struct {
-	logger           utils.Logger
-	workflowCient    workflow.WorkflowServiceClient
-	k8sRestClientSet kubernetes.Interface
-	keycloakService  services_shared.KeycloakService
-	env              utils.Env
+	logger                 utils.Logger
+	workflowClient         workflow.WorkflowServiceClient
+	workflowTemplateClient workflowtemplate.WorkflowTemplateServiceClient
+	k8sRestClientSet       kubernetes.Interface
+	keycloakService        services_shared.KeycloakService
+	env                    utils.Env
 }
 
 // NewIufService creates a new Iufservice
 func NewIufService(logger utils.Logger, argoService services_shared.ArgoService, k8sSvc services_shared.K8sService, keycloakService services_shared.KeycloakService, env utils.Env) IufService {
 
+	workflowTemplateClient, err := argoService.Client.NewWorkflowTemplateServiceClient()
+	if err != nil {
+		panic(err.Error)
+	}
+
 	iufSvc := iufService{
-		logger:           logger,
-		workflowCient:    argoService.Client.NewWorkflowServiceClient(),
-		k8sRestClientSet: k8sSvc.Client,
-		keycloakService:  keycloakService,
-		env:              env,
+		logger:                 logger,
+		workflowClient:         argoService.Client.NewWorkflowServiceClient(),
+		workflowTemplateClient: workflowTemplateClient,
+		k8sRestClientSet:       k8sSvc.Client,
+		keycloakService:        keycloakService,
+		env:                    env,
 	}
 	return iufSvc
 }

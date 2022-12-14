@@ -64,26 +64,26 @@ type WorkflowService interface {
 
 // WorkflowService service layer
 type workflowService struct {
-	logger                utils.Logger
-	ctx                   context.Context
-	workflowCient         workflow.WorkflowServiceClient
-	workflowTemplateCient workflowtemplate.WorkflowTemplateServiceClient
-	k8sRestClientSet      *kubernetes.Clientset
-	env                   utils.Env
+	logger                 utils.Logger
+	ctx                    context.Context
+	workflowClient         workflow.WorkflowServiceClient
+	workflowTemplateClient workflowtemplate.WorkflowTemplateServiceClient
+	k8sRestClientSet       *kubernetes.Clientset
+	env                    utils.Env
 }
 
 // NewWorkflowService creates a new Workflowservice
 func NewWorkflowService(logger utils.Logger, argoService ArgoService, k8sSvc K8sService, env utils.Env) WorkflowService {
 
-	workflowTemplateCient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
+	workflowTemplateClient, _ := argoService.Client.NewWorkflowTemplateServiceClient()
 
 	workflowSvc := workflowService{
-		logger:                logger,
-		ctx:                   argoService.Context,
-		workflowCient:         argoService.Client.NewWorkflowServiceClient(),
-		workflowTemplateCient: workflowTemplateCient,
-		k8sRestClientSet:      k8sSvc.Client,
-		env:                   env,
+		logger:                 logger,
+		ctx:                    argoService.Context,
+		workflowClient:         argoService.Client.NewWorkflowServiceClient(),
+		workflowTemplateClient: workflowTemplateClient,
+		k8sRestClientSet:       k8sSvc.Client,
+		env:                    env,
 	}
 	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
 	for _, workflowTemplate := range workflowTemplates {
@@ -97,7 +97,7 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService, k8sSvc K8s
 
 func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
-	workflowToDelete, err := s.workflowCient.GetWorkflow(
+	workflowToDelete, err := s.workflowClient.GetWorkflow(
 		s.ctx,
 		&workflow.WorkflowGetRequest{
 			Namespace: "argo",
@@ -115,7 +115,7 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 		return err
 	}
 
-	_, err = s.workflowCient.DeleteWorkflow(
+	_, err = s.workflowClient.DeleteWorkflow(
 		s.ctx,
 		&workflow.WorkflowDeleteRequest{
 			Namespace: "argo",
@@ -132,7 +132,7 @@ func (s workflowService) DeleteWorkflow(ctx *gin.Context) error {
 
 func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
-	wf, err := s.workflowCient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
+	wf, err := s.workflowClient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
 		Namespace: "argo",
 		Name:      wfName,
 	})
@@ -155,7 +155,7 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 		return err
 	}
 
-	_, err = s.workflowCient.ResubmitWorkflow(
+	_, err = s.workflowClient.ResubmitWorkflow(
 		s.ctx,
 		&workflow.WorkflowResubmitRequest{
 			Namespace: "argo",
@@ -171,7 +171,7 @@ func (s workflowService) RerunWorkflow(ctx *gin.Context) error {
 
 func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 	wfName := ctx.Param("name")
-	wf, err := s.workflowCient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
+	wf, err := s.workflowClient.GetWorkflow(ctx, &workflow.WorkflowGetRequest{
 		Namespace: "argo",
 		Name:      wfName,
 	})
@@ -202,7 +202,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 		return err
 	}
 
-	_, err = s.workflowCient.RetryWorkflow(
+	_, err = s.workflowClient.RetryWorkflow(
 		s.ctx,
 		&workflow.WorkflowRetryRequest{
 			Namespace:         "argo",
@@ -221,7 +221,7 @@ func (s workflowService) RetryWorkflow(ctx *gin.Context) error {
 
 func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList, error) {
 	labelSelector := ctx.Query("labelSelector")
-	return s.workflowCient.ListWorkflows(
+	return s.workflowClient.ListWorkflows(
 		s.ctx,
 		&workflow.WorkflowListRequest{
 			Namespace: "argo",
@@ -233,7 +233,7 @@ func (s workflowService) GetWorkflows(ctx *gin.Context) (*v1alpha1.WorkflowList,
 }
 
 func (s workflowService) GetWorkflowByName(name string, ctx *gin.Context) (*v1alpha1.Workflow, error) {
-	return s.workflowCient.GetWorkflow(
+	return s.workflowClient.GetWorkflow(
 		ctx,
 		&workflow.WorkflowGetRequest{
 			Name:      name,
@@ -321,7 +321,7 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 		return nil, err
 	}
 
-	res, err := s.workflowCient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
+	res, err := s.workflowClient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
 		Workflow:  &myWorkflow,
 	})
@@ -343,7 +343,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	}
 	s.logger.Infof("Initializing workflow template: %s", myWorkflowTemplate.Name)
 	for {
-		workflowTemplateList, err := s.workflowTemplateCient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
+		workflowTemplateList, err := s.workflowTemplateClient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
 		if err != nil {
 			s.logger.Errorf("Failded to get a list of workflow templates: %v", err)
 			time.Sleep(5 * time.Second)
@@ -353,7 +353,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 		for _, workflowTemplate := range workflowTemplateList.Items {
 			if workflowTemplate.Name == myWorkflowTemplate.Name && myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"] {
 				s.logger.Info("workflow template has already been initialized")
-				s.workflowTemplateCient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+				s.workflowTemplateClient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
 					Namespace: "argo",
 					Name:      workflowTemplate.Name,
 				})
@@ -361,7 +361,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 			}
 		}
 
-		_, err = s.workflowTemplateCient.CreateWorkflowTemplate(
+		_, err = s.workflowTemplateClient.CreateWorkflowTemplate(
 			s.ctx,
 			&workflowtemplate.WorkflowTemplateCreateRequest{
 				Namespace: "argo",
@@ -386,7 +386,7 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 }
 
 func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models_nls.RebuildWorkflowType) (v1alpha1.Workflows, error) {
-	workflows, err := s.workflowCient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
+	workflows, err := s.workflowClient.ListWorkflows(s.ctx, &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
 			LabelSelector: fmt.Sprintf("workflows.argoproj.io/phase!=Succeeded,workflows.argoproj.io/complated!=true,type=rebuild,node-type=%s", rebuildType),

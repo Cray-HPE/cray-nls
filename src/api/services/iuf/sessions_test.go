@@ -35,6 +35,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
+	workflowtemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -60,12 +61,19 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.Workflow), nil)
+		wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+		wfTemplateServiceClientMock.On(
+			"ListWorkflowTemplates",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowTemplateList), nil)
 
 		workflowSvc := iufService{
-			logger:          utils.GetLogger(),
-			workflowCient:   wfServiceClientMock,
-			keycloakService: keycloakServiceMock,
-			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
+			keycloakService:        keycloakServiceMock,
+			logger:                 utils.GetLogger(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wfTemplateServiceClientMock,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
 
@@ -81,12 +89,19 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.Workflow), nil)
+		wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+		wfTemplateServiceClientMock.On(
+			"ListWorkflowTemplates",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowTemplateList), nil)
 
 		workflowSvc := iufService{
-			logger:          utils.GetLogger(),
-			workflowCient:   wfServiceClientMock,
-			keycloakService: keycloakServiceMock,
-			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			logger:                 utils.GetLogger(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wfTemplateServiceClientMock,
+			keycloakService:        keycloakServiceMock,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
 
@@ -102,12 +117,19 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.Workflow), nil)
+		wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+		wfTemplateServiceClientMock.On(
+			"ListWorkflowTemplates",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowTemplateList), nil)
 
 		workflowSvc := iufService{
-			logger:          utils.GetLogger(),
-			workflowCient:   wfServiceClientMock,
-			keycloakService: keycloakServiceMock,
-			env:             utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			logger:                 utils.GetLogger(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wfTemplateServiceClientMock,
+			keycloakService:        keycloakServiceMock,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 		}
 		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
 
@@ -121,6 +143,21 @@ func TestGetDagTasks(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+	wt1 := v1alpha1.WorkflowTemplate{}
+	wt1.Name = "this_is_an_operation_1"
+	wt2 := v1alpha1.WorkflowTemplate{}
+	wt2.Name = "this_is_an_operation_2"
+	mockWorkflowTempateList := v1alpha1.WorkflowTemplateList{
+		Items: v1alpha1.WorkflowTemplates{
+			wt1, wt2,
+		},
+	}
+	wfTemplateServiceClientMock.On(
+		"ListWorkflowTemplates",
+		mock.Anything,
+		mock.Anything,
+	).Return(&mockWorkflowTempateList, nil)
 	name := uuid.NewString()
 	activity := iuf.Activity{
 		Name: name,
@@ -143,11 +180,12 @@ func TestGetDagTasks(t *testing.T) {
 	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
 
 	workflowSvc := iufService{
-		logger:           utils.GetLogger(),
-		workflowCient:    wfServiceClientMock,
-		k8sRestClientSet: fakeClient,
-		keycloakService:  keycloakServiceMock,
-		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+		logger:                 utils.GetLogger(),
+		workflowClient:         wfServiceClientMock,
+		workflowTemplateClient: wfTemplateServiceClientMock,
+		k8sRestClientSet:       fakeClient,
+		keycloakService:        keycloakServiceMock,
+		env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
 	}
 	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
 		session := iuf.Session{
@@ -158,8 +196,8 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "product",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operationr_1"},
-				{Name: "this_is_an_operationr_2"},
+				{Name: "this_is_an_operation_1"},
+				{Name: "this_is_an_operation_2"},
 			},
 		}
 
@@ -180,8 +218,51 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "global",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operationr_1"},
-				{Name: "this_is_an_operationr_2"},
+				{Name: "this_is_an_operation_1"},
+				{Name: "this_is_an_operation_2"},
+			},
+		}
+
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 2, len(dagTasks))
+	})
+	t.Run("It should not get a dag task for per-product operations not defined in Argo", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: name,
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{Name: "this_is_an_operation_1"},
+				{Name: "this_is_an_operation_NOT_MOCKED"},
+				{Name: "this_is_an_operation_2"},
+			},
+		}
+
+		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 4, len(dagTasks))
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
+		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
+	})
+	t.Run("It should not get a dag task for global operations not defined in Argo", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: name,
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "global",
+			Operations: []iuf.Operations{
+				{Name: "this_is_an_operation_NOT_MOCKED_1"},
+				{Name: "this_is_an_operation_1"},
+				{Name: "this_is_an_operation_NOT_MOCKED_2"},
+				{Name: "this_is_an_operation_2"},
 			},
 		}
 
@@ -190,6 +271,12 @@ func TestGetDagTasks(t *testing.T) {
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
 		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
+		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
+		assert.Equal(t, "this_is_an_operation_1", dagTasks[0].Name)
+		assert.Equal(t, "this_is_an_operation_2", dagTasks[1].Name)
+		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
+		assert.Equal(t, 1, len(dagTasks[1].Dependencies))
+		assert.Equal(t, "this_is_an_operation_1", dagTasks[1].Dependencies[0])
 		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
 		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
 	})
@@ -206,6 +293,21 @@ func TestRunNextStage(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 	).Return(new(v1alpha1.Workflow), nil)
+	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+	wt1 := v1alpha1.WorkflowTemplate{}
+	wt1.Name = "this_is_an_operation_1"
+	wt2 := v1alpha1.WorkflowTemplate{}
+	wt2.Name = "this_is_an_operation_2"
+	mockWorkflowTempateList := v1alpha1.WorkflowTemplateList{
+		Items: v1alpha1.WorkflowTemplates{
+			wt1, wt2,
+		},
+	}
+	wfTemplateServiceClientMock.On(
+		"ListWorkflowTemplates",
+		mock.Anything,
+		mock.Anything,
+	).Return(&mockWorkflowTempateList, nil)
 
 	mockTokenValue := "mock_token"
 	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
@@ -213,11 +315,12 @@ func TestRunNextStage(t *testing.T) {
 
 	fakeClient := fake.NewSimpleClientset()
 	workflowSvc := iufService{
-		logger:           utils.GetLogger(),
-		workflowCient:    wfServiceClientMock,
-		k8sRestClientSet: fakeClient,
-		keycloakService:  keycloakServiceMock,
-		env:              utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
+		logger:                 utils.GetLogger(),
+		workflowClient:         wfServiceClientMock,
+		workflowTemplateClient: wfTemplateServiceClientMock,
+		k8sRestClientSet:       fakeClient,
+		keycloakService:        keycloakServiceMock,
+		env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 	}
 	type wanted struct {
 		err          bool
@@ -307,7 +410,7 @@ func TestProcessOutput(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset(&configmap)
 	mySvc := iufService{
 		logger:           utils.GetLogger(),
-		workflowCient:    wfServiceClientMock,
+		workflowClient:   wfServiceClientMock,
 		k8sRestClientSet: fakeClient,
 	}
 
@@ -1005,7 +1108,7 @@ func TestProcessOutputOfProcessMedia(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset(&configmap)
 	mySvc := iufService{
 		logger:           utils.GetLogger(),
-		workflowCient:    wfServiceClientMock,
+		workflowClient:   wfServiceClientMock,
 		k8sRestClientSet: fakeClient,
 	}
 
