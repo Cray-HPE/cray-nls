@@ -23,6 +23,7 @@ package services_shared
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -86,7 +87,12 @@ func (ks keycloakService) NewKeycloakAccessToken() (string, error) {
 		return "fake_dev_access_token", nil
 	}
 
-	resp, err := http.PostForm(ks.env.ApiGatewayURL+"/keycloak/realms/shasta/protocol/openid-connect/token", url.Values{
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := http.Client{Transport: tr}
+
+	resp, err := client.PostForm(ks.env.ApiGatewayURL+"/keycloak/realms/shasta/protocol/openid-connect/token", url.Values{
 		"grant_type":    {"client_credentials"},
 		"client_id":     {ks.adminClientAuthClientId},
 		"client_secret": {ks.adminClientAuthClientSecret},
