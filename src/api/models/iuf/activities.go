@@ -39,6 +39,10 @@ type CreateActivityRequest struct {
 	ActivityState ActivityState `json:"activity_state" swaggerignore:"true"`
 } // @name Activity.CreateActivityRequest
 
+type PatchActivityRequest struct {
+	InputParameters InputParameters `json:"input_parameters" binding:"required"`
+} // @name Activity.PatchActivityRequest
+
 type ActivityState string
 
 const (

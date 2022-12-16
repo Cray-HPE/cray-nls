@@ -52,6 +52,7 @@ const (
 
 type IufService interface {
 	CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error)
+	PatchActivity(activity iuf.Activity, req iuf.PatchActivityRequest) (iuf.Activity, error)
 	ListActivities() ([]iuf.Activity, error)
 	GetActivity(name string) (iuf.Activity, error)
 	// history

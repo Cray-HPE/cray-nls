@@ -120,30 +120,15 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 	return res, err
 }
 
-func (s iufService) patchActivity(name string, inputParams iuf.InputParameters) (iuf.Activity, error) {
-	tmp, err := s.GetActivity(name)
-	if err != nil {
+func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
+	// Only allow patching input parameters
+	original := activity.InputParameters
+	request := patchParams.InputParameters
+	if err := mergo.Merge(&original, request); err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
-
-	// block request if activity is in_progress, paused
-	if tmp.ActivityState == iuf.ActivityStateInProgress || tmp.ActivityState == iuf.ActivityStatePaused {
-		err := fmt.Errorf("update activity is not allowed, current state: %s", tmp.ActivityState)
-		s.logger.Error(err)
-		return iuf.Activity{}, err
-	}
-	// TODO: validate input parameters
-	// support partial update
-	original := tmp.InputParameters
-	request := inputParams
-	if err := mergo.Merge(&request, original); err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
-	}
-	tmp.InputParameters = request
-	tmp.ActivityState = iuf.ActivityStateWaitForAdmin
-	return s.updateActivity(tmp)
+	return s.updateActivity(activity)
 }
 
 func (s iufService) ListActivities() ([]iuf.Activity, error) {

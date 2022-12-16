@@ -87,10 +87,48 @@ func (u IufController) ListActivities(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Success  200  {object}  iuf.Activity
+// @Failure  404  {object}  utils.ResponseError
 // @Failure  500  {object}  utils.ResponseError
 // @Router   /iuf/v1/activities/{activity_name} [get]
 func (u IufController) GetActivity(c *gin.Context) {
 	res, err := u.iufService.GetActivity(c.Param("activity_name"))
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusNotFound, errResponse)
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+// PatchActivity
+// @Summary  Patches an existing IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Activity
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  404  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name} [patch]
+func (u IufController) PatchActivity(c *gin.Context) {
+	var requestBody iuf.PatchActivityRequest
+	name := c.Param("activity_name")
+	activity, err := u.iufService.GetActivity(name)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusNotFound, errResponse)
+		return
+	}
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.PatchActivity(activity, requestBody)
 	if err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: err.Error()}

@@ -24,6 +24,7 @@
 package iuf
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -81,6 +82,74 @@ func TestCreateActivity(t *testing.T) {
 			})
 		}
 
+	})
+
+}
+
+func TestPatchActivity(t *testing.T) {
+
+	gin.SetMode(gin.TestMode)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	executeWithContext := func(
+		workflowService *mocks.MockWorkflowService,
+		iufServices *mocks.MockIufService,
+		activityNameForPatch string,
+		requestPatchBody string,
+	) *httptest.ResponseRecorder {
+		response := httptest.NewRecorder()
+		context, ginEngine := gin.CreateTestContext(response)
+
+		patchRequestUrl := "/iuf/v1/activities/" + activityNameForPatch
+
+		ginEngine.PATCH(patchRequestUrl, NewIufController(workflowService, iufServices, *utils.GetLogger().GetGinLogger().Logger).PatchActivity)
+
+		context.Request, _ = http.NewRequest("PATCH", patchRequestUrl, strings.NewReader(string(requestPatchBody)))
+		ginEngine.ServeHTTP(response, context.Request)
+
+		return response
+	}
+
+	t.Run("Test PatchActivity", func(t *testing.T) {
+
+		t.Run("should be allowed to change the input_parameters", func(t *testing.T) {
+			workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+			iufServiceMock := mocks.NewMockIufService(ctrl)
+			iufServiceMock.EXPECT().GetActivity(gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+			iufServiceMock.EXPECT().PatchActivity(gomock.Any(), gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+			res := executeWithContext(workflowServiceMock, iufServiceMock, "asd", `{"input_parameters":{"site_parameters": "test"}}`)
+			assert.Equal(t, http.StatusOK, res.Code)
+		})
+
+		//t.Run("should not be allowed to change the name", func(t *testing.T) {
+		//	workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		//	iufServiceMock := mocks.NewMockIufService(ctrl)
+		//	iufServiceMock.EXPECT().GetActivity(gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+		//	iufServiceMock.EXPECT().PatchActivity(gomock.Any(), gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+		//	res := executeWithContext(workflowServiceMock, iufServiceMock, "asd", `{"name":"change name"}`)
+		//	assert.Equal(t, http.StatusBadRequest, res.Code)
+		//})
+		//
+		//t.Run("should not be allowed to have an empty patch request", func(t *testing.T) {
+		//	workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+		//	iufServiceMock := mocks.NewMockIufService(ctrl)
+		//	iufServiceMock.EXPECT().GetActivity(gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+		//	iufServiceMock.EXPECT().PatchActivity(gomock.Any(), gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+		//	res := executeWithContext(workflowServiceMock, iufServiceMock, "asd", `{}`)
+		//	assert.Equal(t, http.StatusBadRequest, res.Code)
+		//	res = executeWithContext(workflowServiceMock, iufServiceMock, "asd", ``)
+		//	assert.Equal(t, http.StatusBadRequest, res.Code)
+		//})
+
+		t.Run("should return 404 on activity not found", func(t *testing.T) {
+			workflowServiceMock := mocks.NewMockWorkflowService(ctrl)
+			iufServiceMock := mocks.NewMockIufService(ctrl)
+			iufServiceMock.EXPECT().GetActivity(gomock.Any()).Return(iuf.Activity{}, fmt.Errorf("not found")).AnyTimes()
+			iufServiceMock.EXPECT().PatchActivity(gomock.Any(), gomock.Any()).Return(iuf.Activity{}, nil).AnyTimes()
+			res := executeWithContext(workflowServiceMock, iufServiceMock, "asd", `{}`)
+			assert.Equal(t, http.StatusNotFound, res.Code)
+		})
 	})
 
 }
