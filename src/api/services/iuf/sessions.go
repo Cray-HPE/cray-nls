@@ -201,6 +201,8 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 	if err != nil {
 		s.logger.Errorf("Creating workflow for: %v FAILED", session)
 		s.logger.Error(err)
+		jsonWorkflow, _ := json.Marshal(myWorkflow)
+		s.logger.Errorf("The workflow that was being created \n %s", string(jsonWorkflow))
 		return nil, err
 	}
 	return res, nil
