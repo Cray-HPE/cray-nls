@@ -491,9 +491,6 @@ properties:
     type: object
     additionalProperties: false
     properties:
-
-      # TODO: How do we pass parameters to the hook scripts? Inclined to pass
-      # everything we know about and let them parse.
       pre_install_check:
         $ref: '#/$defs/StageHooks'
       deliver_product:
@@ -502,11 +499,11 @@ properties:
         $ref: '#/$defs/StageHooks'
       update_cfs_config:
         $ref: '#/$defs/StageHooks'
-      deploy_product:
-        $ref: '#/$defs/StageHooks'
       prepare_images:
         $ref: '#/$defs/StageHooks'
       management_nodes_rollout:
+        $ref: '#/$defs/StageHooks'
+      deploy_product:
         $ref: '#/$defs/StageHooks'
       post_install_service_check:
         $ref: '#/$defs/StageHooks'

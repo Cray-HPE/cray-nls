@@ -32,3 +32,11 @@ var Module = fx.Options(
 	fx.Provide(GetLogger),
 	fx.Provide(NewValidator),
 )
+
+type GenericError struct {
+	Message string
+}
+
+func (e GenericError) Error() string {
+	return e.Message
+}

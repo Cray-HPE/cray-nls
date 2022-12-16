@@ -1,87 +1,122 @@
+#
+# MIT License
+#
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
 version: 0.1.0 # IUF version
 
 stages:
-    - name: process_media
-      type: product
-      operations:
-        - name: extract_release_distributions
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: process-media
+    # this should be global but it was historically product. Changing to global is breaking a few tests which just need the right mocks
+    type: product
+    operations:
+      - name: extract-release-distributions
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: pre_install_check
-      type: global
-      operations:
-        - name: preflight_checks_for_services
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: pre-install-check
+    type: global
+    operations:
+      - name: preflight-checks-for-services
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: deliver_product
-      type: product
-      operations:
-        - name: loftsman_manifest_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: s3_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: nexus_setup
-          static-parameters: # any parameters that will be supplied statically to this operation.
-            nexus_setup_image: artifactory.algol60.net/csm-docker/unstable/cray-nexus-setup:0.8.0-20221021164623_e8d3d3d
-        - name: nexus_rpm_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: nexus_docker_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: nexus_helm_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: vcs_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: ims_upload
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: deliver-product
+    type: product
+    operations:
+      - name: loftsman-manifest-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: s3-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: nexus-setup
+        static-parameters: # any parameters that will be supplied statically to this operation.
+          nexus-setup-image: artifactory.algol60.net/csm-docker/unstable/cray-nexus-setup:0.8.0-20221021164623-e8d3d3d
+      - name: nexus-rpm-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: nexus-docker-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: nexus-helm-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: vcs-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: ims-upload
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: update_vcs_config
-      type: product
-      operations:
-        - name: update_working_branch
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: update-vcs-config
+    type: product
+    operations:
+      - name: update-working-branch
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: update_cfs_config
-      type: global
-      operations:
-        - name: update_cfs_config
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: update-cfs-config
+    type: global
+    operations:
+      - name: update-cfs-config
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: deploy_product
-      type: product
-      operations:
-        - name: loftsman_manifest_deploy
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
-        - name: set_product_active
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: deploy-product
+    type: product
+    operations:
+      - name: loftsman-manifest-deploy
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+      - name: set-product-active
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: prepare_images
-      type: global
-      operations:
-        - name: prepare_images
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: prepare-images
+    type: global
+    operations:
+      - name: prepare-images
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: management_nodes_rollout
-      type: global
-      operations:
-        - name: management_nodes_rollout
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: management-nodes-rollout
+    type: global
+    operations:
+      - name: management-nodes-rollout
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: post_install_service_check
-      type: product
-      operations:
-        - name: post_install_service_check
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: management-m001-rollout
+    type: global
+    no-hooks: true # m001 doesn't support hooks right now because we source hook scripts from m001
+    operations:
+      - name: management-m001-rollout
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: managed_nodes_rollout
-      type: global
-      operations:
-        - name: managed_nodes_rollout
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: post-install-service-check
+    type: product
+    operations:
+      - name: post-install-service-check
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    - name: post_install_check
-      type: product
-      operations:
-        - name: post_install_check
-          static-parameters: {} # any parameters that will be supplied statically to this operation.
+  - name: managed-nodes-rollout
+    type: global
+    operations:
+      - name: managed-nodes-rollout
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-    
+  - name: post-install-check
+    type: product
+    operations:
+      - name: post-install-check
+        static-parameters: {} # any parameters that will be supplied statically to this operation.
+
+
+# The following are the template references to hook scripts.
+hooks:
+  master_host: master-host-hook-script
+  worker_host: worker-host-hook-script
