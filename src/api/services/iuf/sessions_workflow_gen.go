@@ -42,7 +42,11 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err
 	}
-	stageName := session.InputParameters.Stages[len(session.Workflows)] // TODO funny logic
+	index := len(session.Workflows)
+	if index >= len(session.InputParameters.Stages) {
+		index = len(session.InputParameters.Stages) - 1
+	}
+	stageName := session.InputParameters.Stages[index] // TODO funny logic
 	var stageInfo iuf.Stage
 	for _, stage := range stages.Stages {
 		if stage.Name == stageName {
