@@ -62,3 +62,13 @@ type SyncRequest struct {
 type SyncResponse struct {
 	ResyncAfterSeconds int `json:"resyncAfterSeconds,omitempty"`
 }
+
+type ManifestHookScript struct {
+	ScriptPath       string `json:"script_path"`
+	ExecutionContext string `json:"execution_context"`
+}
+
+type ManifestStageHooks struct {
+	PreHook  ManifestHookScript `json:"pre"`
+	PostHook ManifestHookScript `json:"post"`
+}
