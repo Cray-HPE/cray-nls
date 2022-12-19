@@ -40,10 +40,10 @@ type Product struct {
 
 type InputParameters struct {
 	MediaDir                 string   `json:"media_dir"`                  // Location of media
-	SiteParameters           string   `json:"site_parameters"`            // The inline contents of the site_parameters.yaml file.
+	SiteParameters           string   `json:"site_parameters"`            // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
 	LimitNodes               []string `json:"limit_nodes"`                // Each item is the xname of a node
-	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is a path of the bootprep files
-	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
+	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is the contents of a bootprep config file for managed nodes
+	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is the contents of a bootprep config file for management nodes
 	Stages                   []string `json:"stages"`                     // Stages to execute
 	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
 } // @name InputParameters

@@ -121,10 +121,16 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 }
 
 func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
-	// Only allow patching input parameters
-	original := activity.InputParameters
-	request := patchParams.InputParameters
-	if err := mergo.Merge(&original, request); err != nil {
+	// Only allow patching input parameters and site parameters
+	originalInputParameters := activity.InputParameters
+	inputParamsPatch := patchParams.InputParameters
+	if err := mergo.Merge(&originalInputParameters, inputParamsPatch); err != nil {
+		s.logger.Error(err)
+		return iuf.Activity{}, err
+	}
+	originalSiteParameters := activity.SiteParameters
+	siteParamsPatch := patchParams.SiteParameters
+	if err := mergo.Merge(&originalSiteParameters, siteParamsPatch); err != nil {
 		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}

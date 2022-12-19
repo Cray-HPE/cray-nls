@@ -31,13 +31,14 @@ import (
 
 // IufSession
 type Session struct {
-	InputParameters InputParameters   `json:"input_parameters"`
-	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
-	CurrentStage    string            `json:"stage"`
-	Workflows       []SessionWorkflow `json:"workflows"`
-	Products        []Product         `json:"products" validate:"required"`
-	Name            string            `json:"name"`
-	ActivityRef     string            `json:"activityRef" swaggerignore:"true"`
+	InputParameters InputParameters        `json:"input_parameters"`
+	SiteParameters  map[string]interface{} `json:"site_parameters"`
+	CurrentState    SessionState           `json:"current_state" enums:"paused,in_progress,debug,completed"`
+	CurrentStage    string                 `json:"stage"`
+	Workflows       []SessionWorkflow      `json:"workflows"`
+	Products        []Product              `json:"products" validate:"required"`
+	Name            string                 `json:"name"`
+	ActivityRef     string                 `json:"activityRef" swaggerignore:"true"`
 } // @name Session
 
 type SessionState string

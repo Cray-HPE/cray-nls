@@ -130,6 +130,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 
 	activity, err = s.PatchActivity(activity, iuf.PatchActivityRequest{
 		InputParameters: req.InputParameters,
+		SiteParameters:  req.SiteParameters,
 	})
 	if err != nil {
 		s.logger.Error(err)
@@ -140,6 +141,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	name := activity.Name + "-" + uuid.NewString()
 	session := iuf.Session{
 		InputParameters: activity.InputParameters,
+		SiteParameters:  s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters),
 		Products:        activity.Products,
 		Name:            name,
 		ActivityRef:     activityName,

@@ -44,6 +44,7 @@ type HistoryActionRequest struct {
 } // @name History.HistoryActionRequest
 
 type HistoryRunActionRequest struct {
-	InputParameters InputParameters `json:"input_parameters" binding:"required"`
-	Comment         string          `json:"comment" validate:"optional"` // Comment
+	InputParameters InputParameters        `json:"input_parameters" binding:"required"`
+	SiteParameters  map[string]interface{} `json:"site_parameters"`
+	Comment         string                 `json:"comment" validate:"optional"` // Comment
 } // @name History.HistoryRunActionRequest
