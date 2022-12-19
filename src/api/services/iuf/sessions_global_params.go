@@ -75,13 +75,27 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 	for _, product := range session.Products {
 		productsArray = append(productsArray, product.Name)
 	}
+
+	var bootPrepManagedContent []map[string]string
+	for _, bootPrepManagedItem := range session.InputParameters.BootprepConfigManaged {
+		bootPrepManagedContent = append(bootPrepManagedContent, map[string]string{
+			"content": bootPrepManagedItem,
+		})
+	}
+
+	var bootPrepManagementContent []map[string]string
+	for _, bootPrepManagementItem := range session.InputParameters.BootprepConfigManagement {
+		bootPrepManagementContent = append(bootPrepManagementContent, map[string]string{
+			"content": bootPrepManagementItem,
+		})
+	}
+
 	return map[string]interface{}{
-		"products":                productsArray,
-		"media_dir":               path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
-		"bootprep_config_managed": session.InputParameters.BootprepConfigManaged,
-		//todo: bootprep_config_managed
-		//todo: bootprep_config_management
-		"limit_nodes": session.InputParameters.LimitNodes,
+		"products":                   productsArray,
+		"media_dir":                  path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
+		"bootprep_config_managed":    bootPrepManagedContent,
+		"bootprep_config_management": bootPrepManagementContent,
+		"limit_nodes":                session.InputParameters.LimitNodes,
 	}
 }
 
@@ -116,7 +130,33 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 	return res
 }
 
+// Gets the correct version of site parameters based on either session.InputParameters.SiteParameters (deprecated) or
+//  session.SiteParameters
+func (s iufService) getSiteParams(deprecatedSiteParameters string, structSiteParams map[string]interface{}) map[string]interface{} {
+	// check which site parameters we are using.
+	var siteParams map[string]interface{}
+	if deprecatedSiteParameters != "" {
+		// preference is given to the deprecated site params saved as a string to not break existing functionality.
+		err := json.Unmarshal([]byte(deprecatedSiteParameters), siteParams)
+		if err != nil {
+			// fallback
+			siteParams = structSiteParams
+		}
+	} else {
+		siteParams = structSiteParams
+	}
+
+	return siteParams
+}
+
 func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
-	//todo: site_parameters
-	return map[string]interface{}{}
+	siteParams := s.getSiteParams(session.InputParameters.SiteParameters, session.SiteParameters)
+
+	if siteParams != nil && siteParams["products"] != nil {
+		// need to add "current_product" in there
+		products := (siteParams["products"]).(map[string]interface{})
+		siteParams["current_product"] = products[in_product.Name]
+	}
+
+	return siteParams
 }
