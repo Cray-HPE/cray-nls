@@ -9,7 +9,7 @@ env:
   HELM_EXPERIMENTAL_OCI: 1
 jobs:
   lint-test-scan:
-    uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v2
+    uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/charts_lint_test_scan.yaml@v1
     with:
       lint-charts: ${{ github.event_name == 'pull_request' }}
       test-charts: false
@@ -17,8 +17,8 @@ jobs:
       ct-yaml: ct.yaml
       scan-image-snyk-args: "--severity-threshold=high"
       scan-chart-snyk-args: "--severity-threshold=high"
-      scan-images-ignore-prefix-list: '["artifactory.algol60.net/csm-docker/stable/cray-nls"]'
+      scan-images-ignore-prefix-list: ["artifactory.algol60.net/csm-docker/stable/cray-nls"]
+    env:
+      HELM_EXPERIMENTAL_OCI: 1
     secrets:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      ARTIFACTORY_ALGOL60_READONLY_USERNAME: ${{ secrets.ARTIFACTORY_ALGOL60_READONLY_USERNAME }}
-      ARTIFACTORY_ALGOL60_READONLY_TOKEN: ${{ secrets.ARTIFACTORY_ALGOL60_READONLY_TOKEN }}
+      snyk-token: ${{ secrets.SNYK_TOKEN }}
