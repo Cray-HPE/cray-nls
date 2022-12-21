@@ -21,6 +21,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
+global:
+  appVersion: 0.0.1
 metacontroller-helm:
   image:
     repository: artifactory.algol60.net/csm-docker/stable/docker.io/metacontrollerio/metacontroller
