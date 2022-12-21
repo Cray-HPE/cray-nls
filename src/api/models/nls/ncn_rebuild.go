@@ -33,7 +33,8 @@ type CreateRebuildWorkflowRequest struct {
 	Hosts          []string `json:"hosts"`
 	DryRun         bool     `json:"dryRun"`
 	SwitchPassword string   `json:"switchPassword,omitempty"`
-	WipeOsd        bool     `json:"wipeOsd,omitempty"`
+	ZapOsds        bool     `json:"zapOsds,omitempty"`
+	WorkflowType   string   `json:"workflowType,omitempty"`
 }
 
 type CreateRebuildWorkflowResponse struct {

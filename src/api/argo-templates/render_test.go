@@ -113,6 +113,8 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 			Hosts:          []string{"ncn-s006", "ncn-s005"},
 			DryRun:         doDryRun,
 			SwitchPassword: "thisIsApassword",
+			ZapOsds:        false,
+			WorkflowType:   "rebuild",
 		}
 		_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)

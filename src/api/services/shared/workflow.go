@@ -299,9 +299,18 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
 		rebuildWorkflow, getWorkflowErr = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req, rebuildHooks)
 	} else {
-		// rebuild storage nodes
+		// storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
-		rebuildWorkflow, getWorkflowErr = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
+		// check if upgrade or rebuild
+		if req.WorkflowType == "rebuild" {
+			rebuildWorkflow, getWorkflowErr = argo_templates.GetStorageRebuildWorkflow(storageRebuildWorkflowFS, req)
+		} else if req.WorkflowType == "upgrade" {
+			rebuildWorkflow, getWorkflowErr = argo_templates.GetStorageUpgradeWorkflow(storageRebuildWorkflowFS, req)
+		} else {
+			err = fmt.Errorf("Creating workflow for: %v FAILED. Did not get workflow-type rebuild or upgrade.", req.Hosts)
+			s.logger.Error(err)
+			return nil, err
+		}
 	}
 	if getWorkflowErr != nil {
 		s.logger.Error(getWorkflowErr)
