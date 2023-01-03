@@ -33,8 +33,8 @@ type CreateRebuildWorkflowRequest struct {
 	Hosts          []string `json:"hosts"`
 	DryRun         bool     `json:"dryRun"`
 	SwitchPassword string   `json:"switchPassword,omitempty"`
-	ZapOsds        bool     `json:"zapOsds,omitempty"`
-	WorkflowType   string   `json:"workflowType,omitempty"`
+	ZapOsds        bool     `json:"zapOsds,omitempty"`			// this is necessary for storage rebuilds when unable to wipe the node prior to rebuild
+	WorkflowType   string   `json:"workflowType,omitempty"`		// used for to determine storage rebuild vs upgrade
 }
 
 type CreateRebuildWorkflowResponse struct {
