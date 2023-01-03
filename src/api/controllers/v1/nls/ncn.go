@@ -49,16 +49,16 @@ func NewNcnController(workflowService services_shared.WorkflowService, ncnServic
 }
 
 // NcnsCreateRebuildWorkflow
-// @Summary  End to end rolling rebuild ncns
-// @Param    include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
-// @Tags     NCN Lifecycle Events
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  models.CreateRebuildWorkflowResponse
-// @Failure  400  {object}  utils.ResponseError
-// @Failure  404  {object}  utils.ResponseError
-// @Failure  500  {object}  utils.ResponseError
-// @Router   /nls/v1/ncns/rebuild [post]
+//  @Summary  End to end rolling rebuild ncns
+//  @Param    include  body  models.CreateRebuildWorkflowRequest  true  "hostnames to include"
+//  @Tags     NCN Lifecycle Events
+//  @Accept   json
+//  @Produce  json
+//  @Success  200  {object}  models.CreateRebuildWorkflowResponse
+//  @Failure  400  {object}  utils.ResponseError
+//  @Failure  404  {object}  utils.ResponseError
+//  @Failure  500  {object}  utils.ResponseError
+//  @Router   /nls/v1/ncns/rebuild [post]
 func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 	var requestBody models_nls.CreateRebuildWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {
@@ -71,16 +71,16 @@ func (u NcnController) NcnsCreateRebuildWorkflow(c *gin.Context) {
 }
 
 // NcnsCreateRebootWorkflow
-// @Summary  End to end rolling reboot ncns
-// @Param    include  body  models.CreateRebootWorkflowRequest  true  "hostnames to include"
-// @Tags     NCN Lifecycle Events
-// @Accept   json
-// @Produce  json
-// @Success  200  {object}  models.CreateRebootWorkflowResponse
-// @Failure  400  {object}  utils.ResponseError
-// @Failure  404  {object}  utils.ResponseError
-// @Failure  500  {object}  utils.ResponseError
-// @Router   /nls/v1/ncns/reboot [post]
+//  @Summary  End to end rolling reboot ncns
+//  @Param    include  body  models.CreateRebootWorkflowRequest  true  "hostnames to include"
+//  @Tags     NCN Lifecycle Events
+//  @Accept   json
+//  @Produce  json
+//  @Success  200  {object}  models.CreateRebootWorkflowResponse
+//  @Failure  400  {object}  utils.ResponseError
+//  @Failure  404  {object}  utils.ResponseError
+//  @Failure  500  {object}  utils.ResponseError
+//  @Router   /nls/v1/ncns/reboot [post]
 func (u NcnController) NcnsCreateRebootWorkflow(c *gin.Context) {
 	var requestBody models_nls.CreateRebootWorkflowRequest
 	if err := c.BindJSON(&requestBody); err != nil {

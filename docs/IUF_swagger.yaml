@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,9 +21,13 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-basePath: /apis
 definitions:
-  Activity:
+  ResponseError:
+    properties:
+      message:
+        type: string
+    type: object
+  iuf.Activity:
     properties:
       activity_state:
         description: State of activity
@@ -35,7 +39,7 @@ definitions:
         - wait_for_admin
         type: string
       input_parameters:
-        $ref: '#/definitions/InputParameters'
+        $ref: '#/definitions/iuf.InputParameters'
         description: Input parameters by admin
       name:
         description: Name of activity
@@ -47,7 +51,7 @@ definitions:
       products:
         description: List of products included in an activity
         items:
-          $ref: '#/definitions/Product'
+          $ref: '#/definitions/iuf.Product'
         type: array
     required:
     - activity_state
@@ -55,7 +59,7 @@ definitions:
     - operation_outputs
     - products
     type: object
-  Activity.CreateActivityRequest:
+  iuf.CreateActivityRequest:
     properties:
       name:
         description: Name of activity
@@ -63,7 +67,7 @@ definitions:
     required:
     - name
     type: object
-  History:
+  iuf.History:
     properties:
       activity_state:
         description: State of activity
@@ -89,7 +93,7 @@ definitions:
     required:
     - activity_state
     type: object
-  History.HistoryActionRequest:
+  iuf.HistoryActionRequest:
     properties:
       comment:
         description: Comment
@@ -98,23 +102,17 @@ definitions:
         description: Epoch timestamp
         type: integer
     type: object
-  History.HistoryRunActionRequest:
+  iuf.HistoryRunActionRequest:
     properties:
       comment:
         description: Comment
         type: string
       input_parameters:
-        $ref: '#/definitions/InputParameters'
+        $ref: '#/definitions/iuf.InputParameters'
     required:
     - input_parameters
     type: object
-  History.ReplaceHistoryCommentRequest:
-    properties:
-      comment:
-        description: Comment
-        type: string
-    type: object
-  InputParameters:
+  iuf.InputParameters:
     properties:
       bootprep_config_managed:
         description: Each item is a path of the bootprep files
@@ -146,7 +144,7 @@ definitions:
           type: string
         type: array
     type: object
-  Operations:
+  iuf.Operations:
     properties:
       name:
         description: Name of the operation
@@ -158,7 +156,7 @@ definitions:
     - name
     - static-parameters
     type: object
-  Product:
+  iuf.Product:
     properties:
       manifest:
         description: the content of manifest
@@ -182,12 +180,13 @@ definitions:
     - validated
     - version
     type: object
-  ResponseError:
+  iuf.ReplaceHistoryCommentRequest:
     properties:
-      message:
+      comment:
+        description: Comment
         type: string
     type: object
-  Session:
+  iuf.Session:
     properties:
       current_state:
         enum:
@@ -197,23 +196,23 @@ definitions:
         - completed
         type: string
       input_parameters:
-        $ref: '#/definitions/InputParameters'
+        $ref: '#/definitions/iuf.InputParameters'
       name:
         type: string
       products:
         items:
-          $ref: '#/definitions/Product'
+          $ref: '#/definitions/iuf.Product'
         type: array
       stage:
         type: string
       workflows:
         items:
-          $ref: '#/definitions/Session.Workflow'
+          $ref: '#/definitions/iuf.SessionWorkflow'
         type: array
     required:
     - products
     type: object
-  Session.Workflow:
+  iuf.SessionWorkflow:
     properties:
       id:
         description: id of argo workflow
@@ -222,7 +221,7 @@ definitions:
         description: url to the argo workflow
         type: string
     type: object
-  Stage:
+  iuf.Stage:
     properties:
       name:
         description: Name of the stage
@@ -230,7 +229,7 @@ definitions:
       operations:
         description: operations
         items:
-          $ref: '#/definitions/Operations'
+          $ref: '#/definitions/iuf.Operations'
         type: array
       type:
         description: Type of the stage
@@ -240,11 +239,11 @@ definitions:
     - operations
     - type
     type: object
-  Stages:
+  iuf.Stages:
     properties:
       stages:
         items:
-          $ref: '#/definitions/Stage'
+          $ref: '#/definitions/iuf.Stage'
         type: array
       version:
         type: string
@@ -266,7 +265,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/Activity'
+              $ref: '#/definitions/iuf.Activity'
             type: array
         "500":
           description: Internal Server Error
@@ -284,14 +283,14 @@ paths:
         name: activity
         required: true
         schema:
-          $ref: '#/definitions/Activity.CreateActivityRequest'
+          $ref: '#/definitions/iuf.CreateActivityRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/Activity'
+            $ref: '#/definitions/iuf.Activity'
         "400":
           description: Bad Request
           schema:
@@ -319,7 +318,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Activity'
+            $ref: '#/definitions/iuf.Activity'
         "500":
           description: Internal Server Error
           schema:
@@ -344,7 +343,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/History'
+              $ref: '#/definitions/iuf.History'
             type: array
         "500":
           description: Internal Server Error
@@ -369,7 +368,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/History'
+            $ref: '#/definitions/iuf.History'
         "400":
           description: Bad Request
           schema:
@@ -404,14 +403,14 @@ paths:
         name: activity
         required: true
         schema:
-          $ref: '#/definitions/History.ReplaceHistoryCommentRequest'
+          $ref: '#/definitions/iuf.ReplaceHistoryCommentRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/History'
+            $ref: '#/definitions/iuf.History'
         "400":
           description: Bad Request
           schema:
@@ -442,7 +441,7 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryActionRequest'
+          $ref: '#/definitions/iuf.HistoryActionRequest'
       produces:
       - application/json
       responses:
@@ -468,7 +467,7 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryActionRequest'
+          $ref: '#/definitions/iuf.HistoryActionRequest'
       produces:
       - application/json
       responses:
@@ -494,7 +493,7 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryActionRequest'
+          $ref: '#/definitions/iuf.HistoryActionRequest'
       produces:
       - application/json
       responses:
@@ -520,7 +519,7 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryActionRequest'
+          $ref: '#/definitions/iuf.HistoryActionRequest'
       produces:
       - application/json
       responses:
@@ -546,14 +545,14 @@ paths:
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/History.HistoryRunActionRequest'
+          $ref: '#/definitions/iuf.HistoryRunActionRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/Session'
+            $ref: '#/definitions/iuf.Session'
         "500":
           description: Internal Server Error
           schema:
@@ -578,7 +577,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/Session'
+              $ref: '#/definitions/iuf.Session'
             type: array
         "500":
           description: Internal Server Error
@@ -608,7 +607,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Session'
+            $ref: '#/definitions/iuf.Session'
         "500":
           description: Internal Server Error
           schema:
@@ -624,7 +623,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/Stages'
+            $ref: '#/definitions/iuf.Stages'
         "500":
           description: Internal Server Error
           schema:

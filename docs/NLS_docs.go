@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2023 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -417,7 +417,10 @@ const docTemplateNLS = `{
                 "switchPassword": {
                     "type": "string"
                 },
-                "wipeOsd": {
+                "workflowType": {
+                    "type": "string"
+                },
+                "zapOsds": {
                     "type": "boolean"
                 }
             }
@@ -468,7 +471,7 @@ const docTemplateNLS = `{
 var SwaggerInfoNLS = &swag.Spec{
 	Version:          "",
 	Host:             "",
-	BasePath:         "/apis",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",
