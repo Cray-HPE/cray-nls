@@ -34,15 +34,15 @@ import (
 )
 
 // CreateActivity
-//  @Summary  Create an IUF activity
-//  @Param    activity  body  iuf.CreateActivityRequest  true  "IUF activity"
-//  @Tags     Activities
-//  @Accept   json
-//  @Produce  json
-//  @Success  201  {object}  iuf.Activity
-//  @Failure  400  {object}  utils.ResponseError
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/activities [post]
+// @Summary  Create an IUF activity
+// @Param    activity  body  iuf.CreateActivityRequest  true  "IUF activity"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  201  {object}  iuf.Activity
+// @Failure  400  {object}  utils.ResponseError
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities [post]
 func (u IufController) CreateActivity(c *gin.Context) {
 	var requestBody iuf.CreateActivityRequest
 	if err := c.BindJSON(&requestBody); err != nil {
@@ -62,13 +62,13 @@ func (u IufController) CreateActivity(c *gin.Context) {
 }
 
 // ListActivities
-//  @Summary  List IUF activities
-//  @Tags     Activities
-//  @Accept   json
-//  @Produce  json
-//  @Success  200  {object}  []iuf.Activity
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/activities [get]
+// @Summary  List IUF activities
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []iuf.Activity
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities [get]
 func (u IufController) ListActivities(c *gin.Context) {
 	res, err := u.iufService.ListActivities()
 	if err != nil {
@@ -81,14 +81,14 @@ func (u IufController) ListActivities(c *gin.Context) {
 }
 
 // GetActivity
-//  @Summary  Get an IUF activity
-//  @Param    activity_name  path  string  true  "activity name"
-//  @Tags     Activities
-//  @Accept   json
-//  @Produce  json
-//  @Success  200  {object}  iuf.Activity
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/activities/{activity_name} [get]
+// @Summary  Get an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Tags     Activities
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Activity
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name} [get]
 func (u IufController) GetActivity(c *gin.Context) {
 	res, err := u.iufService.GetActivity(c.Param("activity_name"))
 	if err != nil {

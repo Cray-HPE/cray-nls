@@ -36,7 +36,7 @@ type Product struct {
 	Validated bool `json:"validated"  validate:"required"`
 	// the content of manifest
 	Manifest string `json:"manifest"`
-} //	@name	Product
+} // @name Product
 
 type InputParameters struct {
 	MediaDir                 string   `json:"media_dir"`                  // Location of media
@@ -46,4 +46,4 @@ type InputParameters struct {
 	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
 	Stages                   []string `json:"stages"`                     // Stages to execute
 	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
-} //	@name	InputParameters
+} // @name InputParameters

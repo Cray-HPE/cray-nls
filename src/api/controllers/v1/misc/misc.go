@@ -50,36 +50,36 @@ func NewMiscController(workflowService services_shared.WorkflowService, logger u
 }
 
 // GetVersion
-//  @Summary  Get version of cray-nls service
-//  @Tags     Misc
-//  @Accept   json
-//  @Produce  json
-//  @Success  200  {object}  utils.ResponseOk
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /v1/version [get]
+// @Summary  Get version of cray-nls service
+// @Tags     Misc
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  utils.ResponseOk
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/version [get]
 func (u MiscController) GetVersion(c *gin.Context) {
 	c.JSON(200, utils.ResponseOk{Message: VERSION})
 }
 
 // GetReadiness
-//  @Summary  K8s Readiness endpoint
-//  @Tags     Misc
-//  @Accept   json
-//  @Produce  json
-//  @Success  204
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /v1/readiness [get]
+// @Summary  K8s Readiness endpoint
+// @Tags     Misc
+// @Accept   json
+// @Produce  json
+// @Success  204
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /v1/readiness [get]
 func (u MiscController) GetReadiness(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
 // GetLiveness
-//  @Summary  K8s Liveness endpoint
-//  @Tags     Misc
-//  @Accept   json
-//  @Produce  json
-//  @Success  204
-//  @Router   /v1/liveness [get]
+// @Summary  K8s Liveness endpoint
+// @Tags     Misc
+// @Accept   json
+// @Produce  json
+// @Success  204
+// @Router   /v1/liveness [get]
 func (u MiscController) GetLiveness(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }

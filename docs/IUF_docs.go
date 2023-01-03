@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2023 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -59,7 +59,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/iuf.Activity"
+                                "$ref": "#/definitions/Activity"
                             }
                         }
                     },
@@ -89,7 +89,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.CreateActivityRequest"
+                            "$ref": "#/definitions/Activity.CreateActivityRequest"
                         }
                     }
                 ],
@@ -97,7 +97,7 @@ const docTemplateIUF = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/iuf.Activity"
+                            "$ref": "#/definitions/Activity"
                         }
                     },
                     "400": {
@@ -140,7 +140,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/iuf.Activity"
+                            "$ref": "#/definitions/Activity"
                         }
                     },
                     "500": {
@@ -179,7 +179,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/iuf.History"
+                                "$ref": "#/definitions/History"
                             }
                         }
                     },
@@ -218,7 +218,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryActionRequest"
+                            "$ref": "#/definitions/History.HistoryActionRequest"
                         }
                     }
                 ],
@@ -258,7 +258,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryActionRequest"
+                            "$ref": "#/definitions/History.HistoryActionRequest"
                         }
                     }
                 ],
@@ -298,7 +298,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryActionRequest"
+                            "$ref": "#/definitions/History.HistoryActionRequest"
                         }
                     }
                 ],
@@ -338,7 +338,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryActionRequest"
+                            "$ref": "#/definitions/History.HistoryActionRequest"
                         }
                     }
                 ],
@@ -378,7 +378,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryRunActionRequest"
+                            "$ref": "#/definitions/History.HistoryRunActionRequest"
                         }
                     }
                 ],
@@ -386,7 +386,7 @@ const docTemplateIUF = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/iuf.Session"
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "500": {
@@ -423,7 +423,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/iuf.History"
+                            "$ref": "#/definitions/History"
                         }
                     },
                     "400": {
@@ -478,7 +478,7 @@ const docTemplateIUF = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.ReplaceHistoryCommentRequest"
+                            "$ref": "#/definitions/History.ReplaceHistoryCommentRequest"
                         }
                     }
                 ],
@@ -486,7 +486,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/iuf.History"
+                            "$ref": "#/definitions/History"
                         }
                     },
                     "400": {
@@ -537,7 +537,7 @@ const docTemplateIUF = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/iuf.Session"
+                                "$ref": "#/definitions/Session"
                             }
                         }
                     },
@@ -582,7 +582,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/iuf.Session"
+                            "$ref": "#/definitions/Session"
                         }
                     },
                     "500": {
@@ -607,7 +607,7 @@ const docTemplateIUF = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/iuf.Stages"
+                            "$ref": "#/definitions/Stages"
                         }
                     },
                     "500": {
@@ -621,15 +621,7 @@ const docTemplateIUF = `{
         }
     },
     "definitions": {
-        "ResponseError": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "iuf.Activity": {
+        "Activity": {
             "type": "object",
             "required": [
                 "activity_state",
@@ -651,7 +643,7 @@ const docTemplateIUF = `{
                 },
                 "input_parameters": {
                     "description": "Input parameters by admin",
-                    "$ref": "#/definitions/iuf.InputParameters"
+                    "$ref": "#/definitions/InputParameters"
                 },
                 "name": {
                     "description": "Name of activity",
@@ -666,12 +658,12 @@ const docTemplateIUF = `{
                     "description": "List of products included in an activity",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iuf.Product"
+                        "$ref": "#/definitions/Product"
                     }
                 }
             }
         },
-        "iuf.CreateActivityRequest": {
+        "Activity.CreateActivityRequest": {
             "type": "object",
             "required": [
                 "name"
@@ -683,7 +675,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.History": {
+        "History": {
             "type": "object",
             "required": [
                 "activity_state"
@@ -718,7 +710,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.HistoryActionRequest": {
+        "History.HistoryActionRequest": {
             "type": "object",
             "properties": {
                 "comment": {
@@ -731,7 +723,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.HistoryRunActionRequest": {
+        "History.HistoryRunActionRequest": {
             "type": "object",
             "required": [
                 "input_parameters"
@@ -742,11 +734,20 @@ const docTemplateIUF = `{
                     "type": "string"
                 },
                 "input_parameters": {
-                    "$ref": "#/definitions/iuf.InputParameters"
+                    "$ref": "#/definitions/InputParameters"
                 }
             }
         },
-        "iuf.InputParameters": {
+        "History.ReplaceHistoryCommentRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                }
+            }
+        },
+        "InputParameters": {
             "type": "object",
             "properties": {
                 "bootprep_config_managed": {
@@ -791,7 +792,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.Operations": {
+        "Operations": {
             "type": "object",
             "required": [
                 "name",
@@ -808,7 +809,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.Product": {
+        "Product": {
             "type": "object",
             "required": [
                 "name",
@@ -839,16 +840,15 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.ReplaceHistoryCommentRequest": {
+        "ResponseError": {
             "type": "object",
             "properties": {
-                "comment": {
-                    "description": "Comment",
+                "message": {
                     "type": "string"
                 }
             }
         },
-        "iuf.Session": {
+        "Session": {
             "type": "object",
             "required": [
                 "products"
@@ -864,7 +864,7 @@ const docTemplateIUF = `{
                     ]
                 },
                 "input_parameters": {
-                    "$ref": "#/definitions/iuf.InputParameters"
+                    "$ref": "#/definitions/InputParameters"
                 },
                 "name": {
                     "type": "string"
@@ -872,7 +872,7 @@ const docTemplateIUF = `{
                 "products": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iuf.Product"
+                        "$ref": "#/definitions/Product"
                     }
                 },
                 "stage": {
@@ -881,12 +881,12 @@ const docTemplateIUF = `{
                 "workflows": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iuf.SessionWorkflow"
+                        "$ref": "#/definitions/Session.Workflow"
                     }
                 }
             }
         },
-        "iuf.SessionWorkflow": {
+        "Session.Workflow": {
             "type": "object",
             "properties": {
                 "id": {
@@ -899,7 +899,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.Stage": {
+        "Stage": {
             "type": "object",
             "required": [
                 "name",
@@ -915,7 +915,7 @@ const docTemplateIUF = `{
                     "description": "operations",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iuf.Operations"
+                        "$ref": "#/definitions/Operations"
                     }
                 },
                 "type": {
@@ -924,7 +924,7 @@ const docTemplateIUF = `{
                 }
             }
         },
-        "iuf.Stages": {
+        "Stages": {
             "type": "object",
             "required": [
                 "stages",
@@ -934,7 +934,7 @@ const docTemplateIUF = `{
                 "stages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/iuf.Stage"
+                        "$ref": "#/definitions/Stage"
                     }
                 },
                 "version": {
@@ -949,7 +949,7 @@ const docTemplateIUF = `{
 var SwaggerInfoIUF = &swag.Spec{
 	Version:          "",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/apis",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",

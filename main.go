@@ -28,7 +28,7 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/cmd"
 )
 
-//  @BasePath  /apis
+// @BasePath  /apis
 
 func main() {
 	cmd.Execute()

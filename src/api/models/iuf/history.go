@@ -32,18 +32,18 @@ type History struct {
 	StartTime     int32         `json:"start_time"`                                                                                // Epoch timestamp
 	Comment       string        `json:"comment"`                                                                                   // Comment
 	Name          string        `json:"name"`                                                                                      // Comment
-} //	@name	History
+} // @name History
 
 type ReplaceHistoryCommentRequest struct {
 	Comment string `json:"comment"` // Comment
-} //	@name	History.ReplaceHistoryCommentRequest
+} // @name History.ReplaceHistoryCommentRequest
 
 type HistoryActionRequest struct {
 	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
 	Comment   string `json:"comment" validate:"optional"`    // Comment
-} //	@name	History.HistoryActionRequest
+} // @name History.HistoryActionRequest
 
 type HistoryRunActionRequest struct {
 	InputParameters InputParameters `json:"input_parameters" binding:"required"`
 	Comment         string          `json:"comment" validate:"optional"` // Comment
-} //	@name	History.HistoryRunActionRequest
+} // @name History.HistoryRunActionRequest

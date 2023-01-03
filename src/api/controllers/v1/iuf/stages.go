@@ -34,12 +34,12 @@ import (
 )
 
 // GetStages
-//  @Summary  Get the IUF stages
-//  @Tags     Stages
-//  @Produce  json
-//  @Success  200  {object}  iuf.Stages
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/stages [get]
+// @Summary  Get the IUF stages
+// @Tags     Stages
+// @Produce  json
+// @Success  200  {object}  iuf.Stages
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/stages [get]
 func (u IufController) GetStages(c *gin.Context) {
 
 	res, err := u.iufService.GetStages()

@@ -36,14 +36,14 @@ import (
 )
 
 // ListSessions
-//  @Summary  List sessions of an IUF activity
-//  @Param    activity_name  path  string  true  "activity name"
-//  @Tags     Sessions
-//  @Accept   json
-//  @Produce  json
-//  @Success  200  {object}  []iuf.Session
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/activities/{activity_name}/sessions [get]
+// @Summary  List sessions of an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  []iuf.Session
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name}/sessions [get]
 func (u IufController) ListSessions(c *gin.Context) {
 	res, err := u.iufService.ListSessions(c.Param("activity_name"))
 	if err != nil {
@@ -56,15 +56,15 @@ func (u IufController) ListSessions(c *gin.Context) {
 }
 
 // GetSession
-//  @Summary  Get a session of an IUF activity
-//  @Param    activity_name  path  string  true  "activity name"
-//  @Param    session_name   path  string  true  "session name"
-//  @Tags     Sessions
-//  @Accept   json
-//  @Produce  json
-//  @Success  200  {object}  iuf.Session
-//  @Failure  500  {object}  utils.ResponseError
-//  @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
+// @Summary  Get a session of an IUF activity
+// @Param    activity_name  path  string  true  "activity name"
+// @Param    session_name   path  string  true  "session name"
+// @Tags     Sessions
+// @Accept   json
+// @Produce  json
+// @Success  200  {object}  iuf.Session
+// @Failure  500  {object}  utils.ResponseError
+// @Router   /iuf/v1/activities/{activity_name}/sessions/{session_name} [get]
 func (u IufController) GetSession(c *gin.Context) {
 	res, err := u.iufService.GetSession(c.Param("session_name"))
 	if err != nil {
