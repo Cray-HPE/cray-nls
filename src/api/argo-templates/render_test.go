@@ -115,6 +115,7 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 			SwitchPassword: "thisIsApassword",
 			ZapOsds:        false,
 			WorkflowType:   "rebuild",
+			ImageId:		"",
 		}
 		_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)

@@ -195,6 +195,7 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
 		"ZapOsds":        createRebuildWorkflowRequest.ZapOsds,
 		"WorkflowType":   createRebuildWorkflowRequest.WorkflowType,
+		"ImageId":   	  createRebuildWorkflowRequest.ImageId,
 	})
 	if err != nil {
 		return nil, err
