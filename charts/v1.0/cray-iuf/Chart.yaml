@@ -24,7 +24,7 @@
 
 apiVersion: v2
 name: "cray-iuf"
-version: 0.0.1
+version: 0.0.2
 description: "Kubernetes resources for cray-nls"
 home: "https://github.com/Cray-HPE/cray-nls/charts/v1.0/cray-iuf"
 sources:
