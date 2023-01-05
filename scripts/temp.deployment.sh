@@ -31,6 +31,7 @@ function deployNLS() {
     kubectl get configmap -n loftsman loftsman-platform -o jsonpath='{.data.manifest\.yaml}' > "${BUILDDIR}/iuf.yaml"
     manifestgen -i "${BUILDDIR}/iuf.yaml" -c "${BUILDDIR}/customizations.yaml" -o "${BUILDDIR}/platform.yaml"
     yq w -i "${BUILDDIR}/platform.yaml" 'spec.charts[0].version' "$2"
+    yq w -i "${BUILDDIR}/platform.yaml" 'spec.charts[1].version' "$3"
     yq w -i "${BUILDDIR}/platform.yaml" 'metadata.name' "iuf"
     charts="$(yq r "${BUILDDIR}/platform.yaml" 'spec.charts[*].name')"
     for chart in $charts; do
@@ -59,7 +60,9 @@ echo "Get NLS chart version"
 tarFileName=$(ls | cat | grep "cray-nls")
 tarFileName=${tarFileName#"cray-nls-"}
 version=${tarFileName%".tgz"}
-echo "Version: $version"
+iufVersion=$(yq r ${CHART_PATH}/charts/v1.0/cray-iuf/Chart.yaml 'version')
+echo "cray-nls version: $version"
+echo "cray-iuf version: $iufVersion"
 
 echo "Get image version"
 imageVersion=$(yq r ${CHART_PATH}/charts/v1.0/cray-nls/values.yaml 'cray-service.containers.cray-nls.image.tag')
@@ -69,4 +72,4 @@ NEXUS_USERNAME="$(kubectl -n nexus get secret nexus-admin-credential --template 
 NEXUS_PASSWORD="$(kubectl -n nexus get secret nexus-admin-credential --template {{.data.password}} | base64 -d)"
 podman run --rm --network host quay.io/skopeo/stable copy --src-tls-verify=false --dest-tls-verify=false --dest-username "$NEXUS_USERNAME" --dest-password "$NEXUS_PASSWORD"  docker://artifactory.algol60.net/csm-docker/stable/cray-nls:$imageVersion docker://registry.local/artifactory.algol60.net/csm-docker/stable/cray-nls:$imageVersion
 
-deployNLS "$CHART_PATH" "$version"
+deployNLS "$CHART_PATH" "$version" "$iufVersion"
