@@ -66,12 +66,13 @@ func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Ca
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockIufService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error) {
+func (m *MockIufService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
 }
 
 // CreateIufWorkflow indicates an expected call of CreateIufWorkflow.
@@ -245,12 +246,13 @@ func (mr *MockIufServiceMockRecorder) ReplaceHistoryComment(activityName, startT
 }
 
 // RunNextStage mocks base method.
-func (m *MockIufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error) {
+func (m *MockIufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunNextStage", session)
 	ret0, _ := ret[0].(iuf.SyncResponse)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
 }
 
 // RunNextStage indicates an expected call of RunNextStage.

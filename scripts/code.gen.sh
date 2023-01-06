@@ -27,12 +27,13 @@
 swag fmt
 
 # update swagger doc yaml
-swag init --md  docs/ --outputTypes go,yaml \
-    --exclude src/api/controllers/v1/misc,src/api/controllers/v1/iuf \
-    --instanceName NLS
+#swag init --md  docs/ --outputTypes go,yaml \
+#    --exclude src/api/controllers/v1/misc,src/api/controllers/v1/iuf \
+#    --instanceName NLS
 
 # update iuf swagger doc yaml
 swag init --md docs/ --outputTypes go,yaml \
+    --dir src/api/controllers/v1/iuf \
     --exclude src/api/controllers/v1/misc,src/api/controllers/v1/nls \
     --instanceName IUF --parseDependency --parseDepth 1
 

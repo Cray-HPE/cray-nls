@@ -30,11 +30,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/google/uuid"
-	"github.com/imdario/mergo"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -121,19 +121,46 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 }
 
 func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
-	// Only allow patching input parameters and site parameters
-	originalInputParameters := activity.InputParameters
-	inputParamsPatch := patchParams.InputParameters
-	if err := mergo.Merge(&originalInputParameters, inputParamsPatch); err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
+	if patchParams.InputParameters.MediaDir != "" {
+		// input parameters exists
+		activity.InputParameters = patchParams.InputParameters
 	}
-	originalSiteParameters := activity.SiteParameters
-	siteParamsPatch := patchParams.SiteParameters
-	if err := mergo.Merge(&originalSiteParameters, siteParamsPatch); err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
+
+	// patch site parameters
+	if len(patchParams.SiteParameters.Products) > 0 || len(patchParams.SiteParameters.Global) > 0 {
+		activity.SiteParameters = patchParams.SiteParameters
 	}
+
+	// only allow patching activity state in a limited way.
+	switch patchParams.ActivityState {
+	case iuf.ActivityStateBlocked:
+		switch activity.ActivityState {
+		// allow from anything except "in_progress"
+		case iuf.ActivityStateInProgress:
+			return iuf.Activity{}, utils.GenericError{
+				Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+					activity.ActivityState, patchParams.ActivityState)}
+		default:
+			activity.ActivityState = patchParams.ActivityState
+		}
+	case iuf.ActivityStatePaused:
+		switch activity.ActivityState {
+		// allow only from in_progress
+		case iuf.ActivityStateInProgress:
+			activity.ActivityState = patchParams.ActivityState
+		default:
+			return iuf.Activity{}, utils.GenericError{
+				Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+					activity.ActivityState, patchParams.ActivityState)}
+		}
+	case "":
+		break
+	default:
+		return iuf.Activity{}, utils.GenericError{
+			Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+				activity.ActivityState, patchParams.ActivityState)}
+	}
+
 	return s.updateActivity(activity)
 }
 

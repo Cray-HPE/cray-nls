@@ -30,10 +30,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -98,6 +98,24 @@ func (s iufService) ConfigMapDataToSession(data string) (iuf.Session, error) {
 	return res, err
 }
 
+func (s iufService) CreateSession(session iuf.Session, name string, activity iuf.Activity) (iuf.Session, error) {
+	configmap, err := s.iufObjectToConfigMapData(session, name, LABEL_SESSION)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Session{}, err
+	}
+	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
+	_, err = s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Create(
+			context.TODO(),
+			&configmap,
+			v1.CreateOptions{},
+		)
+	return session, err
+}
+
 func (s iufService) UpdateSession(session iuf.Session) error {
 	configmap, err := s.iufObjectToConfigMapData(session, session.Name, LABEL_SESSION)
 	if err != nil {
@@ -118,9 +136,34 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 			v1.UpdateOptions{},
 		)
 	if err != nil {
+		// does it even exist? If it doesn't, let's create it instead
+		_, err := s.k8sRestClientSet.
+			CoreV1().
+			ConfigMaps(DEFAULT_NAMESPACE).
+			Get(context.TODO(), configmap.Name, v1.GetOptions{})
+		if err != nil {
+			_, err := s.k8sRestClientSet.
+				CoreV1().
+				ConfigMaps(DEFAULT_NAMESPACE).
+				Create(context.TODO(), &configmap, v1.CreateOptions{})
+			if err != nil {
+				s.logger.Error(err)
+				return err
+			}
+		} else {
+			s.logger.Error(err)
+			return err
+		}
+	}
+
+	// if the session update was successful, we also want to update the activity
+	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
+	err = s.UpdateActivityStateFromSessionState(session)
+	if err != nil {
 		s.logger.Error(err)
 		return err
 	}
+
 	return nil
 }
 
@@ -182,11 +225,13 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) err
 	return err
 }
 
-func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, error) {
-	myWorkflow, err := s.workflowGen(session)
+func (s iufService) CreateIufWorkflow(session iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool) {
+	myWorkflow, err, skipStage := s.workflowGen(session)
 	if err != nil {
 		s.logger.Error(err)
-		return nil, err
+		return nil, err, false
+	} else if skipStage {
+		return nil, nil, true
 	}
 
 	res, err := s.workflowClient.CreateWorkflow(context.TODO(), &workflow.WorkflowCreateRequest{
@@ -196,40 +241,97 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (*v1alpha1.Workflow, 
 	if err != nil {
 		s.logger.Errorf("Creating workflow for: %v FAILED", session)
 		s.logger.Error(err)
-		return nil, err
+		return nil, err, false
 	}
-	return res, nil
+	return res, nil, false
 }
 
-func (s iufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error) {
-	// get list of stages
-	stages := session.InputParameters.Stages
-	workflow, err := s.CreateIufWorkflow(*session)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.SyncResponse{}, err
+// RunNextStage Runs the next stage in the list of stages to execute.
+func (s iufService) RunNextStage(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool) {
+	// find the current stage in the list of stages, and use the next one
+	var currentStage string
+	found := false
+	if session.CurrentStage != "" {
+		for _, stage := range session.InputParameters.Stages {
+			if !found {
+				if stage == session.CurrentStage {
+					found = true
+				}
+			} else {
+				currentStage = stage
+				break
+			}
+		}
 	}
-	s.logger.Infof("workflow: %s has been created", workflow.Name)
 
-	session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflow.Name})
-	session.CurrentStage = stages[len(session.Workflows)-1]
+	if !found {
+		if len(session.InputParameters.Stages) > 0 {
+			// Someone updated the input parameters, perhaps. Restart from the beginning because we don't know where we are
+			//  anymore
+			currentStage = session.InputParameters.Stages[0]
+		} else {
+			// this session is done because we don't have anything to run
+			s.logger.Infof("Session completed. No stages to run")
+			return s.SetSessionToCompleted(session)
+		}
+	} else if currentStage == "" { // we found the last stage
+		// this session is done
+		return s.SetSessionToCompleted(session)
+	}
+
+	stage, err, skipStage := s.RunStage(session, currentStage)
+	if skipStage {
+		return s.RunNextStage(session)
+	} else {
+		return stage, err, false
+	}
+}
+
+func (s iufService) SetSessionToCompleted(session *iuf.Session) (iuf.SyncResponse, error, bool) {
+	session.CurrentState = iuf.SessionStateCompleted
+	s.logger.Infof("Session completed. Last stage was %s", session.CurrentStage)
+
+	err := s.UpdateSession(*session)
+	if err != nil {
+		s.logger.Errorf("Error while updating the session %v", err)
+		return iuf.SyncResponse{}, err, false
+	}
+
+	return iuf.SyncResponse{}, nil, true
+}
+
+// RunStage Runs a specific stage for the given session. Creates a new Argo workflow behind the scenes for this stage.
+func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.SyncResponse, err error, skipStage bool) {
+	if stageToRun == "" {
+		// this session is done
+		s.logger.Infof("No stage specified to run. Last stage was %s and list of all stages are %v",
+			session.CurrentStage, session.InputParameters.Stages)
+		return iuf.SyncResponse{}, nil, false
+	}
+
+	session.CurrentStage = stageToRun
 	session.CurrentState = iuf.SessionStateInProgress
-	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-	err = s.UpdateActivityStateFromSessionState(*session)
+
+	workflow, err, skipStage := s.CreateIufWorkflow(*session)
 	if err != nil {
 		s.logger.Error(err)
-		return iuf.SyncResponse{}, err
+		return iuf.SyncResponse{}, err, skipStage
+	} else if !skipStage {
+		s.logger.Infof("workflow: %s has been created", workflow.Name)
+		session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflow.Name})
 	}
+
 	s.logger.Infof("Update session: %v", session)
 	err = s.UpdateSession(*session)
 	if err != nil {
 		s.logger.Error(err)
-		return iuf.SyncResponse{}, err
+		return iuf.SyncResponse{}, err, skipStage
 	}
+
 	response := iuf.SyncResponse{
 		ResyncAfterSeconds: 5,
 	}
-	return response, nil
+	return response, nil, skipStage
 }
 
 func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error {

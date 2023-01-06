@@ -90,13 +90,6 @@ stages:
       - name: management-nodes-rollout
         static-parameters: {} # any parameters that will be supplied statically to this operation.
 
-  - name: management-m001-rollout
-    type: global
-    no-hooks: true # m001 doesn't support hooks right now because we source hook scripts from m001
-    operations:
-      - name: management-m001-rollout
-        static-parameters: {} # any parameters that will be supplied statically to this operation.
-
   - name: post-install-service-check
     type: product
     operations:

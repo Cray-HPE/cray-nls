@@ -31,15 +31,15 @@ type Stage struct {
 	Type       string       `yaml:"type" json:"type" binding:"required"`             // Type of the stage
 	Operations []Operations `yaml:"operations" json:"operations" binding:"required"` // operations
 	NoHooks    bool         `yaml:"no-hooks" json:"no-hooks"`                        // no-hook indicates that there are no hooks that should be run for this stage
-} // @name Stage
+} //	@name	Stage
 
 type Stages struct {
 	Version string            `yaml:"version" json:"version" binding:"required"`
 	Stages  []Stage           `yaml:"stages" json:"stages" binding:"required"`
 	Hooks   map[string]string `yaml:"hooks" json:"hooks"`
-} // @name Stages
+} //	@name	Stages
 
 type Operations struct {
 	Name             string                 `yaml:"name" json:"name" binding:"required"` // Name of the operation
 	StaticParameters map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
-} // @name Operations
+} //	@name	Operations

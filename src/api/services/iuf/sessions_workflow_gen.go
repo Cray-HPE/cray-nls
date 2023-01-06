@@ -31,40 +31,39 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 )
 
-func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) {
-	stages, err := s.GetStages()
-	if err != nil {
-		s.logger.Error(err)
-		return v1alpha1.Workflow{}, err
+func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
+	stageName := session.CurrentStage
+	if stageName == "" {
+		noStageError := utils.GenericError{Message: "No current stage to run."}
+		s.logger.Error(noStageError)
+		return v1alpha1.Workflow{}, noStageError, false
 	}
-	index := len(session.Workflows)
-	if index >= len(session.InputParameters.Stages) {
-		index = len(session.InputParameters.Stages) - 1
-	}
-	stageName := session.InputParameters.Stages[index] // TODO funny logic
-	var stageInfo iuf.Stage
-	for _, stage := range stages.Stages {
+
+	stagesMetadata, err := s.GetStages()
+	var stageMetadata iuf.Stage
+	for _, stage := range stagesMetadata.Stages {
 		if stage.Name == stageName {
-			stageInfo = stage
+			stageMetadata = stage
 			break
 		}
 	}
-	if stageInfo.Name == "" {
+	if stageMetadata.Name == "" {
 		err := fmt.Errorf("stage: %s is invalid", stageName)
 		s.logger.Error(err)
-		return v1alpha1.Workflow{}, err
+		return v1alpha1.Workflow{}, err, false
 	}
 	res := v1alpha1.Workflow{}
-	res.GenerateName = session.Name + "-"
+	res.GenerateName = stageName + "-" + session.Name + "-"
 	res.ObjectMeta.Labels = map[string]string{
 		"session":    session.Name,
-		"stage":      stageInfo.Name,
-		"stage_type": stageInfo.Type,
+		"stage":      stageMetadata.Name,
+		"stage_type": stageMetadata.Type,
 	}
 	res.Spec.PodMetadata = &v1alpha1.Metadata{Annotations: map[string]string{"sidecar.istio.io/inject": "false"}}
 	hostPathDir := corev1.HostPathDirectory
@@ -112,7 +111,7 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 			},
 		},
 	}
-	if !stageInfo.NoHooks {
+	if !stageMetadata.NoHooks {
 		// if we have hooks, then we have to run on ncn-m001. This is a limitation we have for now, because we can only
 		// reference hook scripts on ncn-m001 since the rbd mount only exists on ncn-m001.
 		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
@@ -124,10 +123,13 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 	}
 	res.Spec.Entrypoint = "main"
 
-	dagTasks, err := s.getDAGTasks(session, stageInfo, stages)
+	dagTasks, err := s.getDAGTasks(session, stageMetadata, stagesMetadata)
 	if err != nil {
 		s.logger.Error(err)
-		return v1alpha1.Workflow{}, err
+		return v1alpha1.Workflow{}, err, false
+	} else if len(dagTasks) == 0 {
+		s.logger.Infof("No DAG tasks for stage %s in session %s, skipping this stage.", stageName, session.Name)
+		return v1alpha1.Workflow{}, nil, true
 	}
 
 	res.Spec.Templates = []v1alpha1.Template{
@@ -138,7 +140,7 @@ func (s iufService) workflowGen(session iuf.Session) (v1alpha1.Workflow, error) 
 			},
 		},
 	}
-	return res, nil
+	return res, nil, false
 }
 
 // Gets DAG tasks for the given session and stage

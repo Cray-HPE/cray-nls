@@ -130,33 +130,28 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 	return res
 }
 
-// Gets the correct version of site parameters based on either session.InputParameters.SiteParameters (deprecated) or
-//  session.SiteParameters
-func (s iufService) getSiteParams(deprecatedSiteParameters string, structSiteParams map[string]interface{}) map[string]interface{} {
-	// check which site parameters we are using.
-	var siteParams map[string]interface{}
-	if deprecatedSiteParameters != "" {
-		// preference is given to the deprecated site params saved as a string to not break existing functionality.
+func (s iufService) getSiteParams(deprecatedSiteParameters string, structSiteParams iuf.SiteParameters) iuf.SiteParameters {
+	// check which site parameters we are using first
+	var siteParams iuf.SiteParameters
+	if len(structSiteParams.Products) > 0 {
+		siteParams.Products = structSiteParams.Products
+		siteParams.Global = structSiteParams.Global
+	} else {
 		err := json.Unmarshal([]byte(deprecatedSiteParameters), siteParams)
 		if err != nil {
 			// fallback
-			siteParams = structSiteParams
+			siteParams.Products = structSiteParams.Products
+			siteParams.Global = structSiteParams.Global
 		}
-	} else {
-		siteParams = structSiteParams
 	}
 
 	return siteParams
 }
 
-func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
-	siteParams := s.getSiteParams(session.InputParameters.SiteParameters, session.SiteParameters)
-
-	if siteParams != nil && siteParams["products"] != nil {
-		// need to add "current_product" in there
-		products := (siteParams["products"]).(map[string]interface{})
-		siteParams["current_product"] = products[in_product.Name]
+func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product) iuf.SiteParametersForOperationsAndHooks {
+	params := s.getSiteParams(session.InputParameters.SiteParameters, session.SiteParameters)
+	return iuf.SiteParametersForOperationsAndHooks{
+		SiteParameters: params,
+		CurrentProduct: params.Products[in_product.Name],
 	}
-
-	return siteParams
 }

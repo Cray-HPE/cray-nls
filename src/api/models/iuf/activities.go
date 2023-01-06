@@ -29,21 +29,22 @@ package iuf
 type Activity struct {
 	Name             string                 `json:"name"`                                                                                      // Name of activity
 	InputParameters  InputParameters        `json:"input_parameters" binding:"required"`                                                       // Input parameters by admin
-	SiteParameters   map[string]interface{} `json:"site_parameters" binding:"required"`                                                        // Site parameters set by the admin
+	SiteParameters   SiteParameters         `json:"site_parameters" binding:"required"`                                                        // Site parameters set by the admin
 	OperationOutputs map[string]interface{} `json:"operation_outputs" binding:"required"`                                                      // Operation outputs from argo
 	Products         []Product              `json:"products" binding:"required"`                                                               // List of products included in an activity
 	ActivityState    ActivityState          `json:"activity_state" binding:"required" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
-} // @name Activity
+} //	@name	Activity
 
 type CreateActivityRequest struct {
 	Name          string        `json:"name" binding:"required"` // Name of activity
 	ActivityState ActivityState `json:"activity_state" swaggerignore:"true"`
-} // @name Activity.CreateActivityRequest
+} //	@name	Activity.CreateActivityRequest
 
 type PatchActivityRequest struct {
-	InputParameters InputParameters        `json:"input_parameters"`
-	SiteParameters  map[string]interface{} `json:"site_parameters"`
-} // @name Activity.PatchActivityRequest
+	InputParameters InputParameters `json:"input_parameters"`
+	SiteParameters  SiteParameters  `json:"site_parameters"`
+	ActivityState   ActivityState   `json:"activity_state" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
+} //	@name	Activity.PatchActivityRequest
 
 type ActivityState string
 

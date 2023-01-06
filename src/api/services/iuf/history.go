@@ -146,21 +146,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 		Name:            name,
 		ActivityRef:     activityName,
 	}
-	configmap, err := s.iufObjectToConfigMapData(session, name, LABEL_SESSION)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.Session{}, err
-	}
-	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
-	_, err = s.k8sRestClientSet.
-		CoreV1().
-		ConfigMaps(DEFAULT_NAMESPACE).
-		Create(
-			context.TODO(),
-			&configmap,
-			v1.CreateOptions{},
-		)
-	return session, err
+	return s.CreateSession(session, name, activity)
 }
 
 func (s iufService) configMapDataToHistory(data string) (iuf.History, error) {
