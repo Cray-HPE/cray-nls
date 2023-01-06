@@ -417,7 +417,12 @@ const docTemplateNLS = `{
                 "switchPassword": {
                     "type": "string"
                 },
-                "wipeOsd": {
+                "workflowType": {
+                    "description": "used for to determine storage rebuild vs upgrade",
+                    "type": "string"
+                },
+                "zapOsds": {
+                    "description": "this is necessary for storage rebuilds when unable to wipe the node prior to rebuild",
                     "type": "boolean"
                 }
             }

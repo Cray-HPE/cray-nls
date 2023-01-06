@@ -98,6 +98,17 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models_nls.RebuildHooks{})
 }
 
+func GetStorageUpgradeWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
+	err := validator.ValidateStorageHostnames(createRebuildWorkflowRequest.Hosts)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl := template.New("storage.upgrade.yaml")
+
+	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models_nls.RebuildHooks{})
+}
+
 func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
 	// add useful helm templating func: include
 	var funcMap template.FuncMap = map[string]interface{}{}
@@ -182,7 +193,8 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 		"TargetNcns":     createRebuildWorkflowRequest.Hosts,
 		"DryRun":         createRebuildWorkflowRequest.DryRun,
 		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
-		"WipeOsd":        createRebuildWorkflowRequest.WipeOsd,
+		"ZapOsds":        createRebuildWorkflowRequest.ZapOsds,
+		"WorkflowType":   createRebuildWorkflowRequest.WorkflowType,
 	})
 	if err != nil {
 		return nil, err
