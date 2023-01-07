@@ -102,7 +102,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product iuf.Product, stages iuf.Stages) map[string]interface{} {
 	res := make(map[string]interface{})
 	activity, _ := s.GetActivity(session.ActivityRef)
-	if activity.OperationOutputs == nil {
+	if activity.OperationOutputs == nil || activity.OperationOutputs["stage_params"] == nil {
 		return map[string]interface{}{}
 	}
 	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
