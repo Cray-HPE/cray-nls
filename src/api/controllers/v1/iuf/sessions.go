@@ -110,7 +110,7 @@ func (u IufController) Sync(c *gin.Context) {
 			// set the session back to in progress if the workflow is running.
 			if session.CurrentState != iuf.SessionStateInProgress {
 				session.CurrentState = iuf.SessionStateInProgress
-				u.iufService.UpdateSession(session)
+				u.iufService.UpdateSessionAndActivity(session)
 
 				// note: if there was an error in UpdateSession above, then we would resync anyway below after x seconds
 			}
@@ -126,7 +126,7 @@ func (u IufController) Sync(c *gin.Context) {
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
 			u.logger.Infof("Workflow is in failed/error state: %s,resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
 			session.CurrentState = iuf.SessionStateDebug
-			err = u.iufService.UpdateSession(session)
+			err = u.iufService.UpdateSessionAndActivity(session)
 			var response iuf.SyncResponse
 			if err != nil {
 				response = iuf.SyncResponse{

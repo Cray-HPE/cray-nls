@@ -34,7 +34,6 @@ import (
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -74,10 +73,7 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 	}
 
 	// store history
-	name := activity.Name + "-" + uuid.NewString()
-	if len(name) > 63 {
-		name = name[0:63]
-	}
+	name := utils.GenerateName(activity.Name)
 	iufHistory := iuf.History{
 		ActivityState: iuf.ActivityStateWaitForAdmin,
 		StartTime:     int32(time.Now().UnixMilli()),
@@ -124,6 +120,8 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 }
 
 func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
+	s.logger.Infof("Called: PatchActivity(activity: %v, patchParams: %v)", activity, patchParams)
+
 	if patchParams.InputParameters.MediaDir != "" {
 		// input parameters exists
 		activity.InputParameters = patchParams.InputParameters
@@ -162,6 +160,21 @@ func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchAc
 		return iuf.Activity{}, utils.GenericError{
 			Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
 				activity.ActivityState, patchParams.ActivityState)}
+	}
+
+	// when you update site or input parameters of an activity, you also have to update all the Sessions that have not
+	// already completed. This is so that the next time a workflow for a stage is created, that workflow can pick up
+	// the input and site parameters from the session
+	sessions, _ := s.ListSessions(activity.Name)
+	for _, session := range sessions {
+		if session.CurrentState != iuf.SessionStateCompleted {
+			session.InputParameters = activity.InputParameters
+			session.SiteParameters = s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters)
+			err := s.UpdateSession(session)
+			if err != nil {
+				return iuf.Activity{}, err
+			}
+		}
 	}
 
 	return s.updateActivity(activity)

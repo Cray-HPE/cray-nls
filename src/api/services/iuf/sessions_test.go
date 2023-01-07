@@ -395,7 +395,7 @@ func TestRunNextStage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.session.Name = m1.ReplaceAllString(tt.name, "-")
+			tt.session.Name = utils.GenerateName(m1.ReplaceAllString(tt.name, "-"))
 			_, err := workflowSvc.CreateSession(tt.session, tt.session.Name, activity)
 			if err != nil {
 				t.Errorf("got unexpted error while creating session %v", err)

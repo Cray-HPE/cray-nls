@@ -298,7 +298,8 @@ func TestPatchActivity(t *testing.T) {
 	m1 := regexp.MustCompile(`[^a-zA-Z]`)
 
 	runTest := func(startActivity iuf.Activity, test PatchTest, t *testing.T) bool {
-		activityName := startActivity.Name + m1.ReplaceAllString(test.testName, "-")
+
+		activityName := utils.GenerateName(startActivity.Name + m1.ReplaceAllString(test.testName, "-"))
 		startActivity.Name = activityName
 		if test.expectActivity.Name != "" {
 			test.expectActivity.Name = activityName

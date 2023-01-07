@@ -30,9 +30,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -138,10 +138,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	}
 
 	// store session
-	name := activity.Name + "-" + uuid.NewString()
-	if len(name) > 63 {
-		name = name[0:63]
-	}
+	name := utils.GenerateName(activity.Name)
 	session := iuf.Session{
 		InputParameters: activity.InputParameters,
 		SiteParameters:  s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters),

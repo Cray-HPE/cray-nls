@@ -30,12 +30,12 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
 )
@@ -116,6 +116,23 @@ func (s iufService) CreateSession(session iuf.Session, name string, activity iuf
 	return session, err
 }
 
+func (s iufService) UpdateSessionAndActivity(session iuf.Session) error {
+	err := s.UpdateSession(session)
+	if err != nil {
+		return err
+	}
+
+	// if the session update was successful, we also want to update the activity
+	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
+	err = s.UpdateActivityStateFromSessionState(session)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func (s iufService) UpdateSession(session iuf.Session) error {
 	configmap, err := s.iufObjectToConfigMapData(session, session.Name, LABEL_SESSION)
 	if err != nil {
@@ -156,14 +173,6 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 		}
 	}
 
-	// if the session update was successful, we also want to update the activity
-	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-	err = s.UpdateActivityStateFromSessionState(session)
-	if err != nil {
-		s.logger.Error(err)
-		return err
-	}
-
 	return nil
 }
 
@@ -200,10 +209,7 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) err
 	}
 
 	// store history
-	name := activity.Name + "-" + uuid.NewString()
-	if len(name) > 63 {
-		name = name[0:63]
-	}
+	name := utils.GenerateName(activity.Name)
 	iufHistory := iuf.History{
 		ActivityState: activityState,
 		StartTime:     int32(time.Now().UnixMilli()),
@@ -294,7 +300,7 @@ func (s iufService) SetSessionToCompleted(session *iuf.Session) (iuf.SyncRespons
 	session.CurrentState = iuf.SessionStateCompleted
 	s.logger.Infof("Session completed. Last stage was %s", session.CurrentStage)
 
-	err := s.UpdateSession(*session)
+	err := s.UpdateSessionAndActivity(*session)
 	if err != nil {
 		s.logger.Errorf("Error while updating the session %v", err)
 		return iuf.SyncResponse{}, err, false
@@ -325,7 +331,7 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 	}
 
 	s.logger.Infof("Update session: %v", session)
-	err = s.UpdateSession(*session)
+	err = s.UpdateSessionAndActivity(*session)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err, skipStage

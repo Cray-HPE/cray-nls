@@ -288,3 +288,17 @@ func (mr *MockIufServiceMockRecorder) UpdateSession(session interface{}) *gomock
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockIufService)(nil).UpdateSession), session)
 }
+
+// UpdateSessionAndActivity mocks base method.
+func (m *MockIufService) UpdateSessionAndActivity(session iuf.Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSessionAndActivity", session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSessionAndActivity indicates an expected call of UpdateSessionAndActivity.
+func (mr *MockIufServiceMockRecorder) UpdateSessionAndActivity(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSessionAndActivity", reflect.TypeOf((*MockIufService)(nil).UpdateSessionAndActivity), session)
+}

@@ -59,14 +59,11 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		return v1alpha1.Workflow{}, err, false
 	}
 	res := v1alpha1.Workflow{}
-	res.GenerateName = session.Name + "-" + stageName + "-"
 
-	// Need to make sure we don't go over the 63 character limit.
-	// Note that after the prefix, there will be a UUID.
-	// UUID's are 36 characters, so we need to trim anything more than 63-36=27 chars
-	if len(res.GenerateName) > 27 {
-		res.GenerateName = res.GenerateName[0:26] + "-"
-	}
+	// note that we don't have to care about the length of the prefix here abiding by the 63 character limit because
+	//  K8S already trims the prefix accordingly. See
+	//  https://github.com/kubernetes/kubernetes/blob/b0b7a323cc5a4a2019b2e9520c21c7830b7f708e/staging/src/k8s.io/apiserver/pkg/storage/names/generate.go#L50
+	res.GenerateName = session.Name + "-" + stageName + "-"
 
 	res.ObjectMeta.Labels = map[string]string{
 		"session":    session.Name,

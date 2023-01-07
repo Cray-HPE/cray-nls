@@ -418,7 +418,7 @@ const docTemplateNLS = `{
                     "type": "string"
                 },
                 "workflowType": {
-                    "description": "used for to determine storage rebuild vs upgrade",
+                    "description": "used to determine storage rebuild vs upgrade",
                     "type": "string"
                 },
                 "zapOsds": {
