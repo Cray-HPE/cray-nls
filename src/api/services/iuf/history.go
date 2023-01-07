@@ -139,6 +139,9 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 
 	// store session
 	name := activity.Name + "-" + uuid.NewString()
+	if len(name) > 63 {
+		name = name[0:63]
+	}
 	session := iuf.Session{
 		InputParameters: activity.InputParameters,
 		SiteParameters:  s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters),

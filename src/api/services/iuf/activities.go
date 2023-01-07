@@ -75,6 +75,9 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 
 	// store history
 	name := activity.Name + "-" + uuid.NewString()
+	if len(name) > 63 {
+		name = name[0:63]
+	}
 	iufHistory := iuf.History{
 		ActivityState: iuf.ActivityStateWaitForAdmin,
 		StartTime:     int32(time.Now().UnixMilli()),

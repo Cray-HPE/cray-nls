@@ -201,6 +201,9 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) err
 
 	// store history
 	name := activity.Name + "-" + uuid.NewString()
+	if len(name) > 63 {
+		name = name[0:63]
+	}
 	iufHistory := iuf.History{
 		ActivityState: activityState,
 		StartTime:     int32(time.Now().UnixMilli()),
