@@ -59,7 +59,15 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		return v1alpha1.Workflow{}, err, false
 	}
 	res := v1alpha1.Workflow{}
-	res.GenerateName = stageName + "-" + session.Name + "-"
+	res.GenerateName = session.Name + "-" + stageName + "-"
+
+	// Need to make sure we don't go over the 63 character limit.
+	// Note that after the prefix, there will be a UUID.
+	// UUID's are 36 characters, so we need to trim anything more than 63-36=27 chars
+	if len(res.GenerateName) > 27 {
+		res.GenerateName = res.GenerateName[0:26] + "-"
+	}
+
 	res.ObjectMeta.Labels = map[string]string{
 		"session":    session.Name,
 		"stage":      stageMetadata.Name,
