@@ -177,7 +177,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			s.logger.Error(err)
 			continue
 		}
-		globalParamsPerProduct[product.Name] = b
+		globalParamsPerProduct[s.getProductVersionKey(product)] = b
 	}
 
 	// generate auth token in advance
@@ -206,7 +206,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 	for _, product := range session.Products {
 
 		// the initial dependency is the name of the hook script for that product, if any.
-		preStageHook, exists := preSteps[product.Name]
+		productKey := s.getProductVersionKey(product)
+		preStageHook, exists := preSteps[productKey]
 		var lastOpDependency string
 		if exists {
 			lastOpDependency = preStageHook.Name
@@ -219,7 +220,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				continue
 			}
 
-			opName := product.Name + "-" + operation.Name
+			opName := utils.GenerateName(productKey + "-" + operation.Name)
 
 			task := v1alpha1.DAGTask{
 				Name: opName,
@@ -241,7 +242,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 					},
 					{
 						Name:  "global_params",
-						Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[product.Name])),
+						Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[productKey])),
 					},
 				},
 			}
@@ -253,7 +254,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		}
 
 		// add the post-stage hook for this product
-		postStageHook, exists := postSteps[product.Name]
+		postStageHook, exists := postSteps[productKey]
 		if exists {
 			postStageHook.Dependencies = []string{
 				lastOpDependency,
@@ -274,7 +275,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
-		preStageHook, exists := preSteps[product.Name]
+		preStageHook, exists := preSteps[s.getProductVersionKey(product)]
 		if exists {
 			lastOpDependencies = append(lastOpDependencies, preStageHook.Name)
 			res = append(res, preStageHook)
@@ -320,7 +321,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 	// now let's add all the post-stage hooks
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
-		postStageHook, exists := postSteps[product.Name]
+		postStageHook, exists := postSteps[s.getProductVersionKey(product)]
 		if exists {
 			postStageHook.Dependencies = lastOpDependencies
 			res = append(res, postStageHook)

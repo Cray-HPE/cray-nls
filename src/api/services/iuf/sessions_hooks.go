@@ -55,12 +55,12 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 	preSteps = map[string]v1alpha1.DAGTask{}
 	postSteps = map[string]v1alpha1.DAGTask{}
 
-	for productName, productHooks := range hooks {
+	for productKey, productHooks := range hooks {
 		hook := productHooks.PreHook
 		if hook.ScriptPath != "" {
-			task, err := s.createHookDAGTask(true, hook, productName, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
+			task, err := s.createHookDAGTask(true, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
 			if err == nil {
-				preSteps[productName] = task
+				preSteps[productKey] = task
 			} else {
 				s.logger.Error(err)
 			}
@@ -68,9 +68,9 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 
 		hook = productHooks.PostHook
 		if hook.ScriptPath != "" {
-			task, err := s.createHookDAGTask(false, hook, productName, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
+			task, err := s.createHookDAGTask(false, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
 			if err == nil {
-				postSteps[productName] = task
+				postSteps[productKey] = task
 			} else {
 				s.logger.Error(err)
 			}
@@ -93,7 +93,7 @@ func (s iufService) getProductHooks(session iuf.Session, stage iuf.Stage) map[st
 		postHook := s.extractPathAndExecutionContext(stage.Name, &manifest, false)
 
 		if preHook.ScriptPath != "" || postHook.ScriptPath != "" {
-			ret[product.Name] = iuf.ManifestStageHooks{
+			ret[s.getProductVersionKey(product)] = iuf.ManifestStageHooks{
 				PreHook:  preHook,
 				PostHook: postHook,
 			}
@@ -134,28 +134,28 @@ func (s iufService) extractPathAndExecutionContext(stageName string, manifest *i
 }
 
 // creates a DAG task  for a hook
-func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, productName string, session iuf.Session, stage iuf.Stage,
+func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, productKey string, session iuf.Session, stage iuf.Stage,
 	hookTemplateMap map[string]string, allTemplatesByName map[string]bool,
 	globalParamsPerProduct map[string][]byte, authToken string) (v1alpha1.DAGTask, error) {
 
 	// find the original location
 	var originalLocation string
 	for _, product := range session.Products {
-		if product.Name == productName {
+		if s.getProductVersionKey(product) == productKey {
 			originalLocation = product.OriginalLocation
 			break
 		}
 	}
 
 	if hook.ScriptPath == "" || hook.ExecutionContext == "" || originalLocation == "" {
-		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("No valid hook script found for product %s in stage %s.", productName, stage.Name)}
+		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("No valid hook script found for product %s in stage %s.", productKey, stage.Name)}
 	}
 
 	originalLocation = filepath.Clean(originalLocation)
 	filePath := filepath.Clean(filepath.Join(originalLocation, hook.ScriptPath))
 	if strings.Index(filePath, originalLocation) != 0 {
 		// possible hack attempt ... reading a parent directory through relative paths.
-		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("Bad hook script path %v found for product %s in stage %s.", filePath, productName, stage.Name)}
+		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("Bad hook script path %v found for product %s in stage %s.", filePath, productKey, stage.Name)}
 	}
 
 	preOrPost := "-pre-hook-"
@@ -175,7 +175,7 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 	}
 
 	task := v1alpha1.DAGTask{
-		Name:        productName + preOrPost + stage.Name,
+		Name:        utils.GenerateName(productKey + preOrPost + stage.Name),
 		TemplateRef: &templateRef,
 		Arguments: v1alpha1.Arguments{
 			Parameters: []v1alpha1.Parameter{
@@ -185,7 +185,7 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 				},
 				{
 					Name:  "global_params",
-					Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[productName])),
+					Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[productKey])),
 				},
 				{
 					Name:  "script_path",

@@ -44,6 +44,14 @@ func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product,
 	}
 }
 
+func (s iufService) getProductVersionKey(product iuf.Product) string {
+	return s.getProductVersionKeyFromNameAndVersion(product.Name, product.Version)
+}
+
+func (s iufService) getProductVersionKeyFromNameAndVersion(name string, version string) string {
+	return name + "-" + version
+}
+
 func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_product iuf.Product) map[string]interface{} {
 	resProducts := make(map[string]interface{})
 	var currentProductManifest map[string]interface{}
@@ -52,18 +60,20 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 		manifestJsonBytes, _ := yaml.YAMLToJSON(manifestBytes)
 		var manifestJson map[string]interface{}
 		json.Unmarshal(manifestJsonBytes, &manifestJson)
-		if product.Name == in_product.Name {
+		if s.getProductVersionKey(product) == s.getProductVersionKey(in_product) {
 			currentProductManifest = manifestJson
 		}
-		resProducts[product.Name] = map[string]interface{}{
+		resProducts[s.getProductVersionKey(product)] = map[string]interface{}{
 			"manifest":          manifestJson,
 			"original_location": product.OriginalLocation,
 		}
 	}
 	return map[string]interface{}{
-		"products": resProducts,
+		// commenting this out as a temporary fix to CASM-3761
+		// "products": resProducts,
 		"current_product": map[string]interface{}{
 			"name":              in_product.Name,
+			"version":           in_product.Version,
 			"manifest":          currentProductManifest,
 			"original_location": in_product.OriginalLocation,
 		},
@@ -73,7 +83,7 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product iuf.Product) map[string]interface{} {
 	var productsArray []string
 	for _, product := range session.Products {
-		productsArray = append(productsArray, product.Name)
+		productsArray = append(productsArray, s.getProductVersionKey(product))
 	}
 
 	var bootPrepManagedContent []map[string]string
@@ -118,9 +128,10 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 			var products map[string]interface{}
 			for _, value := range outputValue {
 				mergo.Merge(&products, value.(map[string]interface{}))
-				mergo.Merge(&currentProduct, value.(map[string]interface{})[in_product.Name])
+				mergo.Merge(&currentProduct, value.(map[string]interface{})[s.getProductVersionKey(in_product)])
 			}
-			res[stageName].(map[string]interface{})["products"] = products
+			// commenting this out as a temporary fix to CASM-3761
+			//res[stageName].(map[string]interface{})["products"] = products
 			res[stageName].(map[string]interface{})["current_product"] = currentProduct
 		} else {
 			res[stageName].(map[string]interface{})["global"] = outputValue
@@ -152,6 +163,8 @@ func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iu
 	params := s.getSiteParams(session.InputParameters.SiteParameters, session.SiteParameters)
 	return iuf.SiteParametersForOperationsAndHooks{
 		SiteParameters: params,
+		// Note that we don't key by productName-productVersion here intentionally. There is only one set of configuration
+		//  per product being installed.
 		CurrentProduct: params.Products[in_product.Name],
 	}
 }

@@ -32,6 +32,7 @@ import (
 	"github.com/alecthomas/assert"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -113,14 +114,17 @@ func TestGetProductHooks(t *testing.T) {
 		Products: []iuf.Product{
 			iuf.Product{
 				Name:     "cos",
+				Version:  "1.2.3",
 				Manifest: cosManifest,
 			},
 			iuf.Product{
 				Name:     "sdu",
+				Version:  "2.3.4",
 				Manifest: sduManifest,
 			},
 			iuf.Product{
 				Name:     "incorrectSchema",
+				Version:  "9.9.9",
 				Manifest: incorrectSchemaManifest,
 			},
 			iuf.Product{
@@ -131,7 +135,7 @@ func TestGetProductHooks(t *testing.T) {
 	}
 
 	tests := map[string]map[string]iuf.ManifestStageHooks{
-		"cos": map[string]iuf.ManifestStageHooks{
+		iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"): map[string]iuf.ManifestStageHooks{
 			"pre-install-check": iuf.ManifestStageHooks{
 				PreHook: iuf.ManifestHookScript{
 					ScriptPath:       "hooks/pre-pre-install-check.sh",
@@ -150,7 +154,7 @@ func TestGetProductHooks(t *testing.T) {
 				},
 			},
 		},
-		"sdu": map[string]iuf.ManifestStageHooks{
+		iufService.getProductVersionKeyFromNameAndVersion("sdu", "2.3.4"): map[string]iuf.ManifestStageHooks{
 			"pre-install-check": iuf.ManifestStageHooks{
 				PreHook: iuf.ManifestHookScript{},
 				PostHook: iuf.ManifestHookScript{
@@ -166,25 +170,25 @@ func TestGetProductHooks(t *testing.T) {
 				},
 			},
 		},
-		"incorrectSchema": map[string]iuf.ManifestStageHooks{
+		iufService.getProductVersionKeyFromNameAndVersion("incorrectSchema", "9.9.9"): map[string]iuf.ManifestStageHooks{
 			"deploy-product": iuf.ManifestStageHooks{},
 		},
 	}
 
-	for productName, productTests := range tests {
+	for productKey, productTests := range tests {
 		for stageName, hooksToVerify := range productTests {
-			t.Run(fmt.Sprintf("getProductHooks can parse hook script for fake manifest of %s in stage %s", productName, stageName),
+			t.Run(fmt.Sprintf("getProductHooks can parse hook script for fake manifest of %s in stage %s", productKey, stageName),
 				func(t *testing.T) {
 
 					hooks := iufService.getProductHooks(session, iuf.Stage{
 						Name: stageName,
 					})
 
-					assert.NotNil(t, hooks[productName])
-					assert.Equal(t, hooksToVerify.PreHook.ScriptPath, hooks[productName].PreHook.ScriptPath)
-					assert.Equal(t, hooksToVerify.PreHook.ExecutionContext, hooks[productName].PreHook.ExecutionContext)
-					assert.Equal(t, hooksToVerify.PostHook.ScriptPath, hooks[productName].PostHook.ScriptPath)
-					assert.Equal(t, hooksToVerify.PostHook.ExecutionContext, hooks[productName].PostHook.ExecutionContext)
+					assert.NotNil(t, hooks[productKey])
+					assert.Equal(t, hooksToVerify.PreHook.ScriptPath, hooks[productKey].PreHook.ScriptPath)
+					assert.Equal(t, hooksToVerify.PreHook.ExecutionContext, hooks[productKey].PreHook.ExecutionContext)
+					assert.Equal(t, hooksToVerify.PostHook.ScriptPath, hooks[productKey].PostHook.ScriptPath)
+					assert.Equal(t, hooksToVerify.PostHook.ExecutionContext, hooks[productKey].PostHook.ExecutionContext)
 				})
 		}
 	}
@@ -267,8 +271,8 @@ func TestCreateHookDAGTask(t *testing.T) {
 	}
 
 	globalParamsPerProduct := map[string][]byte{
-		"cos": []byte("cos_test"),
-		"sdu": []byte("sdu_test"),
+		"cos-1.2.3": []byte("cos_test"),
+		"sdu-3.4.5": []byte("sdu_test"),
 	}
 
 	authToken := "fake_auth_token"
@@ -292,13 +296,14 @@ func TestCreateHookDAGTask(t *testing.T) {
 		task, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "master_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
+			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.NoError(t, err)
-		assert.Equal(t, fmt.Sprintf("cos-pre-hook-%s", stage.Name), task.Name)
+		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1.2.3-pre-hook-%s", stage.Name)))
 		assert.Equal(t, "master-host-hook-script", task.TemplateRef.Name)
 		assert.Equal(t, "main", task.TemplateRef.Template)
 		assert.Equal(t, v1alpha1.AnyStringPtr(authToken), task.Arguments.GetParameterByName("auth_token").Value)
-		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos"])), task.Arguments.GetParameterByName("global_params").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos-1.2.3"])), task.Arguments.GetParameterByName("global_params").Value)
 		assert.Equal(t, v1alpha1.AnyStringPtr(filepath.Join(cosOriginalLocation, "/something/something/something/darkside")), task.Arguments.GetParameterByName("script_path").Value)
 	})
 
@@ -306,13 +311,14 @@ func TestCreateHookDAGTask(t *testing.T) {
 		task, err := iufService.createHookDAGTask(false, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "worker_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
+			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.NoError(t, err)
-		assert.Equal(t, fmt.Sprintf("cos-post-hook-%s", stage.Name), task.Name)
+		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1.2.3-pre-hook-%s", stage.Name)))
 		assert.Equal(t, "worker-host-hook-script", task.TemplateRef.Name)
 		assert.Equal(t, "main", task.TemplateRef.Template)
 		assert.Equal(t, v1alpha1.AnyStringPtr(authToken), task.Arguments.GetParameterByName("auth_token").Value)
-		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos"])), task.Arguments.GetParameterByName("global_params").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos-1.2.3"])), task.Arguments.GetParameterByName("global_params").Value)
 		assert.Equal(t, v1alpha1.AnyStringPtr(filepath.Join(cosOriginalLocation, "/something/something/something/darkside")), task.Arguments.GetParameterByName("script_path").Value)
 	})
 
@@ -437,16 +443,19 @@ var session = iuf.Session{
 	Products: []iuf.Product{
 		iuf.Product{
 			Name:             "cos",
+			Version:          "1.2.3",
 			Manifest:         cosManifest,
 			OriginalLocation: cosOriginalLocation,
 		},
 		iuf.Product{
 			Name:             "sdu",
+			Version:          "3.4.5",
 			Manifest:         sduManifest,
 			OriginalLocation: sduOriginalLocation,
 		},
 		iuf.Product{
 			Name:             "incorrectSchema",
+			Version:          "9.9.9",
 			Manifest:         incorrectSchemaManifest,
 			OriginalLocation: incorrectSchemaOriginalLocation,
 		},

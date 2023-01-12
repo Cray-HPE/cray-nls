@@ -1280,7 +1280,7 @@ func TestProcessOutputOfProcessMedia(t *testing.T) {
 					"stage_params": map[string]interface{}{
 						"process-media": map[string]interface{}{
 							"products": map[string]interface{}{
-								"this-is-a-name": map[string]interface{}{
+								"this-is-a-name-this-is-a-version": map[string]interface{}{
 									"parent_directory": "this_is_the_value_of_parent-directory",
 								},
 							},

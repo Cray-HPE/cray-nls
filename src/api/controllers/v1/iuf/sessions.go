@@ -160,7 +160,7 @@ func (u IufController) Sync(c *gin.Context) {
 			return
 		}
 	case iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
-		u.logger.Infof("session state: %s", session.CurrentState)
+		u.logger.Infof("The session %s is in state: %s", session.Name, session.CurrentState)
 		response = iuf.SyncResponse{}
 		c.JSON(200, response)
 		return

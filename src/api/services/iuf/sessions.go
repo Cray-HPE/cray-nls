@@ -357,7 +357,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		for _, task := range tasks {
 			operationName := task.TemplateRef.Name
 			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-			var productName string
+			var productKey string
 			for _, param := range nodeStatus.Inputs.Parameters {
 				if param.Name == "global_params" {
 					var valueJson map[string]interface{}
@@ -365,12 +365,12 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 					productManifest := valueJson["product_manifest"].(map[string]interface{})
 					currentProduct := productManifest["current_product"].(map[string]interface{})
 					manifest := currentProduct["manifest"].(map[string]interface{})
-					productName = manifest["name"].(string)
+					productKey = s.getProductVersionKeyFromNameAndVersion(manifest["name"].(string), manifest["version"].(string))
 					break
 				}
 			}
-			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productName, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productName)
+			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productKey, nodeStatus.Outputs)
+			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productKey)
 		}
 		return nil
 	case "global":
@@ -435,7 +435,7 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 			validated = false
 		}
 		jsonManifest, _ := json.Marshal(manifest)
-		if manifest["name"] != nil {
+		if manifest["name"] != nil && manifest["version"] != nil {
 			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
 			// add product to activity object
 			activity.Products = append(activity.Products, iuf.Product{
@@ -445,8 +445,11 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 				Manifest:         string(jsonManifest),
 				OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
 			})
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])] = make(map[string]interface{})
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", manifest["name"])].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
+			productKey := s.getProductVersionKeyFromNameAndVersion(manifest["name"].(string), manifest["version"].(string))
+
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", productKey)] = make(map[string]interface{})
+
+			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", productKey)].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
 		}
 	}
 	return nil
@@ -457,7 +460,7 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	session iuf.Session,
 	nodeStatus *v1alpha1.NodeStatus,
 	operationName string,
-	productName string,
+	productKey string,
 ) error {
 	// no-op if there is no outputs
 	if nodeStatus.Outputs == nil {
@@ -474,11 +477,11 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 		outputStage[operationName] = make(map[string]interface{})
 	}
 	outputOperation := outputStage[operationName].(map[string]interface{})
-	if productName != "" {
-		if outputOperation[productName] == nil {
-			outputOperation[productName] = make(map[string]interface{})
+	if productKey != "" {
+		if outputOperation[productKey] == nil {
+			outputOperation[productKey] = make(map[string]interface{})
 		}
-		operationOutputOfProduct := outputOperation[productName].(map[string]interface{})
+		operationOutputOfProduct := outputOperation[productKey].(map[string]interface{})
 		for _, param := range nodeStatus.Outputs.Parameters {
 			operationOutputOfProduct[param.Name] = param.Value
 		}

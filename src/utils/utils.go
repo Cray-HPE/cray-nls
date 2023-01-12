@@ -48,7 +48,7 @@ func (e GenericError) Error() string {
 const (
 	maxNameLength          = 63
 	randomLength           = 5
-	maxGeneratedNameLength = maxNameLength - randomLength
+	maxGeneratedNameLength = maxNameLength - randomLength - 1 // -1 because we want to put a dash after the prefix
 )
 
 var (
@@ -69,5 +69,5 @@ func GenerateName(prefix string) string {
 	if len(prefix) > maxGeneratedNameLength {
 		prefix = prefix[:maxGeneratedNameLength]
 	}
-	return fmt.Sprintf("%s%s", prefix, RandomString(randomLength))
+	return fmt.Sprintf("%s-%s", prefix, RandomString(randomLength))
 }
