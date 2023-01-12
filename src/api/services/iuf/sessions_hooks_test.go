@@ -314,7 +314,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
 			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.NoError(t, err)
-		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1.2.3-pre-hook-%s", stage.Name)))
+		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1.2.3-post-hook-%s", stage.Name)))
 		assert.Equal(t, "worker-host-hook-script", task.TemplateRef.Name)
 		assert.Equal(t, "main", task.TemplateRef.Template)
 		assert.Equal(t, v1alpha1.AnyStringPtr(authToken), task.Arguments.GetParameterByName("auth_token").Value)
