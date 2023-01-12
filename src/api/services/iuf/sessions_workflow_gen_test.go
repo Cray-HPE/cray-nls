@@ -103,8 +103,8 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "product",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -128,8 +128,8 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "global",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -150,9 +150,9 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "product",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-NOT_MOCKED"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -175,10 +175,10 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "this_is_a_stage_name",
 			Type: "global",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_NOT_MOCKED_1"},
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED_2"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-NOT-MOCKED-1"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-NOT-MOCKED-2"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -191,11 +191,11 @@ func TestGetDagTasks(t *testing.T) {
 		assert.Equal(t, 2, len(dagTasks))
 		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
 		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
-		assert.Equal(t, "this_is_an_operation_1", dagTasks[0].Name)
-		assert.Equal(t, "this_is_an_operation_2", dagTasks[1].Name)
+		assert.Equal(t, "this-is-an-operation-1", dagTasks[0].Name)
+		assert.Equal(t, "this-is-an-operation-2", dagTasks[1].Name)
 		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
 		assert.Equal(t, 1, len(dagTasks[1].Dependencies))
-		assert.Equal(t, "this_is_an_operation_1", dagTasks[1].Dependencies[0])
+		assert.Equal(t, "this-is-an-operation-1", dagTasks[1].Dependencies[0])
 		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
 		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockAuthToken))
 	})
@@ -222,9 +222,9 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "pre-install-check",
 			Type: "product",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-NOT_MOCKED"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -266,35 +266,35 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this_is_an_operation_1") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this-is-an-operation-1") {
 				t.Run("cos operation 1 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_1", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-1", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
 					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-pre-hook-pre-install-check"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this_is_an_operation_2") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this-is-an-operation-2") {
 				t.Run("cos operation 2 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_2", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-2", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this_is_an_operation_1"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this-is-an-operation-1"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this_is_an_operation_1") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this-is-an-operation-1") {
 				t.Run("sdu operation 1 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_1", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-1", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this_is_an_operation_2") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this-is-an-operation-2") {
 				t.Run("sdu operation 2 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_2", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-2", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this_is_an_operation_1"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this-is-an-operation-1"))
 					found++
 				})
 			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-post-hook-pre-install-check") {
@@ -302,7 +302,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this_is_an_operation_2"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this-is-an-operation-2"))
 					found++
 				})
 			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-post-hook-pre-install-check") {
@@ -310,7 +310,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this_is_an_operation_2"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this-is-an-operation-2"))
 					found++
 				})
 			}
@@ -341,10 +341,10 @@ func TestGetDagTasks(t *testing.T) {
 			Name: "pre-install-check",
 			Type: "global",
 			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_NOT_MOCKED_1"},
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED_2"},
-				{Name: "this_is_an_operation_2"},
+				{Name: "this-is-an-operation-NOT-MOCKED-1"},
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-NOT-MOCKED-2"},
+				{Name: "this-is-an-operation-2"},
 			},
 		}
 		stages := iuf.Stages{
@@ -394,9 +394,9 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "this_is_an_operation_1") {
+			} else if strings.HasPrefix(dagTask.Name, "this-is-an-operation-1") {
 				t.Run("operation 1 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_1", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-1", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 2, len(dagTask.Dependencies))
 					assert.Equal(t, true, strings.Contains(dagTask.Dependencies[0], "pre-hook-pre-install-check"))
@@ -404,12 +404,12 @@ func TestGetDagTasks(t *testing.T) {
 					assert.NotEqual(t, dagTask.Dependencies[0], dagTask.Dependencies[1])
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "this_is_an_operation_2") {
+			} else if strings.HasPrefix(dagTask.Name, "this-is-an-operation-2") {
 				t.Run("operation 2 exists and has the right dependencies", func(t *testing.T) {
-					assert.Equal(t, "this_is_an_operation_2", dagTask.TemplateRef.Name)
+					assert.Equal(t, "this-is-an-operation-2", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.Equal(t, "this_is_an_operation_1", dagTask.Dependencies[0])
+					assert.Equal(t, "this-is-an-operation-1", dagTask.Dependencies[0])
 					found++
 				})
 			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-post-hook-pre-install-check") {
@@ -417,7 +417,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.Equal(t, "this_is_an_operation_2", dagTask.Dependencies[0])
+					assert.Equal(t, "this-is-an-operation-2", dagTask.Dependencies[0])
 					found++
 				})
 			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-post-hook-pre-install-check") {
@@ -425,7 +425,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.Equal(t, "this_is_an_operation_2", dagTask.Dependencies[0])
+					assert.Equal(t, "this-is-an-operation-2", dagTask.Dependencies[0])
 					found++
 				})
 			}
@@ -441,7 +441,7 @@ func setup(t *testing.T) (string, string, iufService) {
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
 	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
 	availableOps := []string{
-		"this_is_an_operation_1", "this_is_an_operation_2",
+		"this-is-an-operation-1", "this-is-an-operation-2",
 		"extract-release-distributions",
 		"loftsman-manifest-upload", "s3-upload",
 		"nexus-setup", "nexus-rpm-upload",
@@ -462,9 +462,9 @@ func setup(t *testing.T) (string, string, iufService) {
 		Items: availableTemplates,
 	}
 	wt1 := v1alpha1.WorkflowTemplate{}
-	wt1.Name = "this_is_an_operation_1"
+	wt1.Name = "this-is-an-operation-1"
 	wt2 := v1alpha1.WorkflowTemplate{}
-	wt2.Name = "this_is_an_operation_2"
+	wt2.Name = "this-is-an-operation-2"
 	wtMasterHook := v1alpha1.WorkflowTemplate{}
 	wtMasterHook.Name = "master-host-hook-script"
 	wt2WorkerHook := v1alpha1.WorkflowTemplate{}
