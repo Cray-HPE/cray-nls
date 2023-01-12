@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@ spec:
     inputs:
       parameters:
         - name: cray-product-catalog-update-image
-          value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.8.0"
+          value: "artifactory.algol60.net/csm-docker/stable/cray-product-catalog-update:1.8.2"
         - name: product-catalog-configmap-name
           value: "cray-product-catalog"
         - name: product-catalog-configmap-namespace
