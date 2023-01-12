@@ -566,7 +566,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -716,7 +716,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -874,7 +874,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -1033,7 +1033,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {

@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"go.uber.org/fx"
 	"math/rand"
+	"regexp"
 )
 
 // Module exports dependency
@@ -52,7 +53,8 @@ const (
 )
 
 var (
-	letterRunes = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+	letterRunes          = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+	nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
 )
 
 // RandomString A random string of the given length.
@@ -66,6 +68,7 @@ func RandomString(length int) string {
 
 // GenerateName generates a name with the given prefix. Makes sure result doesn't go beyond 63 characters
 func GenerateName(prefix string) string {
+	prefix = nonAlphanumericRegex.ReplaceAllString(prefix, "-")
 	if len(prefix) > maxGeneratedNameLength {
 		prefix = prefix[:maxGeneratedNameLength]
 	}

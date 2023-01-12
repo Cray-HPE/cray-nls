@@ -119,7 +119,12 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	if !stageMetadata.NoHooks {
 		// if we have hooks, then we have to run on ncn-m001. This is a limitation we have for now, because we can only
 		// reference hook scripts on ncn-m001 since the rbd mount only exists on ncn-m001.
-		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
+		// Note that administrator can supply a different media host other than ncn-m001
+		if session.InputParameters.MediaHost == "" {
+			session.InputParameters.MediaHost = "ncn-m001"
+		}
+
+		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": session.InputParameters.MediaHost}
 	} else {
 		// if we don't have hooks, run this on ncn-m002
 		// TODO: we need to find a better way to do this. Perhaps allow specifying the node on which the NoHooks stage

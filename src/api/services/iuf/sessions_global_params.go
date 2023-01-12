@@ -106,7 +106,9 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"media_dir":                  path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
 		"bootprep_config_managed":    bootPrepManagedContent,
 		"bootprep_config_management": bootPrepManagementContent,
-		"limit_nodes":                session.InputParameters.LimitNodes,
+		"limit_management_nodes":     session.InputParameters.LimitManagementNodes,
+		"limit_managed_nodes":        session.InputParameters.LimitManagedNodes,
+		"media_host":                 session.InputParameters.MediaHost,
 	}
 }
 
@@ -145,17 +147,17 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 func (s iufService) getSiteParams(deprecatedSiteParameters string, structSiteParams iuf.SiteParameters) iuf.SiteParameters {
 	// check which site parameters we are using first
 	var siteParams iuf.SiteParameters
-	if len(structSiteParams.Products) > 0 {
-		siteParams.Products = structSiteParams.Products
-		siteParams.Global = structSiteParams.Global
-	} else {
-		err := json.Unmarshal([]byte(deprecatedSiteParameters), siteParams)
-		if err != nil {
-			// fallback
-			siteParams.Products = structSiteParams.Products
-			siteParams.Global = structSiteParams.Global
-		}
-	}
+	//if len(structSiteParams.Products) > 0 {
+	siteParams.Products = structSiteParams.Products
+	siteParams.Global = structSiteParams.Global
+	//} else {
+	//	err := json.Unmarshal([]byte(deprecatedSiteParameters), siteParams)
+	//	if err != nil {
+	//		// fallback
+	//		siteParams.Products = structSiteParams.Products
+	//		siteParams.Global = structSiteParams.Global
+	//	}
+	//}
 
 	return siteParams
 }
