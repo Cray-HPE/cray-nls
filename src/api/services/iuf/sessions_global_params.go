@@ -33,6 +33,7 @@ import (
 	"golang.org/x/exp/slices"
 	"path"
 	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product, stages iuf.Stages) map[string]interface{} {
@@ -49,7 +50,7 @@ func (s iufService) getProductVersionKey(product iuf.Product) string {
 }
 
 func (s iufService) getProductVersionKeyFromNameAndVersion(name string, version string) string {
-	return name + "-" + version
+	return strings.ReplaceAll(name+"-"+version, ".", "-")
 }
 
 func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_product iuf.Product) map[string]interface{} {

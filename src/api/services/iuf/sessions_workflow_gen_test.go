@@ -241,7 +241,7 @@ func TestGetDagTasks(t *testing.T) {
 		assert.Equal(t, 7, len(dagTasks))
 
 		// the first task will be a hook script (see cosManifest and sduManifest constants)
-		assert.True(t, strings.HasPrefix(dagTasks[0].Name, "cos-1.2.3-pre-hook-pre-install-check"))
+		assert.True(t, strings.HasPrefix(dagTasks[0].Name, "cos-1-2-3-pre-hook-pre-install-check"))
 
 		var found int
 		for _, dagTask := range dagTasks {
@@ -259,58 +259,58 @@ func TestGetDagTasks(t *testing.T) {
 			b, _ := json.Marshal(globalParams)
 			assert.Equal(t, v1alpha1.AnyStringPtr(string(b)), dagTask.Arguments.GetParameterByName("global_params").Value)
 
-			if strings.HasPrefix(dagTask.Name, "cos-1.2.3-pre-hook-pre-install-check") {
+			if strings.HasPrefix(dagTask.Name, "cos-1-2-3-pre-hook-pre-install-check") {
 				t.Run("cos pre hook script operation exist and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "master-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1.2.3-this_is_an_operation_1") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this_is_an_operation_1") {
 				t.Run("cos operation 1 exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_1", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1.2.3-pre-hook-pre-install-check"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-pre-hook-pre-install-check"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1.2.3-this_is_an_operation_2") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-this_is_an_operation_2") {
 				t.Run("cos operation 2 exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_2", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1.2.3-this_is_an_operation_1"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this_is_an_operation_1"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3.4.5-this_is_an_operation_1") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this_is_an_operation_1") {
 				t.Run("sdu operation 1 exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_1", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3.4.5-this_is_an_operation_2") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-this_is_an_operation_2") {
 				t.Run("sdu operation 2 exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_2", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3.4.5-this_is_an_operation_1"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this_is_an_operation_1"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1.2.3-post-hook-pre-install-check") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-post-hook-pre-install-check") {
 				t.Run("cos post hook script operation exist and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1.2.3-this_is_an_operation_2"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "cos-1-2-3-this_is_an_operation_2"))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3.4.5-post-hook-pre-install-check") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-post-hook-pre-install-check") {
 				t.Run("sdu post hook script operation exist and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 1, len(dagTask.Dependencies))
-					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3.4.5-this_is_an_operation_2"))
+					assert.True(t, strings.HasPrefix(dagTask.Dependencies[0], "sdu-3-4-5-this_is_an_operation_2"))
 					found++
 				})
 			}
@@ -380,14 +380,14 @@ func TestGetDagTasks(t *testing.T) {
 			b, _ := json.Marshal(globalParams)
 			assert.Equal(t, v1alpha1.AnyStringPtr(string(b)), dagTask.Arguments.GetParameterByName("global_params").Value)
 
-			if strings.HasPrefix(dagTask.Name, "cos-1.2.3-pre-hook-pre-install-check") {
+			if strings.HasPrefix(dagTask.Name, "cos-1-2-3-pre-hook-pre-install-check") {
 				t.Run("cos pre hook script operation exist and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "master-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
 					assert.Equal(t, 0, len(dagTask.Dependencies))
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3.4.5-pre-hook-pre-install-check") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-pre-hook-pre-install-check") {
 				t.Run("sdu pre hook script operation exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
@@ -412,7 +412,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_1", dagTask.Dependencies[0])
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "cos-1.2.3-post-hook-pre-install-check") {
+			} else if strings.HasPrefix(dagTask.Name, "cos-1-2-3-post-hook-pre-install-check") {
 				t.Run("cos post hook script operation exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
@@ -420,7 +420,7 @@ func TestGetDagTasks(t *testing.T) {
 					assert.Equal(t, "this_is_an_operation_2", dagTask.Dependencies[0])
 					found++
 				})
-			} else if strings.HasPrefix(dagTask.Name, "sdu-3.4.5-post-hook-pre-install-check") {
+			} else if strings.HasPrefix(dagTask.Name, "sdu-3-4-5-post-hook-pre-install-check") {
 				t.Run("sdu post hook script operation exists and has the right dependencies", func(t *testing.T) {
 					assert.Equal(t, "worker-host-hook-script", dagTask.TemplateRef.Name)
 					assert.Equal(t, "main", dagTask.TemplateRef.Template)
