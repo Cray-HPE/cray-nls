@@ -35,8 +35,7 @@ spec:
         parameters:
           - name: auth_token
           - name: global_params
-          - name: scriptContent #TODO remove the hardcoded value, just for testing
-            value: sat status
+          - name: scriptContent
       steps:
         - - name:
             template: sat-wrapper
@@ -64,7 +63,7 @@ spec:
           - name: auth_token
           - name: scriptContent
       script:
-        image: artifactory.algol60.net/sat-docker/stable/cray-sat:3.19.3
+        image: artifactory.algol60.net/sat-docker/stable/cray-sat:3.20.0
         command: [sh]
         source: |
           #!/bin/sh
