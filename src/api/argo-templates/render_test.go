@@ -110,12 +110,13 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 func TestRenderStorageRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of storage nodes", func(t *testing.T) {
 		req := models_nls.CreateRebuildWorkflowRequest{
-			Hosts:          []string{"ncn-s006", "ncn-s005"},
-			DryRun:         doDryRun,
-			SwitchPassword: "thisIsApassword",
-			ZapOsds:        false,
-			WorkflowType:   "rebuild",
-			ImageId:		"",
+			Hosts:          	[]string{"ncn-s006", "ncn-s005"},
+			DryRun:         	doDryRun,
+			SwitchPassword: 	"thisIsApassword",
+			ZapOsds:        	false,
+			WorkflowType:   	"rebuild",
+			ImageId:			"",
+			DesiredCfsConfig: 	"",
 		}
 		_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)

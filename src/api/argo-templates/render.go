@@ -190,12 +190,13 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns":     createRebuildWorkflowRequest.Hosts,
-		"DryRun":         createRebuildWorkflowRequest.DryRun,
-		"SwitchPassword": createRebuildWorkflowRequest.SwitchPassword,
-		"ZapOsds":        createRebuildWorkflowRequest.ZapOsds,
-		"WorkflowType":   createRebuildWorkflowRequest.WorkflowType,
-		"ImageId":   	  createRebuildWorkflowRequest.ImageId,
+		"TargetNcns":     	createRebuildWorkflowRequest.Hosts,
+		"DryRun":         	createRebuildWorkflowRequest.DryRun,
+		"SwitchPassword": 	createRebuildWorkflowRequest.SwitchPassword,
+		"ZapOsds":        	createRebuildWorkflowRequest.ZapOsds,
+		"WorkflowType":   	createRebuildWorkflowRequest.WorkflowType,
+		"ImageId":   	  	createRebuildWorkflowRequest.ImageId,
+		"DesiredCfsConfig": createRebuildWorkflowRequest.DesiredCfsConfig,
 	})
 	if err != nil {
 		return nil, err
