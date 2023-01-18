@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -35,16 +35,16 @@ spec:
         parameters:
           - name: auth_token
           - name: global_params
-          - name: scriptContent
+          - name: script_content
       steps:
-        - - name:
+        - - name: sat-wrapper
             template: sat-wrapper
             arguments:
               parameters:
                 - name: auth_token
                   value: "{{inputs.parameters.auth_token}}"
-                - name: scriptContent
-                  value: "{{inputs.parameters.scriptContent}}"
+                - name: script_content
+                  value: "{{inputs.parameters.script_content}}"
     ### Templates ###
     ## sat-wrapper ##
     - name: sat-wrapper
@@ -61,14 +61,14 @@ spec:
           - name: ca_certs_bundle
             value: /etc/ssl/certs/ca-certificates.crt
           - name: auth_token
-          - name: scriptContent
+          - name: script_content
       script:
         image: artifactory.algol60.net/sat-docker/stable/cray-sat:3.20.0
         command: [sh]
         source: |
           #!/bin/sh
-          ts=$(echo $RANDOM | md5sum | head -c 20; echo)
-          cat <<'EOF' > "/tmp/${ts}.sh"
+          ts="$(mktemp)"
+          cat <<'EOF' > "${ts}"
 
           set -e
           sat init
@@ -81,21 +81,17 @@ spec:
           # Set up the SAT config to use the token file
           sed -i -e 's|.*token_file.*|token_file = "/root/.config/sat/token.json"|' /root/.config/sat/sat.toml
 
-          {{inputs.parameters.scriptContent}}
+          {{inputs.parameters.script_content}}
 
           EOF
-          chmod +x /tmp/${ts}.sh
-          bash -e /tmp/${ts}.sh
-
-          cat /tmp/${ts}.sh
+          chmod +x ${ts}
+          bash -e ${ts}
         env:
-          - name: LOG_LEVEL
-            value: INFO
           - name: REQUESTS_CA_BUNDLE
             value: "{{inputs.parameters.ca_certs_bundle}}"
         volumeMounts:
           - name: certs # mount cluster certs to ca-certificates.crt for curl/http libraries
-            mountPath: /etc/ssl/certs/ca-certificates.crt
+            mountPath: "{{inputs.parameters.ca_certs_bundle}}"
             subPath: platform-ca-certs.crt
       volumes:
         - name: certs
