@@ -109,6 +109,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"limit_management_nodes":     session.InputParameters.LimitManagementNodes,
 		"limit_managed_nodes":        session.InputParameters.LimitManagedNodes,
 		"media_host":                 session.InputParameters.MediaHost,
+		"concurrency":                session.InputParameters.Concurrency,
 	}
 }
 

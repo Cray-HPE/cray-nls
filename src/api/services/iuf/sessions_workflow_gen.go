@@ -208,8 +208,11 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 	globalParamsPerProduct map[string][]byte, authToken string,
 	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
 
-	for _, product := range session.Products {
+	// this is a list of all the first steps only from each product. We will modify these to include a dependency
+	// on the last product in order to control concurrency.
+	initialProductSteps := []v1alpha1.DAGTask{}
 
+	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
 		productKey := s.getProductVersionKey(product)
 		preStageHook, exists := preSteps[productKey]
@@ -217,6 +220,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		if exists {
 			lastOpDependency = preStageHook.Name
 			res = append(res, preStageHook)
+			initialProductSteps = append(initialProductSteps, preStageHook)
 		}
 
 		for _, operation := range stageInfo.Operations {
@@ -235,6 +239,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				task.Dependencies = []string{
 					lastOpDependency,
 				}
+			} else {
+				initialProductSteps = append(initialProductSteps, task)
 			}
 
 			lastOpDependency = opName
@@ -261,12 +267,29 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		// add the post-stage hook for this product
 		postStageHook, exists := postSteps[productKey]
 		if exists {
-			postStageHook.Dependencies = []string{
-				lastOpDependency,
+			if lastOpDependency != "" {
+				postStageHook.Dependencies = []string{
+					lastOpDependency,
+				}
+			} else {
+				initialProductSteps = append(initialProductSteps, postStageHook)
 			}
+
 			res = append(res, postStageHook)
 		}
 	}
+
+	if session.InputParameters.Concurrency == 1 {
+		var lastOpDependencies string
+		for _, step := range initialProductSteps {
+			if lastOpDependencies != "" {
+				step.Dependencies = append(step.Dependencies, lastOpDependencies)
+			}
+
+			lastOpDependencies = step.Name
+		}
+	}
+
 	return res
 }
 
