@@ -25,26 +25,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: sat-general
+  name: sat-general-template
 spec:
-  entrypoint: main
+  entrypoint: sat-wrapper
   templates:
-    ### Main Steps ###
-    - name: main
-      inputs:
-        parameters:
-          - name: auth_token
-          - name: global_params
-          - name: script_content
-      steps:
-        - - name: sat-wrapper
-            template: sat-wrapper
-            arguments:
-              parameters:
-                - name: auth_token
-                  value: "{{inputs.parameters.auth_token}}"
-                - name: script_content
-                  value: "{{inputs.parameters.script_content}}"
     ### Templates ###
     ## sat-wrapper ##
     - name: sat-wrapper
@@ -61,31 +45,57 @@ spec:
           - name: ca_certs_bundle
             value: /etc/ssl/certs/ca-certificates.crt
           - name: auth_token
+          - name: media_dir
+            description: >
+              The path to the IUF media directory that will be mounted in the sat container.
+              This is required to allow the sat commands to access any necessary files, e.g.
+              sat bootprep input files. This will be mounted at the same path within the sat
+              container.
+          - name: script_stdout_file
+            default: "/tmp/script_stdout_file"
           - name: script_content
+            description: >
+              The script that will be executed after the sat CLI is configured. The stdout
+              of this script will be captured and returned as an output parameter from this
+              template.
+      outputs:
+        parameters:
+          - name: script_stdout
+            valueFrom:
+              path: "{{inputs.parameters.script_stdout_file}}"
       script:
         image: artifactory.algol60.net/sat-docker/stable/cray-sat:3.20.0
         command: [sh]
         source: |
           #!/bin/sh
           ts="$(mktemp)"
-          cat <<'EOF' > "${ts}"
+          cat <<'SAT_GENERAL_EOF' > "${ts}"
 
-          set -e
-          sat init
+          function setup() {
+            set -e
+            sat init
 
-          # Write the auth token parameter to the file
-          JSON_FMT='{"access_token":"%s"}\n'
-          printf "$JSON_FMT" "{{inputs.parameters.auth_token}}" > /root/.config/sat/token.json
-          echo -n $(tr -d "\n\r" < /root/.config/sat/token.json) > /root/.config/sat/token.json
+            # Write the auth token parameter to the file
+            JSON_FMT='{"access_token":"%s"}\n'
+            printf "$JSON_FMT" "{{inputs.parameters.auth_token}}" > /root/.config/sat/token.json
+            echo -n $(tr -d "\n\r" < /root/.config/sat/token.json) > /root/.config/sat/token.json
 
-          # Set up the SAT config to use the token file
-          sed -i -e 's|.*token_file.*|token_file = "/root/.config/sat/token.json"|' /root/.config/sat/sat.toml
+            # Set up the SAT config to use the token file
+            sed -i -e 's|.*token_file.*|token_file = "/root/.config/sat/token.json"|' /root/.config/sat/sat.toml
+            set +e
+          }
 
-          {{inputs.parameters.script_content}}
+          function execute_script_content() {
+            {{inputs.parameters.script_content}}
+          }
 
-          EOF
-          chmod +x ${ts}
-          bash -e ${ts}
+          function main() {
+            setup
+            execute_script_content | tee {{inputs.parameters.script_stdout_file}}
+          }
+          SAT_GENERAL_EOF
+
+          bash ${ts}
         env:
           - name: REQUESTS_CA_BUNDLE
             value: "{{inputs.parameters.ca_certs_bundle}}"
@@ -93,7 +103,12 @@ spec:
           - name: certs # mount cluster certs to ca-certificates.crt for curl/http libraries
             mountPath: "{{inputs.parameters.ca_certs_bundle}}"
             subPath: platform-ca-certs.crt
+          - name: media_dir
+            mountPath: "{{inputs.parameters.media_dir}}"
       volumes:
         - name: certs
           hostPath:
             path: /etc/pki/trust/anchors
+        - name: media_dir
+          hostPath:
+            path: "{{inputs.parameters.media_dir}}"
