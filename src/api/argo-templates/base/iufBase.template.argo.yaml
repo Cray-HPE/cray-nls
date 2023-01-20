@@ -48,7 +48,7 @@ spec:
       script:
         # use portainer/kubectl-shell that has:
         #  - kubectl, craycli, loftsman, git, manifestgen, and more
-        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.0.6
+        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.1.0
         command: [sh]
         source: |
           #!/host_usr_bin/bash
