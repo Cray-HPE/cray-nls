@@ -70,7 +70,7 @@ spec:
           #!/bin/sh
           ts="$(mktemp)"
           cat <<'SAT_GENERAL_EOF' > "${ts}"
-
+          set -x
           function setup() {
             set -e
             sat init
@@ -82,6 +82,37 @@ spec:
 
             # Set up the SAT config to use the token file
             sed -i -e 's|.*token_file.*|token_file = "/root/.config/sat/token.json"|' /root/.config/sat/sat.toml
+
+            # TODO: Fix sat bootprep code to load kube config from cluster
+            # To workaround this issue for now, construct kubeconfig file in the pod
+            secret=`kubectl -n argo get serviceaccount/default -o jsonpath='{.secrets[0].name}'`
+            token=`kubectl -n argo get secret $secret -o jsonpath='{.data.token}'| base64 -d`
+            mkdir -p mykubeconfig
+            cat << EOF > mykubeconfig/admin.conf
+            apiVersion: v1
+            kind: Config
+            current-context: default
+            contexts:
+              - context:
+                  cluster: kubernetes
+                  user: default
+                  namespace: default
+                name: default
+            clusters:
+              - cluster:
+                  server: https://kubeapi-vip.local:6442
+                  insecure-skip-tls-verify: true
+                name: kubernetes
+            users:
+            - name: default
+              user:
+                token: ${token}
+          EOF
+            export KUBECONFIG=mykubeconfig/admin.conf
+
+            # TODO: This is required to build images in IMS with sat bootprep. Find a way to pass
+            # an IMS public key id into the argo workflow. Perhaps from the IUF CLI.
+            ssh-keygen -f ~/.ssh/id_rsa -N ''
             set +e
           }
 
@@ -93,8 +124,11 @@ spec:
             setup
             execute_script_content | tee {{inputs.parameters.script_stdout_file}}
           }
+
+          main
           SAT_GENERAL_EOF
 
+          cat ${ts}
           bash ${ts}
         env:
           - name: REQUESTS_CA_BUNDLE
@@ -103,12 +137,12 @@ spec:
           - name: certs # mount cluster certs to ca-certificates.crt for curl/http libraries
             mountPath: "{{inputs.parameters.ca_certs_bundle}}"
             subPath: platform-ca-certs.crt
-          - name: media_dir
+          - name: media-dir
             mountPath: "{{inputs.parameters.media_dir}}"
       volumes:
         - name: certs
           hostPath:
             path: /etc/pki/trust/anchors
-        - name: media_dir
+        - name: media-dir
           hostPath:
             path: "{{inputs.parameters.media_dir}}"
