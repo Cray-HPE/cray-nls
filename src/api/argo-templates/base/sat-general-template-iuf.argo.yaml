@@ -70,7 +70,6 @@ spec:
           #!/bin/sh
           ts="$(mktemp)"
           cat <<'SAT_GENERAL_EOF' > "${ts}"
-          set -x
           function setup() {
             set -e
             sat init
@@ -128,7 +127,6 @@ spec:
           main
           SAT_GENERAL_EOF
 
-          cat ${ts}
           bash ${ts}
         env:
           - name: REQUESTS_CA_BUNDLE
