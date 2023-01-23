@@ -45,8 +45,8 @@ type InputParameters struct {
 	LimitManagedNodes        []string `json:"limit_managed_nodes"`        // Each item is the xname of a managed node
 	MediaHost                string   `json:"media_host"`                 // A string containing the hostname of where the media is located
 	Concurrency              int      `json:"concurrency"`                // An integer defining how many products / operations can we concurrently execute.
-	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is the path to the bootprep config file for managed nodes, relative to the media_dir
-	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is the path to the bootprep config file for management nodes, relative to the media_dir
+	BootprepConfigManaged    string   `json:"bootprep_config_managed"`    // The path to the bootprep config file for managed nodes, relative to the media_dir
+	BootprepConfigManagement string   `json:"bootprep_config_management"` // The path to the bootprep config file for management nodes, relative to the media_dir
 	Stages                   []string `json:"stages"`                     // Stages to execute
 	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
 } //	@name	InputParameters
