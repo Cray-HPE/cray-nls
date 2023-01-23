@@ -405,6 +405,9 @@ const docTemplateNLS = `{
         "models.CreateRebuildWorkflowRequest": {
             "type": "object",
             "properties": {
+                "desiredCfsConfig": {
+                    "type": "string"
+                },
                 "dryRun": {
                     "type": "boolean"
                 },
@@ -413,6 +416,9 @@ const docTemplateNLS = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "imageId": {
+                    "type": "string"
                 },
                 "switchPassword": {
                     "type": "string"
