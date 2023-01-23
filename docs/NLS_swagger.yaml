@@ -66,7 +66,7 @@ definitions:
       switchPassword:
         type: string
       workflowType:
-        description: used for to determine storage rebuild vs upgrade
+        description: used to determine storage rebuild vs upgrade
         type: string
       zapOsds:
         description: this is necessary for storage rebuilds when unable to wipe the

@@ -32,13 +32,14 @@ import (
 // IufSession
 type Session struct {
 	InputParameters InputParameters   `json:"input_parameters"`
+	SiteParameters  SiteParameters    `json:"site_parameters"`
 	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
 	CurrentStage    string            `json:"stage"`
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
 	Name            string            `json:"name"`
 	ActivityRef     string            `json:"activityRef" swaggerignore:"true"`
-} // @name Session
+} //	@name	Session
 
 type SessionState string
 
@@ -52,7 +53,7 @@ const (
 type SessionWorkflow struct {
 	Id  string `json:"id"`  // id of argo workflow
 	Url string `json:"url"` // url to the argo workflow
-} // @name Session.Workflow
+} //	@name	Session.Workflow
 
 type SyncRequest struct {
 	Object core_v1.ConfigMap `json:"object"`
@@ -60,4 +61,14 @@ type SyncRequest struct {
 
 type SyncResponse struct {
 	ResyncAfterSeconds int `json:"resyncAfterSeconds,omitempty"`
+}
+
+type ManifestHookScript struct {
+	ScriptPath       string `json:"script_path"`
+	ExecutionContext string `json:"execution_context"`
+}
+
+type ManifestStageHooks struct {
+	PreHook  ManifestHookScript `json:"pre"`
+	PostHook ManifestHookScript `json:"post"`
 }

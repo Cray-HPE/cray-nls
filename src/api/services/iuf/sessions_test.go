@@ -1,5 +1,4 @@
 /*
- *
  *  MIT License
  *
  *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
@@ -29,6 +28,7 @@ import (
 	"encoding/json"
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
 	"github.com/golang/mock/gomock"
+	"regexp"
 	"testing"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -67,15 +67,21 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.WorkflowTemplateList), nil)
-
+		fakeClient := fake.NewSimpleClientset()
 		workflowSvc := iufService{
 			keycloakService:        keycloakServiceMock,
 			logger:                 utils.GetLogger(),
 			workflowClient:         wfServiceClientMock,
 			workflowTemplateClient: wfTemplateServiceClientMock,
+			k8sRestClientSet:       fakeClient,
 			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{
+			CurrentStage: "process-media",
+			InputParameters: iuf.InputParameters{
+				Stages: []string{"process-media"},
+			},
+		})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
@@ -95,15 +101,45 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.WorkflowTemplateList), nil)
-
+		fakeClient := fake.NewSimpleClientset()
 		workflowSvc := iufService{
 			logger:                 utils.GetLogger(),
 			workflowClient:         wfServiceClientMock,
 			workflowTemplateClient: wfTemplateServiceClientMock,
 			keycloakService:        keycloakServiceMock,
-			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			k8sRestClientSet:       fakeClient,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process_media"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"unsupported_stage"}}})
+
+		// we don't actually test the template render/upload
+		// this is tested in the render package
+		assert.NotNil(t, err)
+	})
+	t.Run("It should not create a new iuf workflow with MISSING stages.yaml", func(t *testing.T) {
+		// setup mocks
+		wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+		wfServiceClientMock.On(
+			"CreateWorkflow",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.Workflow), nil)
+		wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
+		wfTemplateServiceClientMock.On(
+			"ListWorkflowTemplates",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowTemplateList), nil)
+		fakeClient := fake.NewSimpleClientset()
+		workflowSvc := iufService{
+			logger:                 utils.GetLogger(),
+			workflowClient:         wfServiceClientMock,
+			workflowTemplateClient: wfTemplateServiceClientMock,
+			keycloakService:        keycloakServiceMock,
+			k8sRestClientSet:       fakeClient,
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./nowhere_to_be_found"},
+		}
+		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process-media"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
@@ -129,158 +165,14 @@ func TestCreateIufWorkflow(t *testing.T) {
 			workflowClient:         wfServiceClientMock,
 			workflowTemplateClient: wfTemplateServiceClientMock,
 			keycloakService:        keycloakServiceMock,
-			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
+			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
 		assert.NotNil(t, err)
 	})
-}
-
-func TestGetDagTasks(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
-	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
-	wt1 := v1alpha1.WorkflowTemplate{}
-	wt1.Name = "this_is_an_operation_1"
-	wt2 := v1alpha1.WorkflowTemplate{}
-	wt2.Name = "this_is_an_operation_2"
-	mockWorkflowTempateList := v1alpha1.WorkflowTemplateList{
-		Items: v1alpha1.WorkflowTemplates{
-			wt1, wt2,
-		},
-	}
-	wfTemplateServiceClientMock.On(
-		"ListWorkflowTemplates",
-		mock.Anything,
-		mock.Anything,
-	).Return(&mockWorkflowTempateList, nil)
-	name := uuid.NewString()
-	activity := iuf.Activity{
-		Name: name,
-	}
-	reqBytes, _ := json.Marshal(activity)
-	configmap := v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: DEFAULT_NAMESPACE,
-			Labels: map[string]string{
-				"type": LABEL_ACTIVITY,
-			},
-		},
-		Data: map[string]string{LABEL_ACTIVITY: string(reqBytes)},
-	}
-	fakeClient := fake.NewSimpleClientset(&configmap)
-
-	mockTokenValue := "mock_token"
-	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
-	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
-
-	workflowSvc := iufService{
-		logger:                 utils.GetLogger(),
-		workflowClient:         wfServiceClientMock,
-		workflowTemplateClient: wfTemplateServiceClientMock,
-		k8sRestClientSet:       fakeClient,
-		keycloakService:        keycloakServiceMock,
-		env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "/_test_data_"},
-	}
-	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
-		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: name,
-		}
-		stageInfo := iuf.Stage{
-			Name: "this_is_a_stage_name",
-			Type: "product",
-			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_2"},
-			},
-		}
-
-		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 4, len(dagTasks))
-		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
-	})
-	t.Run("It should get a dag task for global stage", func(t *testing.T) {
-		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: name,
-		}
-		stageInfo := iuf.Stage{
-			Name: "this_is_a_stage_name",
-			Type: "global",
-			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_2"},
-			},
-		}
-
-		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 2, len(dagTasks))
-	})
-	t.Run("It should not get a dag task for per-product operations not defined in Argo", func(t *testing.T) {
-		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: name,
-		}
-		stageInfo := iuf.Stage{
-			Name: "this_is_a_stage_name",
-			Type: "product",
-			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED"},
-				{Name: "this_is_an_operation_2"},
-			},
-		}
-
-		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 4, len(dagTasks))
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
-	})
-	t.Run("It should not get a dag task for global operations not defined in Argo", func(t *testing.T) {
-		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: name,
-		}
-		stageInfo := iuf.Stage{
-			Name: "this_is_a_stage_name",
-			Type: "global",
-			Operations: []iuf.Operations{
-				{Name: "this_is_an_operation_NOT_MOCKED_1"},
-				{Name: "this_is_an_operation_1"},
-				{Name: "this_is_an_operation_NOT_MOCKED_2"},
-				{Name: "this_is_an_operation_2"},
-			},
-		}
-
-		dagTasks, err := workflowSvc.getDagTasks(session, stageInfo)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 2, len(dagTasks))
-		assert.Equal(t, 2, len(dagTasks[0].Arguments.Parameters))
-		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
-		assert.Equal(t, "this_is_an_operation_1", dagTasks[0].Name)
-		assert.Equal(t, "this_is_an_operation_2", dagTasks[1].Name)
-		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
-		assert.Equal(t, 1, len(dagTasks[1].Dependencies))
-		assert.Equal(t, "this_is_an_operation_1", dagTasks[1].Dependencies[0])
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Name, "auth_token")
-		assert.Equal(t, dagTasks[0].Arguments.Parameters[0].Value, v1alpha1.AnyStringPtr(mockTokenValue))
-	})
-
 }
 
 func TestRunNextStage(t *testing.T) {
@@ -295,12 +187,14 @@ func TestRunNextStage(t *testing.T) {
 	).Return(new(v1alpha1.Workflow), nil)
 	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
 	wt1 := v1alpha1.WorkflowTemplate{}
-	wt1.Name = "this_is_an_operation_1"
+	wt1.Name = "extract-release-distributions"
 	wt2 := v1alpha1.WorkflowTemplate{}
-	wt2.Name = "this_is_an_operation_2"
+	wt2.Name = "loftsman-manifest-upload"
+	wt3 := v1alpha1.WorkflowTemplate{}
+	wt3.Name = "loftsman-manifest-deploy"
 	mockWorkflowTempateList := v1alpha1.WorkflowTemplateList{
 		Items: v1alpha1.WorkflowTemplates{
-			wt1, wt2,
+			wt1, wt2, wt3,
 		},
 	}
 	wfTemplateServiceClientMock.On(
@@ -322,10 +216,30 @@ func TestRunNextStage(t *testing.T) {
 		keycloakService:        keycloakServiceMock,
 		env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 	}
+	activity, err := workflowSvc.CreateActivity(iuf.CreateActivityRequest{
+		Name:          "test",
+		ActivityState: iuf.ActivityStateWaitForAdmin,
+	})
+	if err != nil {
+		t.Errorf("Unknown error occurred %v", err)
+		return
+	}
+
 	type wanted struct {
 		err          bool
+		isCompleted  bool
 		sessionState iuf.SessionState
 		sessionStage string
+	}
+	commonProducts := []iuf.Product{
+		iuf.Product{
+			Name:    "cos",
+			Version: "1.2.3",
+		},
+		iuf.Product{
+			Name:    "sdu",
+			Version: "2.3.4",
+		},
 	}
 	var tests = []struct {
 		name    string
@@ -335,55 +249,165 @@ func TestRunNextStage(t *testing.T) {
 		{
 			name: "first stage",
 			session: iuf.Session{
-				ActivityRef: "test",
+				ActivityRef:  activity.Name,
+				CurrentStage: "",
+				Products:     commonProducts,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			wanted: wanted{
-				err:          true,
+				err:          false,
+				isCompleted:  false,
 				sessionState: iuf.SessionStateInProgress,
-				sessionStage: "process_media",
+				sessionStage: "process-media",
 			},
 		},
 		{
 			name: "next stage",
 			session: iuf.Session{
-				ActivityRef: "test",
+				CurrentStage: "process-media",
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media", "deliver_product"},
+					Stages: []string{"process-media", "deliver-product"},
 				},
 				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
 			},
 			wanted: wanted{
-				err:          true,
+				err:          false,
+				isCompleted:  false,
 				sessionState: iuf.SessionStateInProgress,
-				sessionStage: "deliver_product",
+				sessionStage: "deliver-product",
 			},
 		},
 		{
-			name: "last stage",
+			name: "before last stage",
 			session: iuf.Session{
-				ActivityRef: "test",
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "deliver-product",
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media", "deliver_product"},
+					Stages: []string{"process-media", "deliver-product", "deploy-product"},
 				},
 				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
 			},
 			wanted: wanted{
-				err:          true,
+				err:          false,
+				isCompleted:  false,
 				sessionState: iuf.SessionStateInProgress,
-				sessionStage: "deliver_product",
+				sessionStage: "deploy-product",
+			},
+		},
+		{
+			name: "after last stage",
+			session: iuf.Session{
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "deploy-product",
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process-media", "deliver-product", "deploy-product"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          false,
+				isCompleted:  true,
+				sessionState: iuf.SessionStateCompleted,
+				sessionStage: "deploy-product",
+			},
+		},
+		{
+			name: "check completion where there are no stages to run",
+			session: iuf.Session{
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "",
+				InputParameters: iuf.InputParameters{
+					Stages: []string{},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          false,
+				isCompleted:  true,
+				sessionState: iuf.SessionStateCompleted,
+				sessionStage: "",
+			},
+		},
+		{
+			name: "restart if stage not found (in case input parameters were updated)",
+			session: iuf.Session{
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "pre-install-check",
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process-media", "deliver-product", "deploy-product"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          false,
+				isCompleted:  false,
+				sessionState: iuf.SessionStateInProgress,
+				sessionStage: "process-media",
+			},
+		},
+		{
+			name: "go to next stage if there are no operations for a stage",
+			session: iuf.Session{
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "process-media",
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process-media", "pre-install-check", "deliver-product", "deploy-product"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          false,
+				isCompleted:  false,
+				sessionState: iuf.SessionStateInProgress,
+				sessionStage: "deliver-product",
+			},
+		},
+		{
+			name: "complete session on last stages that do not have operations",
+			session: iuf.Session{
+				ActivityRef:  activity.Name,
+				Products:     commonProducts,
+				CurrentStage: "deploy-product",
+				InputParameters: iuf.InputParameters{
+					Stages: []string{"process-media", "deliver-product", "deploy-product", "post-install-service-check", "post-install-check"},
+				},
+				Workflows: []iuf.SessionWorkflow{{Id: "asdf"}},
+			},
+			wanted: wanted{
+				err:          false,
+				isCompleted:  true,
+				sessionState: iuf.SessionStateCompleted,
+				sessionStage: "post-install-check",
 			},
 		},
 	}
+
+	m1 := regexp.MustCompile(`[^a-zA-Z]`)
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := workflowSvc.RunNextStage(&tt.session)
+			tt.session.Name = utils.GenerateName(m1.ReplaceAllString(tt.name, "-"))
+			_, err := workflowSvc.CreateSession(tt.session, tt.session.Name, activity)
+			if err != nil {
+				t.Errorf("got unexpted error while creating session %v", err)
+				return
+			}
+
+			_, err, completed := workflowSvc.RunNextStage(&tt.session)
 			if (err != nil) != tt.wanted.err {
 				t.Errorf("got %v, wantErr %v", err, tt.wanted.err)
 				return
 			}
+			assert.Equal(t, tt.wanted.isCompleted, completed)
 			assert.Equal(t, tt.wanted.sessionState, tt.session.CurrentState)
 			assert.Equal(t, tt.wanted.sessionStage, tt.session.CurrentStage)
 		})
@@ -425,7 +449,7 @@ func TestProcessOutput(t *testing.T) {
 			session: iuf.Session{
 				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			workflow: &v1alpha1.Workflow{
@@ -451,7 +475,7 @@ func TestProcessOutput(t *testing.T) {
 			session: iuf.Session{
 				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			workflow: &v1alpha1.Workflow{
@@ -542,7 +566,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -564,7 +588,7 @@ func TestProcessOutput(t *testing.T) {
 											  }
 											},
 											"stage_params": {
-											  "process_media": {
+											  "process-media": {
 												"global": {},
 												"products": {
 												  "cos": {
@@ -581,7 +605,7 @@ func TestProcessOutput(t *testing.T) {
 												  "output_of_cos": "whatever"
 												}
 											  },
-											  "pre_install_check": {
+											  "pre-install-check": {
 												"global": {}
 											  }
 											}
@@ -601,7 +625,7 @@ func TestProcessOutput(t *testing.T) {
 			session: iuf.Session{
 				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			workflow: &v1alpha1.Workflow{
@@ -692,7 +716,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -714,7 +738,7 @@ func TestProcessOutput(t *testing.T) {
 											  }
 											},
 											"stage_params": {
-											  "process_media": {
+											  "process-media": {
 												"global": {},
 												"products": {
 												  "cos": {
@@ -731,7 +755,7 @@ func TestProcessOutput(t *testing.T) {
 												  "output_of_cos": "whatever"
 												}
 											  },
-											  "pre_install_check": {
+											  "pre-install-check": {
 												"global": {}
 											  }
 											}
@@ -759,7 +783,7 @@ func TestProcessOutput(t *testing.T) {
 			session: iuf.Session{
 				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			workflow: &v1alpha1.Workflow{
@@ -850,7 +874,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -872,7 +896,7 @@ func TestProcessOutput(t *testing.T) {
 											  }
 											},
 											"stage_params": {
-											  "process_media": {
+											  "process-media": {
 												"global": {},
 												"products": {
 												  "cos": {
@@ -889,7 +913,7 @@ func TestProcessOutput(t *testing.T) {
 												  "output_of_cos": "whatever"
 												}
 											  },
-											  "pre_install_check": {
+											  "pre-install-check": {
 												"global": {}
 											  }
 											}
@@ -917,7 +941,7 @@ func TestProcessOutput(t *testing.T) {
 			session: iuf.Session{
 				ActivityRef: name,
 				InputParameters: iuf.InputParameters{
-					Stages: []string{"process_media"},
+					Stages: []string{"process-media"},
 				},
 			},
 			workflow: &v1alpha1.Workflow{
@@ -1009,7 +1033,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "limit_nodes": ["x12413515", "x15464574"]
+											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
 											  "global": {
@@ -1031,7 +1055,7 @@ func TestProcessOutput(t *testing.T) {
 											  }
 											},
 											"stage_params": {
-											  "process_media": {
+											  "process-media": {
 												"global": {},
 												"products": {
 												  "cos": {
@@ -1048,7 +1072,7 @@ func TestProcessOutput(t *testing.T) {
 												  "output_of_cos": "whatever"
 												}
 											  },
-											  "pre_install_check": {
+											  "pre-install-check": {
 												"global": {}
 											  }
 											}
@@ -1256,7 +1280,7 @@ func TestProcessOutputOfProcessMedia(t *testing.T) {
 					"stage_params": map[string]interface{}{
 						"process-media": map[string]interface{}{
 							"products": map[string]interface{}{
-								"this-is-a-name": map[string]interface{}{
+								"this-is-a-name-this-is-a-version": map[string]interface{}{
 									"parent_directory": "this_is_the_value_of_parent-directory",
 								},
 							},

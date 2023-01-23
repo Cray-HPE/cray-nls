@@ -1,5 +1,4 @@
 /*
- *
  *  MIT License
  *
  *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
@@ -23,32 +22,4 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package iuf
-
-import (
-	"net/http"
-
-	_ "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/gin-gonic/gin"
-)
-
-// GetStages
-//	@Summary	Get the IUF stages
-//	@Tags		Stages
-//	@Produce	json
-//	@Success	200	{object}	iuf.Stages
-//	@Failure	500	{object}	utils.ResponseError
-//	@Router		/iuf/v1/stages [get]
-func (u IufController) GetStages(c *gin.Context) {
-
-	res, err := u.iufService.GetStages()
-
-	if err != nil {
-		u.logger.Error(err)
-		errResponse := utils.ResponseError{Message: err.Error()}
-		c.JSON(http.StatusInternalServerError, errResponse)
-		return
-	}
-	c.JSON(http.StatusOK, res)
-}
+package services_iuf

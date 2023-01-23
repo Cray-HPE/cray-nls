@@ -66,12 +66,13 @@ func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Ca
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockIufService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error) {
+func (m *MockIufService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
 }
 
 // CreateIufWorkflow indicates an expected call of CreateIufWorkflow.
@@ -200,6 +201,21 @@ func (mr *MockIufServiceMockRecorder) ListSessions(activityName interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSessions", reflect.TypeOf((*MockIufService)(nil).ListSessions), activityName)
 }
 
+// PatchActivity mocks base method.
+func (m *MockIufService) PatchActivity(activity iuf.Activity, req iuf.PatchActivityRequest) (iuf.Activity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchActivity", activity, req)
+	ret0, _ := ret[0].(iuf.Activity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchActivity indicates an expected call of PatchActivity.
+func (mr *MockIufServiceMockRecorder) PatchActivity(activity, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchActivity", reflect.TypeOf((*MockIufService)(nil).PatchActivity), activity, req)
+}
+
 // ProcessOutput mocks base method.
 func (m *MockIufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error {
 	m.ctrl.T.Helper()
@@ -230,12 +246,13 @@ func (mr *MockIufServiceMockRecorder) ReplaceHistoryComment(activityName, startT
 }
 
 // RunNextStage mocks base method.
-func (m *MockIufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error) {
+func (m *MockIufService) RunNextStage(session *iuf.Session) (iuf.SyncResponse, error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RunNextStage", session)
 	ret0, _ := ret[0].(iuf.SyncResponse)
 	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
 }
 
 // RunNextStage indicates an expected call of RunNextStage.
@@ -270,4 +287,18 @@ func (m *MockIufService) UpdateSession(session iuf.Session) error {
 func (mr *MockIufServiceMockRecorder) UpdateSession(session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockIufService)(nil).UpdateSession), session)
+}
+
+// UpdateSessionAndActivity mocks base method.
+func (m *MockIufService) UpdateSessionAndActivity(session iuf.Session) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSessionAndActivity", session)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateSessionAndActivity indicates an expected call of UpdateSessionAndActivity.
+func (mr *MockIufServiceMockRecorder) UpdateSessionAndActivity(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSessionAndActivity", reflect.TypeOf((*MockIufService)(nil).UpdateSessionAndActivity), session)
 }

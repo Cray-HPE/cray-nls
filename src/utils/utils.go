@@ -23,7 +23,12 @@
 //
 package utils
 
-import "go.uber.org/fx"
+import (
+	"fmt"
+	"go.uber.org/fx"
+	"math/rand"
+	"regexp"
+)
 
 // Module exports dependency
 var Module = fx.Options(
@@ -32,3 +37,40 @@ var Module = fx.Options(
 	fx.Provide(GetLogger),
 	fx.Provide(NewValidator),
 )
+
+type GenericError struct {
+	Message string
+}
+
+func (e GenericError) Error() string {
+	return e.Message
+}
+
+const (
+	maxNameLength          = 63
+	randomLength           = 5
+	maxGeneratedNameLength = maxNameLength - randomLength - 1 // -1 because we want to put a dash after the prefix
+)
+
+var (
+	letterRunes          = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+	nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9\-]+`)
+)
+
+// RandomString A random string of the given length.
+func RandomString(length int) string {
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+// GenerateName generates a name with the given prefix. Makes sure result doesn't go beyond 63 characters
+func GenerateName(prefix string) string {
+	prefix = nonAlphanumericRegex.ReplaceAllString(prefix, "-")
+	if len(prefix) > maxGeneratedNameLength {
+		prefix = prefix[:maxGeneratedNameLength]
+	}
+	return fmt.Sprintf("%s-%s", prefix, RandomString(randomLength))
+}

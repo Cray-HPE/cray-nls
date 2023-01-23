@@ -52,6 +52,7 @@ const (
 
 type IufService interface {
 	CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error)
+	PatchActivity(activity iuf.Activity, req iuf.PatchActivityRequest) (iuf.Activity, error)
 	ListActivities() ([]iuf.Activity, error)
 	GetActivity(name string) (iuf.Activity, error)
 	// history
@@ -66,8 +67,9 @@ type IufService interface {
 	ConfigMapDataToSession(data string) (iuf.Session, error)
 	UpdateActivityStateFromSessionState(session iuf.Session) error
 	UpdateSession(session iuf.Session) error
-	CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error)
-	RunNextStage(session *iuf.Session) (iuf.SyncResponse, error)
+	UpdateSessionAndActivity(session iuf.Session) error
+	CreateIufWorkflow(req iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool)
+	RunNextStage(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
 	ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error
 	GetStages() (iuf.Stages, error)
 }

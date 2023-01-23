@@ -30,11 +30,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/google/uuid"
-	"github.com/imdario/mergo"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -74,7 +73,7 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 	}
 
 	// store history
-	name := activity.Name + "-" + uuid.NewString()
+	name := utils.GenerateName(activity.Name)
 	iufHistory := iuf.History{
 		ActivityState: iuf.ActivityStateWaitForAdmin,
 		StartTime:     int32(time.Now().UnixMilli()),
@@ -120,30 +119,65 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 	return res, err
 }
 
-func (s iufService) patchActivity(name string, inputParams iuf.InputParameters) (iuf.Activity, error) {
-	tmp, err := s.GetActivity(name)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
+func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
+	s.logger.Infof("Called: PatchActivity(activity: %v, patchParams: %v)", activity, patchParams)
+
+	if patchParams.InputParameters.MediaDir != "" {
+		// input parameters exists
+		activity.InputParameters = patchParams.InputParameters
 	}
 
-	// block request if activity is in_progress, paused
-	if tmp.ActivityState == iuf.ActivityStateInProgress || tmp.ActivityState == iuf.ActivityStatePaused {
-		err := fmt.Errorf("update activity is not allowed, current state: %s", tmp.ActivityState)
-		s.logger.Error(err)
-		return iuf.Activity{}, err
+	// patch site parameters
+	if len(patchParams.SiteParameters.Products) > 0 || len(patchParams.SiteParameters.Global) > 0 {
+		activity.SiteParameters = patchParams.SiteParameters
 	}
-	// TODO: validate input parameters
-	// support partial update
-	original := tmp.InputParameters
-	request := inputParams
-	if err := mergo.Merge(&request, original); err != nil {
-		s.logger.Error(err)
-		return iuf.Activity{}, err
+
+	// only allow patching activity state in a limited way.
+	switch patchParams.ActivityState {
+	case iuf.ActivityStateBlocked:
+		switch activity.ActivityState {
+		// allow from anything except "in_progress"
+		case iuf.ActivityStateInProgress:
+			return iuf.Activity{}, utils.GenericError{
+				Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+					activity.ActivityState, patchParams.ActivityState)}
+		default:
+			activity.ActivityState = patchParams.ActivityState
+		}
+	case iuf.ActivityStatePaused:
+		switch activity.ActivityState {
+		// allow only from in_progress
+		case iuf.ActivityStateInProgress:
+			activity.ActivityState = patchParams.ActivityState
+		default:
+			return iuf.Activity{}, utils.GenericError{
+				Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+					activity.ActivityState, patchParams.ActivityState)}
+		}
+	case "":
+		break
+	default:
+		return iuf.Activity{}, utils.GenericError{
+			Message: fmt.Sprintf("Illegal activity state transition from %s to %s",
+				activity.ActivityState, patchParams.ActivityState)}
 	}
-	tmp.InputParameters = request
-	tmp.ActivityState = iuf.ActivityStateWaitForAdmin
-	return s.updateActivity(tmp)
+
+	// when you update site or input parameters of an activity, you also have to update all the Sessions that have not
+	// already completed. This is so that the next time a workflow for a stage is created, that workflow can pick up
+	// the input and site parameters from the session
+	sessions, _ := s.ListSessions(activity.Name)
+	for _, session := range sessions {
+		if session.CurrentState != iuf.SessionStateCompleted {
+			session.InputParameters = activity.InputParameters
+			session.SiteParameters = s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters)
+			err := s.UpdateSession(session)
+			if err != nil {
+				return iuf.Activity{}, err
+			}
+		}
+	}
+
+	return s.updateActivity(activity)
 }
 
 func (s iufService) ListActivities() ([]iuf.Activity, error) {

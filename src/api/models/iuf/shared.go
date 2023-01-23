@@ -36,14 +36,27 @@ type Product struct {
 	Validated bool `json:"validated"  validate:"required"`
 	// the content of manifest
 	Manifest string `json:"manifest"`
-} // @name Product
+} //	@name	Product
 
 type InputParameters struct {
 	MediaDir                 string   `json:"media_dir"`                  // Location of media
-	SiteParameters           string   `json:"site_parameters"`            // The inline contents of the site_parameters.yaml file.
-	LimitNodes               []string `json:"limit_nodes"`                // Each item is the xname of a node
-	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is a path of the bootprep files
-	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is a path of the bootprep files
+	SiteParameters           string   `json:"site_parameters"`            // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
+	LimitManagementNodes     []string `json:"limit_management_nodes"`     // Each item is the xname of a management node
+	LimitManagedNodes        []string `json:"limit_managed_nodes"`        // Each item is the xname of a managed node
+	MediaHost                string   `json:"media_host"`                 // A string containing the hostname of where the media is located
+	Concurrency              int      `json:"concurrency"`                // An integer defining how many products / operations can we concurrently execute.
+	BootprepConfigManaged    []string `json:"bootprep_config_managed"`    // Each item is the path to the bootprep config file for managed nodes, relative to the media_dir
+	BootprepConfigManagement []string `json:"bootprep_config_management"` // Each item is the path to the bootprep config file for management nodes, relative to the media_dir
 	Stages                   []string `json:"stages"`                     // Stages to execute
 	Force                    bool     `json:"force"`                      // Force re-execution of stage operations
-} // @name InputParameters
+} //	@name	InputParameters
+
+type SiteParameters struct {
+	Global   map[string]interface{}            `json:"global"`   // global parameters applicable to all products
+	Products map[string]map[string]interface{} `json:"products"` // Product-specific parameters
+} //	@name	SiteParameters
+
+type SiteParametersForOperationsAndHooks struct {
+	SiteParameters
+	CurrentProduct map[string]interface{} `json:"current_product"` // Current product's site parameters.
+} //	@name	SiteParametersForOperationsAndHooks

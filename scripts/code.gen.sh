@@ -34,7 +34,7 @@ swag init --md  docs/ --outputTypes go,yaml \
 # update iuf swagger doc yaml
 swag init --md docs/ --outputTypes go,yaml \
     --exclude src/api/controllers/v1/misc,src/api/controllers/v1/nls \
-    --instanceName IUF --parseDependency --parseDepth 1
+    --instanceName IUF
 
 # fix copyright headers
 docker run -it --rm -v $(pwd):/github/workspace artifactory.algol60.net/csm-docker/stable/license-checker --fix docs

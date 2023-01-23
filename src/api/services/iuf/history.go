@@ -30,9 +30,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/cray-nls/src/utils"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
-	"github.com/google/uuid"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -122,35 +122,31 @@ func (s iufService) ReplaceHistoryComment(activityName string, startTime int32, 
 }
 
 func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
-	activity, err := s.patchActivity(activityName, req.InputParameters)
+	activity, err := s.GetActivity(activityName)
+	if err != nil {
+		s.logger.Error(err)
+		return iuf.Session{}, err
+	}
+
+	activity, err = s.PatchActivity(activity, iuf.PatchActivityRequest{
+		InputParameters: req.InputParameters,
+		SiteParameters:  req.SiteParameters,
+	})
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Session{}, err
 	}
 
 	// store session
-	name := activity.Name + "-" + uuid.NewString()
+	name := utils.GenerateName(activity.Name)
 	session := iuf.Session{
 		InputParameters: activity.InputParameters,
+		SiteParameters:  s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters),
 		Products:        activity.Products,
 		Name:            name,
 		ActivityRef:     activityName,
 	}
-	configmap, err := s.iufObjectToConfigMapData(session, name, LABEL_SESSION)
-	if err != nil {
-		s.logger.Error(err)
-		return iuf.Session{}, err
-	}
-	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
-	_, err = s.k8sRestClientSet.
-		CoreV1().
-		ConfigMaps(DEFAULT_NAMESPACE).
-		Create(
-			context.TODO(),
-			&configmap,
-			v1.CreateOptions{},
-		)
-	return session, err
+	return s.CreateSession(session, name, activity)
 }
 
 func (s iufService) configMapDataToHistory(data string) (iuf.History, error) {
