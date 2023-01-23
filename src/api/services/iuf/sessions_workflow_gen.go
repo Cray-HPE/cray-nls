@@ -210,7 +210,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 	// this is a list of all the first steps only from each product. We will modify these to include a dependency
 	// on the last product in order to control concurrency.
-	initialProductSteps := []v1alpha1.DAGTask{}
+	var initialProductSteps []*v1alpha1.DAGTask
+	var resPtrs []*v1alpha1.DAGTask
 
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
@@ -219,8 +220,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		var lastOpDependency string
 		if exists {
 			lastOpDependency = preStageHook.Name
-			res = append(res, preStageHook)
-			initialProductSteps = append(initialProductSteps, preStageHook)
+			initialProductSteps = append(initialProductSteps, &preStageHook)
+			resPtrs = append(resPtrs, &preStageHook)
 		}
 
 		for _, operation := range stageInfo.Operations {
@@ -240,7 +241,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 					lastOpDependency,
 				}
 			} else {
-				initialProductSteps = append(initialProductSteps, task)
+				initialProductSteps = append(initialProductSteps, &task)
 			}
 
 			lastOpDependency = opName
@@ -261,7 +262,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				Name:     operation.Name,
 				Template: "main",
 			}
-			res = append(res, task)
+			resPtrs = append(resPtrs, &task)
 		}
 
 		// add the post-stage hook for this product
@@ -272,22 +273,33 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 					lastOpDependency,
 				}
 			} else {
-				initialProductSteps = append(initialProductSteps, postStageHook)
+				initialProductSteps = append(initialProductSteps, &postStageHook)
 			}
 
-			res = append(res, postStageHook)
+			resPtrs = append(resPtrs, &postStageHook)
 		}
 	}
 
-	if session.InputParameters.Concurrency == 1 {
-		var lastOpDependencies string
+	if session.InputParameters.Concurrency > 0 {
+		var lastOpDependencies []string
+		var nextOpDependencies []string
+		currentCount := 0
 		for _, step := range initialProductSteps {
-			if lastOpDependencies != "" {
-				step.Dependencies = append(step.Dependencies, lastOpDependencies)
+			if currentCount == session.InputParameters.Concurrency {
+				lastOpDependencies = nextOpDependencies
+				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
+				nextOpDependencies = []string{step.Name}
+				currentCount = 1
+			} else {
+				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
+				nextOpDependencies = append(nextOpDependencies, step.Name)
+				currentCount++
 			}
-
-			lastOpDependencies = step.Name
 		}
+	}
+
+	for _, step := range resPtrs {
+		res = append(res, *step)
 	}
 
 	return res

@@ -433,6 +433,116 @@ func TestGetDagTasks(t *testing.T) {
 
 		assert.Equal(t, 6, found)
 	})
+
+	t.Run("It should handle concurrency=0 properly", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}, {Name: "product_C"}},
+			ActivityRef: activityName,
+			InputParameters: iuf.InputParameters{
+				Concurrency: 0,
+			},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-2"},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 6, len(dagTasks))
+
+		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
+		assert.Equal(t, 0, len(dagTasks[2].Dependencies))
+		assert.Equal(t, 0, len(dagTasks[4].Dependencies))
+	})
+
+	t.Run("It should handle concurrency=1 properly", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}, {Name: "product_C"}},
+			ActivityRef: activityName,
+			InputParameters: iuf.InputParameters{
+				Concurrency: 1,
+			},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-2"},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 6, len(dagTasks))
+
+		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
+
+		assert.Equal(t, 1, len(dagTasks[2].Dependencies))
+		assert.True(t, strings.Contains(dagTasks[2].Name, "product-B"))
+		assert.True(t, strings.Contains(dagTasks[2].Dependencies[0], "product-A"))
+
+		assert.Equal(t, 1, len(dagTasks[4].Dependencies))
+		assert.True(t, strings.Contains(dagTasks[4].Name, "product-C"))
+		assert.True(t, strings.Contains(dagTasks[4].Dependencies[0], "product-B"))
+	})
+
+	t.Run("It should handle concurrency=2 properly", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}, {Name: "product_C"}, {Name: "product_D"}, {Name: "product_E"}},
+			ActivityRef: activityName,
+			InputParameters: iuf.InputParameters{
+				Concurrency: 2,
+			},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{Name: "this-is-an-operation-1"},
+				{Name: "this-is-an-operation-2"},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 10, len(dagTasks))
+
+		assert.Equal(t, 0, len(dagTasks[0].Dependencies))
+		assert.Equal(t, 0, len(dagTasks[2].Dependencies))
+
+		assert.Equal(t, 2, len(dagTasks[4].Dependencies))
+		assert.True(t, strings.Contains(dagTasks[4].Name, "product-C"))
+		assert.True(t, strings.Contains(dagTasks[4].Dependencies[0], "product-A"))
+		assert.True(t, strings.Contains(dagTasks[4].Dependencies[1], "product-B"))
+
+		assert.Equal(t, 2, len(dagTasks[6].Dependencies))
+		assert.True(t, strings.Contains(dagTasks[6].Name, "product-D"))
+		assert.True(t, strings.Contains(dagTasks[6].Dependencies[0], "product-A"))
+		assert.True(t, strings.Contains(dagTasks[6].Dependencies[1], "product-B"))
+
+		assert.Equal(t, 2, len(dagTasks[8].Dependencies))
+		assert.True(t, strings.Contains(dagTasks[8].Name, "product-E"))
+		assert.True(t, strings.Contains(dagTasks[8].Dependencies[0], "product-C"))
+		assert.True(t, strings.Contains(dagTasks[8].Dependencies[1], "product-D"))
+	})
 }
 
 func setup(t *testing.T) (string, string, iufService) {
