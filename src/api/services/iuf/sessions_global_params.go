@@ -87,25 +87,11 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		productsArray = append(productsArray, s.getProductVersionKey(product))
 	}
 
-	var bootPrepManagedContent []map[string]string
-	for _, bootPrepManagedItem := range session.InputParameters.BootprepConfigManaged {
-		bootPrepManagedContent = append(bootPrepManagedContent, map[string]string{
-			"content": bootPrepManagedItem,
-		})
-	}
-
-	var bootPrepManagementContent []map[string]string
-	for _, bootPrepManagementItem := range session.InputParameters.BootprepConfigManagement {
-		bootPrepManagementContent = append(bootPrepManagementContent, map[string]string{
-			"content": bootPrepManagementItem,
-		})
-	}
-
 	return map[string]interface{}{
 		"products":                   productsArray,
 		"media_dir":                  path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
-		"bootprep_config_managed":    bootPrepManagedContent,
-		"bootprep_config_management": bootPrepManagementContent,
+		"bootprep_config_managed":    session.InputParameters.BootprepConfigManaged,
+		"bootprep_config_management": session.InputParameters.BootprepConfigManagement,
 		"limit_management_nodes":     session.InputParameters.LimitManagementNodes,
 		"limit_managed_nodes":        session.InputParameters.LimitManagedNodes,
 		"media_host":                 session.InputParameters.MediaHost,

@@ -844,25 +844,30 @@ const docTemplateIUF = `{
             "type": "object",
             "properties": {
                 "bootprep_config_managed": {
-                    "description": "Each item is the path to the bootprep config file for managed nodes, relative to the media_dir",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "description": "The path to the bootprep config file for managed nodes, relative to the media_dir",
+                    "type": "string"
                 },
                 "bootprep_config_management": {
-                    "description": "Each item is the path to the bootprep config file for management nodes, relative to the media_dir",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "description": "The path to the bootprep config file for management nodes, relative to the media_dir",
+                    "type": "string"
+                },
+                "concurrency": {
+                    "description": "An integer defining how many products / operations can we concurrently execute.",
+                    "type": "integer"
                 },
                 "force": {
                     "description": "Force re-execution of stage operations",
                     "type": "boolean"
                 },
-                "limit_nodes": {
-                    "description": "Each item is the xname of a node",
+                "limit_managed_nodes": {
+                    "description": "Each item is the xname of a managed node",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit_management_nodes": {
+                    "description": "Each item is the xname of a management node",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -870,6 +875,10 @@ const docTemplateIUF = `{
                 },
                 "media_dir": {
                     "description": "Location of media",
+                    "type": "string"
+                },
+                "media_host": {
+                    "description": "A string containing the hostname of where the media is located",
                     "type": "string"
                 },
                 "site_parameters": {

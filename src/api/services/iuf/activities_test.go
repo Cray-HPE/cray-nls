@@ -176,7 +176,7 @@ func TestPatchActivity(t *testing.T) {
 				Name: "test",
 				InputParameters: iuf.InputParameters{
 					MediaDir:                 "/a/b/c",
-					BootprepConfigManagement: []string{"BootprepConfigManagement1"},
+					BootprepConfigManagement: "BootprepConfigManagement",
 					SiteParameters:           "deprecated_field",
 				},
 			},
@@ -184,12 +184,12 @@ func TestPatchActivity(t *testing.T) {
 				Name: "test",
 				InputParameters: iuf.InputParameters{
 					MediaDir:                 "/a/b/c",
-					BootprepConfigManagement: []string{"BootprepConfigManagement2"},
-					BootprepConfigManaged:    []string{"BootprepConfigManaged1", "BootprepConfigManaged2"},
+					BootprepConfigManagement: "BootprepConfigManagement",
+					BootprepConfigManaged:    "BootprepConfigManaged",
 					Force:                    true,
 				},
 			},
-			req:     toPatchRequest(`{"input_parameters": {"media_dir": "/a/b/c", "force": true, "bootprep_config_management": ["BootprepConfigManagement2"], "bootprep_config_managed": ["BootprepConfigManaged1", "BootprepConfigManaged2"]}}`),
+			req:     toPatchRequest(`{"input_parameters": {"media_dir": "/a/b/c", "force": true, "bootprep_config_management": "BootprepConfigManagement", "bootprep_config_managed": "BootprepConfigManaged"}}`),
 			wantErr: false,
 		},
 		{

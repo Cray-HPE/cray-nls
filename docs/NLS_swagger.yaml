@@ -57,12 +57,16 @@ definitions:
     type: object
   models.CreateRebuildWorkflowRequest:
     properties:
+      desiredCfsConfig:
+        type: string
       dryRun:
         type: boolean
       hosts:
         items:
           type: string
         type: array
+      imageId:
+        type: string
       switchPassword:
         type: string
       workflowType:
