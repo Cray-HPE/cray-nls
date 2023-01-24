@@ -72,7 +72,7 @@ spec:
             set -e
 
             # This reads from /usr/local/share/ca-certificates and updates /etc/ssl/certs/ca-certificates.crt
-            update-ca-certificates
+            update-ca-certificates 2>/dev/null
 
             sat init
 
