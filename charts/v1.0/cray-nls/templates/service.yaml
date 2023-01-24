@@ -38,27 +38,27 @@ spec:
   selector:
     app.kubernetes.io/instance: cray-nls
     app.kubernetes.io/name: argo-workflows-server
-#---
-#apiVersion: v1
-#kind: Service
-#metadata:
-#  name: workflow-controller-metrics
-#  annotations:
-#    meta.helm.sh/release-name: argo-only
-#  labels:
-#    app.kubernetes.io/component: workflow-controller
-#    app.kubernetes.io/instance: argo-only
-#    app.kubernetes.io/managed-by: Helm
-#    app.kubernetes.io/name: argo-workflows-workflow-controller
-#    app.kubernetes.io/part-of: argo-workflows
-#spec:
-#  ports:
-#  - name: metrics
-#    port: 8080
-#    protocol: TCP
-#    targetPort: 9090
-#  selector:
-#    app.kubernetes.io/instance: argo-only
-#    app.kubernetes.io/name: argo-workflows-workflow-controller
-#  sessionAffinity: None
-#  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-controller-metrics
+  annotations:
+    meta.helm.sh/release-name: cray-nls
+  labels:
+    app.kubernetes.io/component: workflow-controller
+    app.kubernetes.io/instance: cray-nls
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: argo-workflows-workflow-controller
+    app.kubernetes.io/part-of: argo-workflows
+spec:
+  ports:
+  - name: metrics
+    port: 8080
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app.kubernetes.io/instance: cray-nls
+    app.kubernetes.io/name: argo-workflows-workflow-controller
+  sessionAffinity: None
+  type: ClusterIP
