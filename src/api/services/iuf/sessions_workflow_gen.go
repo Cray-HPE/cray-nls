@@ -91,6 +91,14 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		},
 	}
 	res.Spec.PodPriorityClassName = "system-node-critical"
+
+	var concurrency int64 = 10 // default concurrency is 10
+	if session.InputParameters.Concurrency > 0 {
+		concurrency = session.InputParameters.Concurrency
+	}
+
+	res.Spec.Parallelism = &concurrency
+
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 	var secondsAfterSuccess int32 = 60
 	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
@@ -144,11 +152,6 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	} else if len(dagTasks) == 0 {
 		s.logger.Infof("No DAG tasks for stage %s in session %s, skipping this stage.", stageName, session.Name)
 		return v1alpha1.Workflow{}, nil, true
-	}
-
-	var concurrency int64 = 10 // default concurrency is 10
-	if session.InputParameters.Concurrency > 0 {
-		concurrency = session.InputParameters.Concurrency
 	}
 
 	res.Spec.Templates = []v1alpha1.Template{
