@@ -482,15 +482,26 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 			outputOperation[productKey] = make(map[string]interface{})
 		}
 		operationOutputOfProduct := outputOperation[productKey].(map[string]interface{})
+
+		if nodeStatus.Outputs.Result != nil {
+			operationOutputOfProduct["script_stdout"] = *(nodeStatus.Outputs.Result)
+		}
+
 		for _, param := range nodeStatus.Outputs.Parameters {
 			operationOutputOfProduct[param.Name] = param.Value
 		}
 
+		outputOperation[productKey] = operationOutputOfProduct
 	} else {
+		if nodeStatus.Outputs.Result != nil {
+			outputOperation["script_stdout"] = *(nodeStatus.Outputs.Result)
+		}
+
 		for _, param := range nodeStatus.Outputs.Parameters {
 			outputOperation[param.Name] = param.Value
 		}
 	}
+	outputStage[operationName] = outputOperation
 	activity.OperationOutputs[session.CurrentStage] = outputStage
 
 	res, _ := yaml.Marshal(*nodeStatus)
