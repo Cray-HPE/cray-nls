@@ -114,10 +114,10 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	}
 
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
-	var secondsAfterSuccess int32 = 60
-	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
-		SecondsAfterSuccess: &secondsAfterSuccess,
-	}
+	//var secondsAfterSuccess int32 = 60
+	//res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
+	//	SecondsAfterSuccess: &secondsAfterSuccess,
+	//}
 	res.Spec.Tolerations = []corev1.Toleration{
 		{
 			Key:      "node-role.kubernetes.io/master",
