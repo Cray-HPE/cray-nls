@@ -92,6 +92,10 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	}
 	res.Spec.PodPriorityClassName = "system-node-critical"
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
+	var secondsAfterSuccess int32 = 60
+	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
+		SecondsAfterSuccess: &secondsAfterSuccess,
+	}
 	res.Spec.Tolerations = []corev1.Toleration{
 		{
 			Key:      "node-role.kubernetes.io/master",
@@ -142,14 +146,21 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		return v1alpha1.Workflow{}, nil, true
 	}
 
+	var concurrency int64 = 10 // default concurrency is 10
+	if session.InputParameters.Concurrency > 0 {
+		concurrency = session.InputParameters.Concurrency
+	}
+
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
 			DAG: &v1alpha1.DAGTemplate{
 				Tasks: dagTasks,
 			},
+			Parallelism: &concurrency,
 		},
 	}
+
 	return res, nil, false
 }
 
@@ -280,23 +291,24 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		}
 	}
 
-	if session.InputParameters.Concurrency > 0 {
-		var lastOpDependencies []string
-		var nextOpDependencies []string
-		currentCount := 0
-		for _, step := range initialProductSteps {
-			if currentCount == session.InputParameters.Concurrency {
-				lastOpDependencies = nextOpDependencies
-				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-				nextOpDependencies = []string{step.Name}
-				currentCount = 1
-			} else {
-				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-				nextOpDependencies = append(nextOpDependencies, step.Name)
-				currentCount++
-			}
-		}
-	}
+	// TODO: disabling the following in favour of parallelism natively supported by Argo above
+	//if session.InputParameters.Concurrency > 0 {
+	//	var lastOpDependencies []string
+	//	var nextOpDependencies []string
+	//	currentCount := 0
+	//	for _, step := range initialProductSteps {
+	//		if currentCount == session.InputParameters.Concurrency {
+	//			lastOpDependencies = nextOpDependencies
+	//			step.Dependencies = append(step.Dependencies, lastOpDependencies...)
+	//			nextOpDependencies = []string{step.Name}
+	//			currentCount = 1
+	//		} else {
+	//			step.Dependencies = append(step.Dependencies, lastOpDependencies...)
+	//			nextOpDependencies = append(nextOpDependencies, step.Name)
+	//			currentCount++
+	//		}
+	//	}
+	//}
 
 	for _, step := range resPtrs {
 		res = append(res, *step)
