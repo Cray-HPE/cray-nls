@@ -478,10 +478,15 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	}
 	outputOperation := outputStage[operationName].(map[string]interface{})
 	if productKey != "" {
-		if outputOperation[productKey] == nil {
-			outputOperation[productKey] = make(map[string]interface{})
+		if outputOperation["products"] == nil {
+			outputOperation["products"] = make(map[string]interface{})
 		}
-		operationOutputOfProduct := outputOperation[productKey].(map[string]interface{})
+		productOutputOperation := outputOperation["products"].(map[string]interface{})
+
+		if productOutputOperation[productKey] == nil {
+			productOutputOperation[productKey] = make(map[string]interface{})
+		}
+		operationOutputOfProduct := productOutputOperation[productKey].(map[string]interface{})
 
 		if nodeStatus.Outputs.Result != nil {
 			operationOutputOfProduct["script_stdout"] = *(nodeStatus.Outputs.Result)
@@ -491,16 +496,25 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 			operationOutputOfProduct[param.Name] = param.Value
 		}
 
-		outputOperation[productKey] = operationOutputOfProduct
+		productOutputOperation[productKey] = operationOutputOfProduct
+		outputOperation["products"] = productOutputOperation
 	} else {
+		if outputOperation["global"] == nil {
+			outputOperation["global"] = make(map[string]interface{})
+		}
+		globalOutputOperation := outputOperation["global"].(map[string]interface{})
+
 		if nodeStatus.Outputs.Result != nil {
-			outputOperation["script_stdout"] = *(nodeStatus.Outputs.Result)
+			globalOutputOperation["script_stdout"] = *(nodeStatus.Outputs.Result)
 		}
 
 		for _, param := range nodeStatus.Outputs.Parameters {
-			outputOperation[param.Name] = param.Value
+			globalOutputOperation[param.Name] = param.Value
 		}
+
+		outputOperation["global"] = globalOutputOperation
 	}
+
 	outputStage[operationName] = outputOperation
 	activity.OperationOutputs[session.CurrentStage] = outputStage
 
