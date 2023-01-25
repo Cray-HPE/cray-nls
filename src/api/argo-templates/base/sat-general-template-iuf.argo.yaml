@@ -124,6 +124,11 @@ spec:
           function main() {
             setup
             execute_script_content | tee {{inputs.parameters.script_stdout_file}}
+            local script_return_code="${PIPESTATUS[0]}"
+            if [[ "$script_return_code" -ne 0 ]]; then
+              echo "Script content exited with return code ${script_return_code}" 1>&2
+              exit $script_return_code
+            fi
           }
 
           main
