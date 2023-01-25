@@ -492,6 +492,12 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 		}
 	}
 	activity.OperationOutputs[session.CurrentStage] = outputStage
+
+	res, _ := yaml.Marshal(*nodeStatus)
+	s.logger.Infof("For activity %s, saving the following parameters from NodeStatus %s", activity.Name, string(res))
+	res, _ = yaml.Marshal(activity)
+	s.logger.Infof("For activity %s, saving the following parameters as Activity %s", activity.Name, string(res))
+
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
 		s.logger.Error(err)
