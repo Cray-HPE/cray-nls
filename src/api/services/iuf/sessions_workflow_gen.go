@@ -35,6 +35,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
@@ -99,6 +100,19 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 
 	res.Spec.Parallelism = &concurrency
 
+	retryLimit := intstr.FromInt(3)
+	retryBackoffFactor := intstr.FromInt(2)
+
+	res.Spec.RetryStrategy = &v1alpha1.RetryStrategy{
+		Limit:       &retryLimit,
+		RetryPolicy: v1alpha1.RetryPolicyAlways,
+		Backoff: &v1alpha1.Backoff{
+			Duration:    "1m",
+			Factor:      &retryBackoffFactor,
+			MaxDuration: "10m",
+		},
+	}
+
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 	var secondsAfterSuccess int32 = 60
 	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
@@ -154,6 +168,8 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		return v1alpha1.Workflow{}, nil, true
 	}
 
+	failFast := false
+
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
@@ -161,6 +177,7 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 				Tasks: dagTasks,
 			},
 			Parallelism: &concurrency,
+			FailFast:    &failFast,
 		},
 	}
 
