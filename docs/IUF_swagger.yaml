@@ -89,6 +89,14 @@ definitions:
     required:
     - name
     type: object
+  iuf.EManagedRolloutStrategy:
+    enum:
+    - reboot
+    - stage
+    type: string
+    x-enum-varnames:
+    - Reboot
+    - Staged
   iuf.History:
     properties:
       activity_state:
@@ -151,6 +159,10 @@ definitions:
         description: An integer defining how many products / operations can we concurrently
           execute.
         type: integer
+      concurrent_management_rollout_percentage:
+        description: The percentage of management nodes to reboot in parallel before
+          moving on to the next set of management nodes to reboot.
+        type: integer
       force:
         description: Force re-execution of stage operations
         type: boolean
@@ -164,6 +176,14 @@ definitions:
         items:
           type: string
         type: array
+      managed_rollout_strategy:
+        allOf:
+        - $ref: '#/definitions/iuf.EManagedRolloutStrategy'
+        description: Whether to use a reboot or staged rollout strategy for managed
+          nodes. Refer to BOS v2 for more details.
+        enum:
+        - reboot
+        - stage
       media_dir:
         description: Location of media
         type: string

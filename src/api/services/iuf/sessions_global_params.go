@@ -88,14 +88,16 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 	}
 
 	return map[string]interface{}{
-		"products":                   productsArray,
-		"media_dir":                  path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
-		"bootprep_config_managed":    session.InputParameters.BootprepConfigManaged,
-		"bootprep_config_management": session.InputParameters.BootprepConfigManagement,
-		"limit_management_nodes":     session.InputParameters.LimitManagementNodes,
-		"limit_managed_nodes":        session.InputParameters.LimitManagedNodes,
-		"media_host":                 session.InputParameters.MediaHost,
-		"concurrency":                session.InputParameters.Concurrency,
+		"products":                                 productsArray,
+		"media_dir":                                path.Join(s.env.MediaDirBase, session.InputParameters.MediaDir),
+		"bootprep_config_managed":                  session.InputParameters.BootprepConfigManaged,
+		"bootprep_config_management":               session.InputParameters.BootprepConfigManagement,
+		"limit_management_nodes":                   session.InputParameters.LimitManagementNodes,
+		"limit_managed_nodes":                      session.InputParameters.LimitManagedNodes,
+		"managed_rollout_strategy":                 session.InputParameters.ManagedRolloutStrategy,
+		"concurrent_management_rollout_percentage": session.InputParameters.ConcurrentManagementRolloutPercentage,
+		"media_host":                               session.InputParameters.MediaHost,
+		"concurrency":                              session.InputParameters.Concurrency,
 	}
 }
 

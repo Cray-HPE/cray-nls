@@ -770,6 +770,17 @@ const docTemplateIUF = `{
                 }
             }
         },
+        "iuf.EManagedRolloutStrategy": {
+            "type": "string",
+            "enum": [
+                "reboot",
+                "stage"
+            ],
+            "x-enum-varnames": [
+                "Reboot",
+                "Staged"
+            ]
+        },
         "iuf.History": {
             "type": "object",
             "required": [
@@ -855,6 +866,10 @@ const docTemplateIUF = `{
                     "description": "An integer defining how many products / operations can we concurrently execute.",
                     "type": "integer"
                 },
+                "concurrent_management_rollout_percentage": {
+                    "description": "The percentage of management nodes to reboot in parallel before moving on to the next set of management nodes to reboot.",
+                    "type": "integer"
+                },
                 "force": {
                     "description": "Force re-execution of stage operations",
                     "type": "boolean"
@@ -872,6 +887,18 @@ const docTemplateIUF = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "managed_rollout_strategy": {
+                    "description": "Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.",
+                    "enum": [
+                        "reboot",
+                        "stage"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/iuf.EManagedRolloutStrategy"
+                        }
+                    ]
                 },
                 "media_dir": {
                     "description": "Location of media",
