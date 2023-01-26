@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"strings"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -350,29 +351,46 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		s.logger.Error(err)
 		return err
 	}
-	// get tasks we care about (top level dag)
-	tasks := workflow.Spec.Templates[0].DAG.Tasks
 	switch workflow.Labels["stage_type"] {
 	case "product":
-		for _, task := range tasks {
-			operationName := task.TemplateRef.Name
-			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-			var productKey string
-			for _, param := range nodeStatus.Inputs.Parameters {
-				if param.Name == "global_params" {
-					var valueJson map[string]interface{}
-					json.Unmarshal([]byte(param.Value.String()), &valueJson)
-					productManifest := valueJson["product_manifest"].(map[string]interface{})
-					currentProduct := productManifest["current_product"].(map[string]interface{})
-					manifest := currentProduct["manifest"].(map[string]interface{})
-					productKey = s.getProductVersionKeyFromNameAndVersion(manifest["name"].(string), manifest["version"].(string))
+		// first generate a map of all productKeys to Products
+		var productKeyMap map[string]iuf.Product
+		for _, product := range session.Products {
+			productKeyMap[s.getProductVersionKey(product)] = product
+		}
+
+		// now go through all the nodeStatus items
+		changed := false
+		for _, nodeStatus := range workflow.Status.Nodes {
+			if nodeStatus.Type == v1alpha1.NodeTypePod &&
+				strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+				len(nodeStatus.Outputs.Parameters) > 0 {
+
+				// check which product this is for
+				for productKey, _ := range productKeyMap {
+					if strings.HasPrefix(nodeStatus.DisplayName, productKey) {
+						operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+						stepName := nodeStatus.DisplayName
+						s.logger.Infof("process output for Activity %s, Operation %s, step %s with value %v", activity.Name, operationName, stepName, nodeStatus.Outputs)
+						stepChanged, err := s.updateActivityOperationOutputFromWorkflow(&activity, session, &nodeStatus, operationName, stepName, productKey)
+						if err != nil {
+							s.logger.Infof("An error occurred while processing output for Activity %s, Operation %s, step %s with value %v: %v", activity.Name, operationName, stepName, nodeStatus.Outputs, err)
+						} else if stepChanged {
+							changed = true
+						}
+					}
+
 					break
 				}
 			}
-			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productKey, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productKey)
 		}
-		return nil
+
+		if changed {
+			_, err := s.updateActivity(activity)
+			return err
+		} else {
+			return nil
+		}
 	case "global":
 		// special handling of process media
 		if workflow.Labels["stage"] == "process-media" {
@@ -390,13 +408,29 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 			}
 			return nil
 		} else {
-			for _, task := range tasks {
-				operationName := task.TemplateRef.Name
-				nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-				s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
-				s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
+			changed := false
+			for _, nodeStatus := range workflow.Status.Nodes {
+				if nodeStatus.Type == v1alpha1.NodeTypePod &&
+					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+					len(nodeStatus.Outputs.Parameters) > 0 {
+					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+					stepName := nodeStatus.DisplayName
+					s.logger.Infof("process output for Activity %s, Operation %s, step %s with value %v", activity.Name, operationName, stepName, nodeStatus.Outputs)
+					stepChanged, err := s.updateActivityOperationOutputFromWorkflow(&activity, session, &nodeStatus, operationName, stepName, "")
+					if err != nil {
+						s.logger.Infof("An error occurred while processing output for Activity %s, Operation %s, step %s with value %v: %v", activity.Name, operationName, stepName, nodeStatus.Outputs, err)
+					} else if stepChanged {
+						changed = true
+					}
+				}
 			}
-			return nil
+
+			if changed {
+				_, err := s.updateActivity(activity)
+				return err
+			} else {
+				return nil
+			}
 		}
 	default:
 		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
@@ -456,16 +490,19 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 }
 
 func (s iufService) updateActivityOperationOutputFromWorkflow(
-	activity iuf.Activity,
-	session iuf.Session,
+	activity *iuf.Activity,
+	session *iuf.Session,
 	nodeStatus *v1alpha1.NodeStatus,
 	operationName string,
+	stepName string,
 	productKey string,
-) error {
+) (bool, error) {
 	// no-op if there is no outputs
 	if nodeStatus.Outputs == nil {
-		return nil
+		return false, nil
 	}
+
+	changed := false
 	if activity.OperationOutputs == nil {
 		activity.OperationOutputs = make(map[string]interface{})
 	}
@@ -477,69 +514,33 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 		outputStage[operationName] = make(map[string]interface{})
 	}
 	outputOperation := outputStage[operationName].(map[string]interface{})
+
+	if outputOperation[stepName] == nil {
+		outputOperation[stepName] = make(map[string]interface{})
+	}
+	outputStep := outputOperation[stepName].(map[string]interface{})
+
 	if productKey != "" {
-		if outputOperation["products"] == nil {
-			outputOperation["products"] = make(map[string]interface{})
+		if outputStep[productKey] == nil {
+			outputStep[productKey] = make(map[string]interface{})
 		}
-		productOutputOperation := outputOperation["products"].(map[string]interface{})
-
-		if productOutputOperation[productKey] == nil {
-			productOutputOperation[productKey] = make(map[string]interface{})
-		}
-		operationOutputOfProduct := productOutputOperation[productKey].(map[string]interface{})
-
-		if nodeStatus.Outputs.Result != nil {
-			operationOutputOfProduct["script_stdout"] = *(nodeStatus.Outputs.Result)
-		}
+		operationOutputOfProduct := outputStep[productKey].(map[string]interface{})
 
 		for _, param := range nodeStatus.Outputs.Parameters {
 			operationOutputOfProduct[param.Name] = param.Value
+			changed = true
 		}
 
-		productOutputOperation[productKey] = operationOutputOfProduct
-		outputOperation["products"] = productOutputOperation
+		outputStep[productKey] = operationOutputOfProduct
 	} else {
-		if outputOperation["global"] == nil {
-			outputOperation["global"] = make(map[string]interface{})
-		}
-		globalOutputOperation := outputOperation["global"].(map[string]interface{})
-
-		if nodeStatus.Outputs.Result != nil {
-			globalOutputOperation["script_stdout"] = *(nodeStatus.Outputs.Result)
-		}
-
 		for _, param := range nodeStatus.Outputs.Parameters {
-			globalOutputOperation[param.Name] = param.Value
+			outputStep[param.Name] = param.Value
+			changed = true
 		}
-
-		outputOperation["global"] = globalOutputOperation
 	}
-
+	outputOperation[stepName] = outputStep
 	outputStage[operationName] = outputOperation
 	activity.OperationOutputs[session.CurrentStage] = outputStage
 
-	res, _ := yaml.Marshal(*nodeStatus)
-	s.logger.Infof("For activity %s, saving the following parameters from NodeStatus %s", activity.Name, string(res))
-	res, _ = yaml.Marshal(activity)
-	s.logger.Infof("For activity %s, saving the following parameters as Activity %s", activity.Name, string(res))
-
-	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
-	if err != nil {
-		s.logger.Error(err)
-		return err
-	}
-
-	_, err = s.k8sRestClientSet.
-		CoreV1().
-		ConfigMaps(DEFAULT_NAMESPACE).
-		Update(
-			context.TODO(),
-			&configmap,
-			v1.UpdateOptions{},
-		)
-	if err != nil {
-		s.logger.Error(err)
-		return err
-	}
-	return nil
+	return changed, nil
 }
