@@ -178,10 +178,9 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		{
 			Name: "main",
 			DAG: &v1alpha1.DAGTemplate{
-				Tasks: dagTasks,
+				Tasks:    dagTasks,
+				FailFast: &failFast,
 			},
-			Parallelism: &concurrency,
-			FailFast:    &failFast,
 		},
 	}
 
