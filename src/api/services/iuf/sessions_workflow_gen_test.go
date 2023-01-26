@@ -26,7 +26,6 @@ package services_iuf
 
 import (
 	"encoding/json"
-	"fmt"
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
 	"github.com/golang/mock/gomock"
 	"strings"
@@ -95,12 +94,6 @@ func TestWorkflowGen(t *testing.T) {
 
 func TestGetDagTasks(t *testing.T) {
 	activityName, mockAuthToken, iufSvc := setup(t)
-	globalParamsPerProduct := map[string]string{
-		"product":   "product",
-		"cos-1-2-3": "cos-1-2-3",
-		"sdu-3-4-5": "sdu-3-4-5",
-	}
-
 	t.Run("It should get a dag task for per-product stage", func(t *testing.T) {
 		session := iuf.Session{
 			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
@@ -118,7 +111,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
@@ -143,7 +136,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -166,7 +159,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
@@ -192,7 +185,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -242,7 +235,7 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 7, len(dagTasks))
@@ -262,8 +255,9 @@ func TestGetDagTasks(t *testing.T) {
 
 			assert.Equal(t, v1alpha1.AnyStringPtr(mockAuthToken), dagTask.Arguments.GetParameterByName("auth_token").Value)
 
-			productKey := iufSvc.getProductVersionKey(product)
-			assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", productKey)), dagTask.Arguments.GetParameterByName("global_params").Value)
+			globalParams := iufSvc.getGlobalParams(session, product, stages)
+			b, _ := json.Marshal(globalParams)
+			assert.Equal(t, v1alpha1.AnyStringPtr(string(b)), dagTask.Arguments.GetParameterByName("global_params").Value)
 
 			if strings.HasPrefix(dagTask.Name, "cos-1-2-3-pre-hook-pre-install-check") {
 				t.Run("cos pre hook script operation exist and has the right dependencies", func(t *testing.T) {
@@ -361,7 +355,7 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
@@ -376,17 +370,15 @@ func TestGetDagTasks(t *testing.T) {
 			var product iuf.Product
 			if strings.Contains(dagTask.Name, "cos") {
 				product = session.Products[0]
-				productKey := iufSvc.getProductVersionKey(product)
-				assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", productKey)), dagTask.Arguments.GetParameterByName("global_params").Value)
 			} else if strings.Contains(dagTask.Name, "sdu") {
 				product = session.Products[1]
-				productKey := iufSvc.getProductVersionKey(product)
-				assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", productKey)), dagTask.Arguments.GetParameterByName("global_params").Value)
-			} else {
-				assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.global_params}}")), dagTask.Arguments.GetParameterByName("global_params").Value)
 			}
 
 			assert.Equal(t, v1alpha1.AnyStringPtr(mockAuthToken), dagTask.Arguments.GetParameterByName("auth_token").Value)
+
+			globalParams := iufSvc.getGlobalParams(session, product, stages)
+			b, _ := json.Marshal(globalParams)
+			assert.Equal(t, v1alpha1.AnyStringPtr(string(b)), dagTask.Arguments.GetParameterByName("global_params").Value)
 
 			if strings.HasPrefix(dagTask.Name, "cos-1-2-3-pre-hook-pre-install-check") {
 				t.Run("cos pre hook script operation exist and has the right dependencies", func(t *testing.T) {
@@ -499,7 +491,7 @@ func setup(t *testing.T) (string, string, iufService) {
 	}
 	fakeClient := fake.NewSimpleClientset(&configmap)
 
-	mockTokenValue := "{{workflow.parameters.auth_token}}"
+	mockTokenValue := "mock_token"
 	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
 	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
 
