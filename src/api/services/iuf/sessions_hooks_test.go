@@ -49,12 +49,12 @@ func TestGetProductHookTasks(t *testing.T) {
 		"worker-host-hook-script": true,
 	}
 
-	globalParamsPerProduct := map[string][]byte{
-		"cos": []byte("cos_test"),
-		"sdu": []byte("sdu_test"),
+	globalParamsPerProduct := map[string]string{
+		"cos-1-2-3": "cos-1-2-3",
+		"sdu-3-4-5": "sdu-3-4-5",
 	}
 
-	authToken := "fake_auth_token"
+	authToken := "auth_token"
 
 	// we only want to check the length of the preSteps and postSteps.
 	// The actual validation of these is done in individual unit tests below.
@@ -270,12 +270,13 @@ func TestCreateHookDAGTask(t *testing.T) {
 		logger: utils.GetLogger(),
 	}
 
-	globalParamsPerProduct := map[string][]byte{
-		"cos-1-2-3": []byte("cos_test"),
-		"sdu-3-4-5": []byte("sdu_test"),
+	globalParamsPerProduct := map[string]string{
+		"cos-1-2-3": "cos-1-2-3",
+		"sdu-3-4-5": "sdu-3-4-5",
 	}
 
-	authToken := "fake_auth_token"
+	authTokenName := "auth_token"
+	authTokenValue := "{{workflow.parameters.auth_token}}"
 
 	stage := iuf.Stage{
 		Name: "deliver-product",
@@ -297,13 +298,13 @@ func TestCreateHookDAGTask(t *testing.T) {
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "master_host",
 		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
-			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.NoError(t, err)
 		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1-2-3-pre-hook-%s", stage.Name)))
 		assert.Equal(t, "master-host-hook-script", task.TemplateRef.Name)
 		assert.Equal(t, "main", task.TemplateRef.Template)
-		assert.Equal(t, v1alpha1.AnyStringPtr(authToken), task.Arguments.GetParameterByName("auth_token").Value)
-		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos-1-2-3"])), task.Arguments.GetParameterByName("global_params").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(authTokenValue), task.Arguments.GetParameterByName("auth_token").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", globalParamsPerProduct["cos-1-2-3"])), task.Arguments.GetParameterByName("global_params").Value)
 		assert.Equal(t, v1alpha1.AnyStringPtr(filepath.Join(cosOriginalLocation, "/something/something/something/darkside")), task.Arguments.GetParameterByName("script_path").Value)
 	})
 
@@ -312,13 +313,13 @@ func TestCreateHookDAGTask(t *testing.T) {
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "worker_host",
 		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
-			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.NoError(t, err)
 		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1-2-3-post-hook-%s", stage.Name)))
 		assert.Equal(t, "worker-host-hook-script", task.TemplateRef.Name)
 		assert.Equal(t, "main", task.TemplateRef.Template)
-		assert.Equal(t, v1alpha1.AnyStringPtr(authToken), task.Arguments.GetParameterByName("auth_token").Value)
-		assert.Equal(t, v1alpha1.AnyStringPtr(string(globalParamsPerProduct["cos-1-2-3"])), task.Arguments.GetParameterByName("global_params").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(authTokenValue), task.Arguments.GetParameterByName("auth_token").Value)
+		assert.Equal(t, v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", globalParamsPerProduct["cos-1-2-3"])), task.Arguments.GetParameterByName("global_params").Value)
 		assert.Equal(t, v1alpha1.AnyStringPtr(filepath.Join(cosOriginalLocation, "/something/something/something/darkside")), task.Arguments.GetParameterByName("script_path").Value)
 	})
 
@@ -326,7 +327,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "",
 			ExecutionContext: "master_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -334,7 +335,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -342,7 +343,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "storage_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -350,7 +351,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "non_existent_execution_context",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 }

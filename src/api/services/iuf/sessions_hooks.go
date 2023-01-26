@@ -43,7 +43,7 @@ import (
 // gets a map of productName vs hook task for pre-stage and post-stage hooks.
 func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, stages iuf.Stages,
 	allTemplatesByName map[string]bool,
-	globalParamsPerProduct map[string][]byte, authToken string) (preSteps map[string]v1alpha1.DAGTask,
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (preSteps map[string]v1alpha1.DAGTask,
 	postSteps map[string]v1alpha1.DAGTask) {
 
 	if stage.NoHooks {
@@ -58,7 +58,7 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 	for productKey, productHooks := range hooks {
 		hook := productHooks.PreHook
 		if hook.ScriptPath != "" {
-			task, err := s.createHookDAGTask(true, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
+			task, err := s.createHookDAGTask(true, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 			if err == nil {
 				preSteps[productKey] = task
 			} else {
@@ -68,7 +68,7 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 
 		hook = productHooks.PostHook
 		if hook.ScriptPath != "" {
-			task, err := s.createHookDAGTask(false, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, globalParamsPerProduct, authToken)
+			task, err := s.createHookDAGTask(false, hook, productKey, session, stage, stages.Hooks, allTemplatesByName, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 			if err == nil {
 				postSteps[productKey] = task
 			} else {
@@ -136,7 +136,7 @@ func (s iufService) extractPathAndExecutionContext(stageName string, manifest *i
 // creates a DAG task  for a hook
 func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, productKey string, session iuf.Session, stage iuf.Stage,
 	hookTemplateMap map[string]string, allTemplatesByName map[string]bool,
-	globalParamsPerProduct map[string][]byte, authToken string) (v1alpha1.DAGTask, error) {
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (v1alpha1.DAGTask, error) {
 
 	// find the original location
 	var originalLocation string
@@ -181,11 +181,11 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 			Parameters: []v1alpha1.Parameter{
 				{
 					Name:  "auth_token",
-					Value: v1alpha1.AnyStringPtr(authToken),
+					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
 				},
 				{
 					Name:  "global_params",
-					Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[productKey])),
+					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
 				},
 				{
 					Name:  "script_path",
