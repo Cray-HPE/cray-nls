@@ -506,41 +506,52 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	if activity.OperationOutputs == nil {
 		activity.OperationOutputs = make(map[string]interface{})
 	}
-	if activity.OperationOutputs[session.CurrentStage] == nil {
-		activity.OperationOutputs[session.CurrentStage] = make(map[string]interface{})
+
+	if activity.OperationOutputs["stage_params"] == nil {
+		activity.OperationOutputs["stage_params"] = make(map[string]interface{})
 	}
-	outputStage := activity.OperationOutputs[session.CurrentStage].(map[string]interface{})
-	if outputStage[operationName] == nil {
-		outputStage[operationName] = make(map[string]interface{})
+	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
+
+	if stageParams[session.CurrentStage] == nil {
+		stageParams[session.CurrentStage] = make(map[string]interface{})
 	}
-	outputOperation := outputStage[operationName].(map[string]interface{})
+	outputStage := stageParams[session.CurrentStage].(map[string]interface{})
+
+	var outputGlobalOrProduct map[string]interface{}
+
+	if productKey != "" {
+		if outputStage[productKey] == nil {
+			outputStage[productKey] = make(map[string]interface{})
+		}
+		outputGlobalOrProduct = outputStage[productKey].(map[string]interface{})
+	} else {
+		outputGlobalOrProduct = outputStage
+	}
+
+	if outputGlobalOrProduct[operationName] == nil {
+		outputGlobalOrProduct[operationName] = make(map[string]interface{})
+	}
+	outputOperation := outputGlobalOrProduct[operationName].(map[string]interface{})
 
 	if outputOperation[stepName] == nil {
 		outputOperation[stepName] = make(map[string]interface{})
 	}
 	outputStep := outputOperation[stepName].(map[string]interface{})
 
-	if productKey != "" {
-		if outputStep[productKey] == nil {
-			outputStep[productKey] = make(map[string]interface{})
-		}
-		operationOutputOfProduct := outputStep[productKey].(map[string]interface{})
-
-		for _, param := range nodeStatus.Outputs.Parameters {
-			operationOutputOfProduct[param.Name] = param.Value
-			changed = true
-		}
-
-		outputStep[productKey] = operationOutputOfProduct
-	} else {
-		for _, param := range nodeStatus.Outputs.Parameters {
-			outputStep[param.Name] = param.Value
-			changed = true
-		}
+	for _, param := range nodeStatus.Outputs.Parameters {
+		outputStep[param.Name] = param.Value
+		changed = true
 	}
+
 	outputOperation[stepName] = outputStep
-	outputStage[operationName] = outputOperation
-	activity.OperationOutputs[session.CurrentStage] = outputStage
+	outputGlobalOrProduct[operationName] = outputOperation
+	if productKey != "" {
+		outputStage[productKey] = outputGlobalOrProduct
+	} else {
+		outputStage = outputGlobalOrProduct
+	}
+
+	(activity.OperationOutputs["stage_params"].(map[string]interface{}))[session.CurrentStage] = outputStage
 
 	return changed, nil
 }

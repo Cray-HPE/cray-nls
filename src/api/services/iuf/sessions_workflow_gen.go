@@ -99,6 +99,8 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 
 	res.Spec.Parallelism = &concurrency
 
+	// TODO: commenting this out because adding this seems to make the workflows
+	//  go over the resource size limit
 	//retryLimit := intstr.FromInt(3)
 	//retryBackoffFactor := intstr.FromInt(2)
 	//
@@ -113,10 +115,13 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	//}
 
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
+
+	// TODO: commenting this out because adding this seems to make it harder to debug
 	//var secondsAfterSuccess int32 = 60
 	//res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
 	//	SecondsAfterSuccess: &secondsAfterSuccess,
 	//}
+
 	res.Spec.Tolerations = []corev1.Toleration{
 		{
 			Key:      "node-role.kubernetes.io/master",
@@ -238,9 +243,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 	globalParamsPerProduct map[string][]byte, authToken string,
 	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
 
-	// this is a list of all the first steps only from each product. We will modify these to include a dependency
-	// on the last product in order to control concurrency.
-	var initialProductSteps []*v1alpha1.DAGTask
 	var resPtrs []*v1alpha1.DAGTask
 
 	for _, product := range session.Products {
@@ -250,7 +252,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		var lastOpDependency string
 		if exists {
 			lastOpDependency = preStageHook.Name
-			initialProductSteps = append(initialProductSteps, &preStageHook)
 			resPtrs = append(resPtrs, &preStageHook)
 		}
 
@@ -270,8 +271,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				task.Dependencies = []string{
 					lastOpDependency,
 				}
-			} else {
-				initialProductSteps = append(initialProductSteps, &task)
 			}
 
 			lastOpDependency = opName
@@ -302,32 +301,11 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				postStageHook.Dependencies = []string{
 					lastOpDependency,
 				}
-			} else {
-				initialProductSteps = append(initialProductSteps, &postStageHook)
 			}
 
 			resPtrs = append(resPtrs, &postStageHook)
 		}
 	}
-
-	// TODO: disabling the following in favour of parallelism natively supported by Argo above
-	//if session.InputParameters.Concurrency > 0 {
-	//	var lastOpDependencies []string
-	//	var nextOpDependencies []string
-	//	currentCount := 0
-	//	for _, step := range initialProductSteps {
-	//		if currentCount == session.InputParameters.Concurrency {
-	//			lastOpDependencies = nextOpDependencies
-	//			step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-	//			nextOpDependencies = []string{step.Name}
-	//			currentCount = 1
-	//		} else {
-	//			step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-	//			nextOpDependencies = append(nextOpDependencies, step.Name)
-	//			currentCount++
-	//		}
-	//	}
-	//}
 
 	for _, step := range resPtrs {
 		res = append(res, *step)

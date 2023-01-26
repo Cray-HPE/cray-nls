@@ -777,8 +777,8 @@ const docTemplateIUF = `{
                 "stage"
             ],
             "x-enum-varnames": [
-                "Reboot",
-                "Staged"
+                "EManagedRolloutStrategyReboot",
+                "EManagedRolloutStrategyStaged"
             ]
         },
         "iuf.History": {

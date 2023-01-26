@@ -56,8 +56,8 @@ type InputParameters struct {
 type EManagedRolloutStrategy string
 
 const (
-	Reboot EManagedRolloutStrategy = "reboot"
-	Staged EManagedRolloutStrategy = "stage"
+	EManagedRolloutStrategyReboot EManagedRolloutStrategy = "reboot"
+	EManagedRolloutStrategyStaged EManagedRolloutStrategy = "stage"
 )
 
 type SiteParameters struct {
