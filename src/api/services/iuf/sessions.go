@@ -354,7 +354,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 	switch workflow.Labels["stage_type"] {
 	case "product":
 		// first generate a map of all productKeys to Products
-		var productKeyMap map[string]iuf.Product
+		productKeyMap := map[string]iuf.Product{}
 		for _, product := range session.Products {
 			productKeyMap[s.getProductVersionKey(product)] = product
 		}
