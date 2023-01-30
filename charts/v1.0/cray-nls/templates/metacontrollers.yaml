@@ -69,7 +69,7 @@ spec:
       resource: Workflow
       labelSelector:
         matchLabels:
-          iuf: true
+          iuf: "true"
   hooks:
     sync:
       webhook:
