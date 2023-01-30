@@ -142,7 +142,7 @@ func (mr *MockIufServiceMockRecorder) GetStages() *gomock.Call {
 }
 
 // HistoryAbortAction mocks base method.
-func (m *MockIufService) HistoryAbortAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+func (m *MockIufService) HistoryAbortAction(activityName string, req iuf.HistoryAbortRequest) (iuf.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HistoryAbortAction", activityName, req)
 	ret0, _ := ret[0].(iuf.Session)

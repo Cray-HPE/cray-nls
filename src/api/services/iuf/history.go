@@ -149,7 +149,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	return s.CreateSession(session, name, activity)
 }
 
-func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbortRequest) (iuf.Session, error) {
 	// go through the sessions and if there is any session that is not completed or aborted, then mark it as aborted
 	// and terminate its workflows.
 	sessions, err := s.ListSessions(activityName)
@@ -161,7 +161,7 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryActio
 	var errors []error
 	for _, session := range sessions {
 		if session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted {
-			err := s.AbortSession(&session)
+			err := s.AbortSession(&session, req.Force)
 			if err != nil {
 				errors = append(errors, err)
 			}
@@ -174,7 +174,12 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryActio
 	}
 
 	// add a history entry for aborted sessions
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateWaitForAdmin, req.Comment)
+	comment := req.Comment
+	if comment == "" {
+		comment = "Aborted"
+	}
+
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateWaitForAdmin, comment)
 	if err != nil {
 		s.logger.Errorf("HistoryAbortAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
 		return iuf.Session{}, err
@@ -210,8 +215,13 @@ func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActi
 		return iuf.Session{}, err
 	}
 
+	comment := req.Comment
+	if comment == "" {
+		comment = "Paused"
+	}
+
 	// add a history entry for aborted sessions
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStatePaused, req.Comment)
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStatePaused, comment)
 	if err != nil {
 		s.logger.Errorf("HistoryPausedAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
 		return iuf.Session{}, err
@@ -247,8 +257,13 @@ func (s iufService) HistoryResumeAction(activityName string, req iuf.HistoryActi
 		return iuf.Session{}, err
 	}
 
+	comment := req.Comment
+	if comment == "" {
+		comment = "Resumed"
+	}
+
 	// add a history entry for aborted sessions
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateInProgress, req.Comment)
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateInProgress, comment)
 	if err != nil {
 		s.logger.Errorf("HistoryResumeAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
 		return iuf.Session{}, err
@@ -312,8 +327,13 @@ func (s iufService) HistoryBlockedAction(activityName string, req iuf.HistoryAct
 		return iuf.Session{}, err
 	}
 
+	comment := req.Comment
+	if comment == "" {
+		comment = "Blocked"
+	}
+
 	// add a history entry for blocked activity
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateBlocked, req.Comment)
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateBlocked, comment)
 	if err != nil {
 		s.logger.Errorf("HistoryAbortAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
 		return iuf.Session{}, err

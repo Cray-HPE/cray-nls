@@ -128,6 +128,21 @@ func (u IufController) Sync(context *gin.Context) {
 
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
 			u.logger.Infof("Workflow is in failed/error state: %s, resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
+
+			// refresh the session just before we take action on this
+			session, err := u.iufService.GetSession(requestBody.Object.Name)
+			if err != nil {
+				u.logger.Error(err)
+				context.JSON(500, err.Error())
+				return
+			}
+
+			// don't do anything if session has already been aborted.
+			if session.CurrentState == iuf.SessionStateAborted {
+				context.JSON(200, response)
+				return
+			}
+
 			session.CurrentState = iuf.SessionStateDebug
 			err = u.iufService.UpdateSessionAndActivity(session)
 			var response iuf.SyncResponse

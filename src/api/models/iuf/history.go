@@ -42,6 +42,11 @@ type HistoryActionRequest struct {
 	Comment string `json:"comment" validate:"optional"` // Comment
 } //	@name	History.HistoryActionRequest
 
+type HistoryAbortRequest struct {
+	Comment string `json:"comment" validate:"optional"` // Comment
+	Force   bool   `json:"force" validate:"optional"`   // Force terminate Argo workflows non-gracefully
+} //	@name	History.HistoryAbortRequest
+
 type HistoryRunActionRequest struct {
 	InputParameters InputParameters `json:"input_parameters" binding:"required"`
 	SiteParameters  SiteParameters  `json:"site_parameters"`

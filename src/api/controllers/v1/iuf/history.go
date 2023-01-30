@@ -248,7 +248,7 @@ func (u IufController) HistoryPausedAction(c *gin.Context) {
 //	@Success	201	"Created"
 //	@Router		/iuf/v1/activities/{activity_name}/history/abort [post]
 func (u IufController) HistoryAbortAction(c *gin.Context) {
-	var requestBody iuf.HistoryActionRequest
+	var requestBody iuf.HistoryAbortRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: err.Error()}

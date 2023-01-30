@@ -58,7 +58,7 @@ type IufService interface {
 	// history
 	ListActivityHistory(activityName string) ([]iuf.History, error)
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error)
-	HistoryAbortAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
+	HistoryAbortAction(activityName string, req iuf.HistoryAbortRequest) (iuf.Session, error)
 	HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
 	HistoryResumeAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
 	HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)

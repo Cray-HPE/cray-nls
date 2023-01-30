@@ -621,7 +621,7 @@ func (s iufService) ResumeSession(session *iuf.Session) error {
 	}
 }
 
-func (s iufService) AbortSession(session *iuf.Session) error {
+func (s iufService) AbortSession(session *iuf.Session, force bool) error {
 	// first, set session and activity to aborted state
 	session.CurrentState = iuf.SessionStateAborted
 
@@ -629,6 +629,10 @@ func (s iufService) AbortSession(session *iuf.Session) error {
 	if err != nil {
 		s.logger.Errorf("AbortSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
 		return err
+	}
+
+	if !force {
+		return nil
 	}
 
 	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
@@ -646,7 +650,9 @@ func (s iufService) AbortSession(session *iuf.Session) error {
 
 	if len(errors) > 0 {
 		s.logger.Errorf("AbortSession: An error(s) occurred while terminating workflows: %v", errors)
-		return errors[0]
+
+		// we don't want to return error when we had issues terminating
+		return nil
 	} else {
 		return nil
 	}
