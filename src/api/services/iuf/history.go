@@ -161,7 +161,7 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 	var errors []error
 	for _, session := range sessions {
 		if session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted {
-			err := s.AbortSession(&session, true) // change true to req.Force when CLI has support for it
+			err := s.AbortSession(&session, req.Force)
 			if err != nil {
 				errors = append(errors, err)
 			}
