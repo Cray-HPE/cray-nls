@@ -26,6 +26,7 @@
 package iuf
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -34,6 +35,8 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
 )
+
+const RESYNC_TIME_IN_SECONDS = 5
 
 // ListSessions
 //	@Summary	List sessions of an IUF activity
@@ -76,17 +79,17 @@ func (u IufController) GetSession(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (u IufController) Sync(c *gin.Context) {
+func (u IufController) Sync(context *gin.Context) {
 	var requestBody iuf.SyncRequest
-	if err := c.BindJSON(&requestBody); err != nil {
+	if err := context.BindJSON(&requestBody); err != nil {
 		u.logger.Error(err)
-		c.JSON(500, err.Error())
+		context.JSON(500, err.Error())
 		return
 	}
 	session, err := u.iufService.GetSession(requestBody.Object.Name)
 	if err != nil {
 		u.logger.Error(err)
-		c.JSON(500, err.Error())
+		context.JSON(500, err.Error())
 		return
 	}
 	var response iuf.SyncResponse
@@ -95,9 +98,9 @@ func (u IufController) Sync(c *gin.Context) {
 		u.logger.Infof("State is empty, creating workflow: %s, resource version: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion)
 		response, err, _ := u.iufService.RunNextStage(&session)
 		if err != nil {
-			c.JSON(500, err.Error())
+			context.JSON(500, err.Error())
 		}
-		c.JSON(200, response)
+		context.JSON(200, response)
 		return
 	case iuf.SessionStateInProgress:
 		if len(session.Workflows) == 0 {
@@ -105,7 +108,7 @@ func (u IufController) Sync(c *gin.Context) {
 		}
 
 		activeWorkflowInfo := session.Workflows[len(session.Workflows)-1]
-		activeWorkflow, _ := u.workflowService.GetWorkflowByName(activeWorkflowInfo.Id, c)
+		activeWorkflow, _ := u.workflowService.GetWorkflowByName(activeWorkflowInfo.Id, context)
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
 			// set the session back to in progress if the workflow is running.
 			if session.CurrentState != iuf.SessionStateInProgress {
@@ -117,33 +120,38 @@ func (u IufController) Sync(c *gin.Context) {
 
 			u.logger.Infof("Workflow is still running: %s", activeWorkflowInfo.Id)
 			response = iuf.SyncResponse{
-				ResyncAfterSeconds: 5,
+				ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
 			}
-			c.JSON(200, response)
+			context.JSON(200, response)
 			return
 		}
 
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
-			u.logger.Infof("Workflow is in failed/error state: %s,resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
+			u.logger.Infof("Workflow is in failed/error state: %s, resource version: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion)
 			session.CurrentState = iuf.SessionStateDebug
 			err = u.iufService.UpdateSessionAndActivity(session)
 			var response iuf.SyncResponse
 			if err != nil {
 				response = iuf.SyncResponse{
-					ResyncAfterSeconds: 5,
+					ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
 				}
 			} else {
 				response = iuf.SyncResponse{}
 			}
-			c.JSON(200, response)
+			context.JSON(200, response)
 			return
 		}
 
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
+			// this procedure may take a long time and we may get called again. So in the meantime, let's set the session
+			//  state to transitioning
+			session.CurrentState = iuf.SessionStateTransitioning
+			u.iufService.UpdateSession(session)
+
 			err := u.iufService.ProcessOutput(&session, activeWorkflow)
 			if err != nil {
 				u.logger.Error(err)
-				c.JSON(500, err.Error())
+				context.JSON(500, err.Error())
 			}
 
 			u.logger.Infof("Stage: %s is Succeeded, move to next stage", session.CurrentStage)
@@ -152,22 +160,34 @@ func (u IufController) Sync(c *gin.Context) {
 				u.logger.Errorf("Unable to go to next stage: %v", err)
 				// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
 				//  This is the downside of using a non-transactional storage such as CRDs.
-				c.JSON(500, iuf.SyncResponse{})
+				context.JSON(500, iuf.SyncResponse{})
 				return
 			}
 
-			c.JSON(200, response)
+			context.JSON(200, response)
 			return
 		}
-	case iuf.SessionStatePaused, iuf.SessionStateAborted, iuf.SessionStateDebug, iuf.SessionStateCompleted:
-		u.logger.Infof("The session %s is in state: %s", session.Name, session.CurrentState)
+	case iuf.SessionStateTransitioning, iuf.SessionStateAborted, iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
+		u.logger.Infof("The session %s is in state: %s and there is nothing to do", session.Name, session.CurrentState)
 		response = iuf.SyncResponse{}
-		c.JSON(200, response)
+		context.JSON(200, response)
 		return
 	default:
 		err := fmt.Errorf("unknow state: session.CurrentState")
 		u.logger.Error(err)
-		c.JSON(500, utils.ResponseError{Message: err.Error()})
+		context.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
 	}
+}
+
+func (u IufController) WorkflowSync(context *gin.Context) {
+	var requestBody iuf.WorkflowSyncRequest
+	if err := context.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		context.JSON(500, err.Error())
+		return
+	}
+
+	bytes, _ := json.Marshal(requestBody)
+	u.logger.Infof("Received the following workflow sync request: %s", string(bytes))
 }

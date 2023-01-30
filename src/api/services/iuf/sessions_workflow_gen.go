@@ -35,6 +35,7 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
@@ -69,8 +70,12 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		"session":    session.Name,
 		"stage":      stageMetadata.Name,
 		"stage_type": stageMetadata.Type,
+		"iuf":        "true",
 	}
-	res.Spec.PodMetadata = &v1alpha1.Metadata{Annotations: map[string]string{"sidecar.istio.io/inject": "false"}}
+	res.Spec.PodMetadata = &v1alpha1.Metadata{
+		Labels:      map[string]string{"iuf": "true"},
+		Annotations: map[string]string{"sidecar.istio.io/inject": "false"},
+	}
 	hostPathDir := corev1.HostPathDirectory
 	res.Spec.Volumes = []corev1.Volume{
 		{
@@ -99,20 +104,18 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 
 	res.Spec.Parallelism = &concurrency
 
-	// TODO: commenting this out because adding this seems to make the workflows
-	//  go over the resource size limit
-	//retryLimit := intstr.FromInt(3)
-	//retryBackoffFactor := intstr.FromInt(2)
-	//
-	//res.Spec.RetryStrategy = &v1alpha1.RetryStrategy{
-	//	Limit:       &retryLimit,
-	//	RetryPolicy: v1alpha1.RetryPolicyAlways,
-	//	Backoff: &v1alpha1.Backoff{
-	//		Duration:    "1m",
-	//		Factor:      &retryBackoffFactor,
-	//		MaxDuration: "10m",
-	//	},
-	//}
+	retryLimit := intstr.FromInt(3)
+	retryBackoffFactor := intstr.FromInt(2)
+
+	res.Spec.RetryStrategy = &v1alpha1.RetryStrategy{
+		Limit:       &retryLimit,
+		RetryPolicy: v1alpha1.RetryPolicyAlways,
+		Backoff: &v1alpha1.Backoff{
+			Duration:    "1m",
+			Factor:      &retryBackoffFactor,
+			MaxDuration: "10m",
+		},
+	}
 
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 

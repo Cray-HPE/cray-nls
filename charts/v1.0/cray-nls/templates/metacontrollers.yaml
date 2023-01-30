@@ -58,3 +58,20 @@ spec:
       webhook:
         url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/session/sync"
 
+---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: DecoratorController
+metadata:
+  name: iuf-workflows
+spec:
+  resources:
+    - apiVersion: argoproj.io/v1alpha1
+      resource: Workflow
+      labelSelector:
+        matchLabels:
+          iuf: true
+  hooks:
+    sync:
+      webhook:
+        url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/session/workflowsync"
+
