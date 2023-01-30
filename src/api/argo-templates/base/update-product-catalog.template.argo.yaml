@@ -26,6 +26,8 @@ kind: WorkflowTemplate
 metadata:
   name: update-product-catalog-template
   namespace: argo
+  labels:
+    version: "1"
 spec:
   entrypoint: catalog-update
   templates:

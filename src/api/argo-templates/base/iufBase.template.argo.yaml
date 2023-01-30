@@ -26,7 +26,7 @@ kind: WorkflowTemplate
 metadata:
   name: iuf-base-template
   labels:
-    version: "1"
+    version: "2"
 spec:
   entrypoint: shell-script
   templates:
