@@ -142,7 +142,7 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = session.ActivityRef
 	// set completed label so metacontroller won't sync it again
-	if session.CurrentState == iuf.SessionStateCompleted {
+	if session.CurrentState == iuf.SessionStateCompleted || session.CurrentState == iuf.SessionStateAborted {
 		configmap.Labels["completed"] = "true"
 	}
 	_, err = s.k8sRestClientSet.
@@ -179,7 +179,7 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 
 func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) error {
 	var activityState iuf.ActivityState
-	if session.CurrentState == iuf.SessionStateCompleted {
+	if session.CurrentState == iuf.SessionStateCompleted || session.CurrentState == iuf.SessionStateAborted {
 		activityState = iuf.ActivityStateWaitForAdmin
 	} else {
 		activityState = iuf.ActivityState(session.CurrentState)
@@ -554,4 +554,35 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	(activity.OperationOutputs["stage_params"].(map[string]interface{}))[session.CurrentStage] = outputStage
 
 	return changed, nil
+}
+
+func (s iufService) AbortSession(session *iuf.Session) error {
+	// first, set session and activity to aborted state
+	session.CurrentState = iuf.SessionStateAborted
+
+	err := s.UpdateSessionAndActivity(*session)
+	if err != nil {
+		s.logger.Errorf("AbortSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		return err
+	}
+
+	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.TerminateWorkflow(context.TODO(), &workflow.WorkflowTerminateRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("AbortSession: An error(s) occurred while terminating workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
 }

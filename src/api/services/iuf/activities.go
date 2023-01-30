@@ -73,18 +73,28 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 	}
 
 	// store history
-	name := utils.GenerateName(activity.Name)
-	iufHistory := iuf.History{
-		ActivityState: iuf.ActivityStateWaitForAdmin,
-		StartTime:     int32(time.Now().UnixMilli()),
-		Name:          name,
-	}
-	configmap, err = s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
+	err = s.CreateHistoryEntry(activity.Name, iuf.ActivityStateWaitForAdmin, "Activity created")
 	if err != nil {
-		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
-	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
+
+	return activity, nil
+}
+
+func (s iufService) CreateHistoryEntry(activityName string, activityState iuf.ActivityState, comment string) error {
+	name := utils.GenerateName(activityName)
+	iufHistory := iuf.History{
+		ActivityState: activityState,
+		StartTime:     int32(time.Now().UnixMilli()),
+		Name:          name,
+		Comment:       comment,
+	}
+	configmap, err := s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
+	configmap.Labels[LABEL_ACTIVITY_REF] = activityName
 	_, err = s.k8sRestClientSet.
 		CoreV1().
 		ConfigMaps(DEFAULT_NAMESPACE).
@@ -93,8 +103,12 @@ func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity,
 			&configmap,
 			v1.CreateOptions{},
 		)
+	if err != nil {
+		s.logger.Error(err)
+		return err
+	}
 
-	return activity, err
+	return nil
 }
 
 func (s iufService) GetActivity(name string) (iuf.Activity, error) {

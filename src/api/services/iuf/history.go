@@ -149,6 +149,60 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	return s.CreateSession(session, name, activity)
 }
 
+func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	// go through the sessions and if there is any session that is not completed or aborted, then mark it as aborted
+	// and terminate its workflows.
+	sessions, err := s.ListSessions(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryAbortAction: An error occurred while listing sessions for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	var errors []error
+	for _, session := range sessions {
+		if session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted {
+			err := s.AbortSession(&session)
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("HistoryAbortAction: An error(s) occurred while aborting sessions for activity %s: %v", activityName, errors)
+		return iuf.Session{}, err
+	}
+
+	// add a history entry for aborted sessions
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateWaitForAdmin, req.Comment)
+	if err != nil {
+		s.logger.Errorf("HistoryAbortAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	if len(sessions) > 0 {
+		return sessions[len(sessions)-1], nil
+	} else {
+		return iuf.Session{}, nil
+	}
+}
+
+func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	return iuf.Session{}, nil
+}
+
+func (s iufService) HistoryResumeAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	return iuf.Session{}, nil
+}
+
+func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	return iuf.Session{}, nil
+}
+
+func (s iufService) HistoryBlockedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	return iuf.Session{}, nil
+}
+
 func (s iufService) configMapDataToHistory(data string) (iuf.History, error) {
 	var res iuf.History
 	err := json.Unmarshal([]byte(data), &res)

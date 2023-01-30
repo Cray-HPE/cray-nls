@@ -165,10 +165,23 @@ func (u IufController) HistoryRunAction(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Success	201	"Created"
-//	@Failure	501	"Not Implemented"
 //	@Router		/iuf/v1/activities/{activity_name}/history/blocked [post]
 func (u IufController) HistoryBlockedAction(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.HistoryActionRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.HistoryBlockedAction(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusCreated, res)
 }
 
 // HistoryResumeAction
@@ -179,10 +192,23 @@ func (u IufController) HistoryBlockedAction(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Success	201	"Created"
-//	@Failure	501	"Not Implemented"
 //	@Router		/iuf/v1/activities/{activity_name}/history/resume [post]
 func (u IufController) HistoryResumeAction(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.HistoryActionRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.HistoryResumeAction(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusCreated, res)
 }
 
 // HistoryPausedAction
@@ -193,10 +219,23 @@ func (u IufController) HistoryResumeAction(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Success	201	"Created"
-//	@Failure	501	"Not Implemented"
 //	@Router		/iuf/v1/activities/{activity_name}/history/paused [post]
 func (u IufController) HistoryPausedAction(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.HistoryActionRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.HistoryPausedAction(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusCreated, res)
 }
 
 // HistoryAbortAction
@@ -207,8 +246,21 @@ func (u IufController) HistoryPausedAction(c *gin.Context) {
 //	@Accept		json
 //	@Produce	json
 //	@Success	201	"Created"
-//	@Failure	501	"Not Implemented"
 //	@Router		/iuf/v1/activities/{activity_name}/history/abort [post]
 func (u IufController) HistoryAbortAction(c *gin.Context) {
-	c.JSON(501, "not implemented")
+	var requestBody iuf.HistoryActionRequest
+	if err := c.BindJSON(&requestBody); err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusBadRequest, errResponse)
+		return
+	}
+	res, err := u.iufService.HistoryAbortAction(c.Param("activity_name"), requestBody)
+	if err != nil {
+		u.logger.Error(err)
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, errResponse)
+		return
+	}
+	c.JSON(http.StatusCreated, res)
 }

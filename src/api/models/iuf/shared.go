@@ -26,16 +26,11 @@
 package iuf
 
 type Product struct {
-	// The name of the product
-	Name string `json:"name" validate:"required"`
-	// The version of the product.
-	Version string `json:"version" validate:"required"`
-	// The original location of the extracted tar in on the physical storage.
-	OriginalLocation string `json:"original_location"  validate:"required"`
-	// The flag indicates md5 of a product tarball file has been validated
-	Validated bool `json:"validated"  validate:"required"`
-	// the content of manifest
-	Manifest string `json:"manifest"`
+	Name             string `json:"name" validate:"required"`               // The name of the product
+	Version          string `json:"version" validate:"required"`            // The version of the product.
+	OriginalLocation string `json:"original_location"  validate:"required"` // The original location of the extracted tar in on the physical storage.
+	Validated        bool   `json:"validated"  validate:"required"`         // The flag indicates md5 of a product tarball file has been validated
+	Manifest         string `json:"manifest"`                               // the content of manifest
 } //	@name	Product
 
 type InputParameters struct {

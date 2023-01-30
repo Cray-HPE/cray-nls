@@ -39,8 +39,7 @@ type ReplaceHistoryCommentRequest struct {
 } //	@name	History.ReplaceHistoryCommentRequest
 
 type HistoryActionRequest struct {
-	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
-	Comment   string `json:"comment" validate:"optional"`    // Comment
+	Comment string `json:"comment" validate:"optional"` // Comment
 } //	@name	History.HistoryActionRequest
 
 type HistoryRunActionRequest struct {

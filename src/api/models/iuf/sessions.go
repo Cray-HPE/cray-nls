@@ -33,7 +33,7 @@ import (
 type Session struct {
 	InputParameters InputParameters   `json:"input_parameters"`
 	SiteParameters  SiteParameters    `json:"site_parameters"`
-	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
+	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed,aborted"`
 	CurrentStage    string            `json:"stage"`
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
@@ -48,6 +48,7 @@ const (
 	SessionStatePaused     SessionState = "paused"
 	SessionStateDebug      SessionState = "debug"
 	SessionStateCompleted  SessionState = "completed"
+	SessionStateAborted    SessionState = "aborted"
 )
 
 type SessionWorkflow struct {
