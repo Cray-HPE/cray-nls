@@ -987,6 +987,7 @@ const docTemplateIUF = `{
             "type": "string",
             "enum": [
                 "in_progress",
+                "transitioning",
                 "paused",
                 "debug",
                 "completed",
@@ -994,6 +995,7 @@ const docTemplateIUF = `{
             ],
             "x-enum-varnames": [
                 "SessionStateInProgress",
+                "SessionStateTransitioning",
                 "SessionStatePaused",
                 "SessionStateDebug",
                 "SessionStateCompleted",

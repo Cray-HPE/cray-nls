@@ -249,6 +249,7 @@ definitions:
   iuf.SessionState:
     enum:
     - in_progress
+    - transitioning
     - paused
     - debug
     - completed
@@ -256,6 +257,7 @@ definitions:
     type: string
     x-enum-varnames:
     - SessionStateInProgress
+    - SessionStateTransitioning
     - SessionStatePaused
     - SessionStateDebug
     - SessionStateCompleted
