@@ -188,11 +188,77 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryActio
 }
 
 func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
-	return iuf.Session{}, nil
+	// go through the sessions and if there is any session that is in_progress state, then mark it as paused
+	sessions, err := s.ListSessions(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryPausedAction: An error occurred while listing sessions for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	var errors []error
+	for _, session := range sessions {
+		if session.CurrentState == iuf.SessionStateInProgress {
+			err := s.PauseSession(&session)
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("HistoryPausedAction: An error(s) occurred while aborting sessions for activity %s: %v", activityName, errors)
+		return iuf.Session{}, err
+	}
+
+	// add a history entry for aborted sessions
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStatePaused, req.Comment)
+	if err != nil {
+		s.logger.Errorf("HistoryPausedAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	if len(sessions) > 0 {
+		return sessions[len(sessions)-1], nil
+	} else {
+		return iuf.Session{}, nil
+	}
 }
 
 func (s iufService) HistoryResumeAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
-	return iuf.Session{}, nil
+	// go through the sessions and if there is any session that is in_progress state, then mark it as paused
+	sessions, err := s.ListSessions(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryResumeAction: An error occurred while listing sessions for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	var errors []error
+	for _, session := range sessions {
+		if session.CurrentState == iuf.SessionStatePaused {
+			err := s.ResumeSession(&session)
+			if err != nil {
+				errors = append(errors, err)
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("HistoryResumeAction: An error(s) occurred while aborting sessions for activity %s: %v", activityName, errors)
+		return iuf.Session{}, err
+	}
+
+	// add a history entry for aborted sessions
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateInProgress, req.Comment)
+	if err != nil {
+		s.logger.Errorf("HistoryResumeAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	if len(sessions) > 0 {
+		return sessions[len(sessions)-1], nil
+	} else {
+		return iuf.Session{}, nil
+	}
 }
 
 func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {

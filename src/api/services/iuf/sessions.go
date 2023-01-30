@@ -559,6 +559,68 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	return changed, nil
 }
 
+func (s iufService) PauseSession(session *iuf.Session) error {
+	// first, set session and activity to aborted state
+	session.CurrentState = iuf.SessionStatePaused
+
+	err := s.UpdateSessionAndActivity(*session)
+	if err != nil {
+		s.logger.Errorf("PauseSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		return err
+	}
+
+	// now pause the workflows
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.SuspendWorkflow(context.TODO(), &workflow.WorkflowSuspendRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("PauseSession: An error(s) occurred while terminating workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
+}
+
+func (s iufService) ResumeSession(session *iuf.Session) error {
+	// set session and activity to aborted state
+	session.CurrentState = iuf.SessionStateInProgress
+
+	err := s.UpdateSessionAndActivity(*session)
+	if err != nil {
+		s.logger.Errorf("ResumeSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		return err
+	}
+
+	// now resume the workflows
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("ResumeSession: An error(s) occurred while terminating workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
+}
+
 func (s iufService) AbortSession(session *iuf.Session) error {
 	// first, set session and activity to aborted state
 	session.CurrentState = iuf.SessionStateAborted
