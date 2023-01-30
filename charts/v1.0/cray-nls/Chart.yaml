@@ -24,7 +24,7 @@
 
 apiVersion: v2
 name: "cray-nls"
-version: 1.4.47-debug3
+version: 1.4.47-debug4
 description: "Kubernetes resources for cray-nls"
 home: "https://github.com/Cray-HPE/cray-nls-charts"
 sources:
