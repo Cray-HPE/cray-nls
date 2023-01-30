@@ -240,8 +240,8 @@ func (u IufController) HistoryPausedAction(c *gin.Context) {
 
 // HistoryAbortAction
 //	@Summary	Abort a session
-//	@Param		activity_name	path	string						true	"activity name"
-//	@Param		action_request	body	iuf.HistoryActionRequest	true	"Action Request"
+//	@Param		activity_name	path	string					true	"activity name"
+//	@Param		action_request	body	iuf.HistoryAbortRequest	true	"Abort Request"
 //	@Tags		History
 //	@Accept		json
 //	@Produce	json

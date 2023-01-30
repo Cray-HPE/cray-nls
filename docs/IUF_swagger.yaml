@@ -101,6 +101,15 @@ definitions:
     required:
     - activity_state
     type: object
+  iuf.HistoryAbortRequest:
+    properties:
+      comment:
+        description: Comment
+        type: string
+      force:
+        description: Force terminate Argo workflows non-gracefully
+        type: boolean
+    type: object
   iuf.HistoryActionRequest:
     properties:
       comment:
@@ -542,12 +551,12 @@ paths:
         name: activity_name
         required: true
         type: string
-      - description: Action Request
+      - description: Abort Request
         in: body
         name: action_request
         required: true
         schema:
-          $ref: '#/definitions/iuf.HistoryActionRequest'
+          $ref: '#/definitions/iuf.HistoryAbortRequest'
       produces:
       - application/json
       responses:

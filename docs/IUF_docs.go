@@ -241,12 +241,12 @@ const docTemplateIUF = `{
                         "required": true
                     },
                     {
-                        "description": "Action Request",
+                        "description": "Abort Request",
                         "name": "action_request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/iuf.HistoryActionRequest"
+                            "$ref": "#/definitions/iuf.HistoryAbortRequest"
                         }
                     }
                 ],
@@ -780,6 +780,19 @@ const docTemplateIUF = `{
                 "start_time": {
                     "description": "Epoch timestamp",
                     "type": "integer"
+                }
+            }
+        },
+        "iuf.HistoryAbortRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                },
+                "force": {
+                    "description": "Force terminate Argo workflows non-gracefully",
+                    "type": "boolean"
                 }
             }
         },
