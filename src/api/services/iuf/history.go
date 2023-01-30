@@ -200,7 +200,60 @@ func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryAct
 }
 
 func (s iufService) HistoryBlockedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
-	return iuf.Session{}, nil
+	// this is only allowed when activity is in debug, paused, or wait_for_admin state.
+	activity, err := s.GetActivity(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryBlockedAction: An error occurred while fetching activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	sessions, err := s.ListSessions(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryBlockedAction: An error occurred while listing sessions for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	// there shouldn't be any running sessions
+	var lastSession iuf.Session
+	for _, session := range sessions {
+		if session.CurrentState == iuf.SessionStateInProgress || session.CurrentState == iuf.SessionStatePaused {
+			err = utils.GenericError{
+				Message: fmt.Sprintf("HistoryBlockedAction: For the activity %s, there is currently an session %s that is in state %s.", activityName, session.Name, session.CurrentStage),
+			}
+			s.logger.Error(err)
+			return iuf.Session{}, err
+		}
+
+		lastSession = session
+	}
+
+	switch activity.ActivityState {
+	case iuf.ActivityStateWaitForAdmin, iuf.ActivityStateDebug:
+		activity.ActivityState = iuf.ActivityStateBlocked
+		_, err := s.updateActivity(activity)
+		if err != nil {
+			s.logger.Errorf("HistoryBlockedAction: An error occured while updating activity %s to be in blocked state.", activityName)
+			return iuf.Session{}, err
+		}
+	case iuf.ActivityStateBlocked:
+		// noop
+		return lastSession, nil
+	default:
+		err = utils.GenericError{
+			Message: fmt.Sprintf("HistoryBlockedAction: The activity %s must be in debug or wait_for_admin state for it to be marked as blocked. Currently, it is in %s: %v", activityName, activity.ActivityState, activity.ActivityState),
+		}
+		s.logger.Error(err)
+		return iuf.Session{}, err
+	}
+
+	// add a history entry for blocked activity
+	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateBlocked, req.Comment)
+	if err != nil {
+		s.logger.Errorf("HistoryAbortAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	return lastSession, nil
 }
 
 func (s iufService) configMapDataToHistory(data string) (iuf.History, error) {
