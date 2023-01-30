@@ -67,12 +67,17 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 
 	res.ObjectMeta.Labels = map[string]string{
 		"session":    session.Name,
+		"activity":   session.ActivityRef,
 		"stage":      stageMetadata.Name,
 		"stage_type": stageMetadata.Type,
 		"iuf":        "true",
 	}
 	res.Spec.PodMetadata = &v1alpha1.Metadata{
-		Labels:      map[string]string{"iuf": "true"},
+		Labels: map[string]string{
+			"iuf":      "true",
+			"session":  session.Name,
+			"activity": session.ActivityRef,
+		},
 		Annotations: map[string]string{"sidecar.istio.io/inject": "false"},
 	}
 	hostPathDir := corev1.HostPathDirectory
