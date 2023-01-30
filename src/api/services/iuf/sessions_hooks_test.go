@@ -358,7 +358,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 
 // don't change these -- you will break the tests...
 
-const cosOriginalLocation = "/opt/cray/iuf/test-activity/cos-123"
+const cosOriginalLocation = "/etc/cray/upgrade/csm/test-activity/cos-123"
 const cosManifest = `
 ---
 iuf_version: ^0.5.0
@@ -379,7 +379,7 @@ hooks:
       execution_context: storage_host
 `
 
-const sduOriginalLocation = "/opt/cray/iuf/test-activity/sdu-345"
+const sduOriginalLocation = "/etc/cray/upgrade/csm/test-activity/sdu-345"
 const sduManifest = `
 ---
 iuf_version: ^0.5.0
@@ -421,7 +421,7 @@ hooks:
       script_path: hooks/post-update-vcs-config.sh
 `
 
-const incorrectSchemaOriginalLocation = "/opt/cray/iuf/test-activity/incorrectSchema-345"
+const incorrectSchemaOriginalLocation = "/etc/cray/upgrade/csm/test-activity/incorrectSchema-345"
 const incorrectSchemaManifest = `
 ---
 iuf_version: ^0.5.0
@@ -431,7 +431,7 @@ hooks:
   deploy_product: ""
 `
 
-const incorrectYamlSyntaxOriginalLocation = "/opt/cray/iuf/test-activity/incorrectYamlSyntax-345"
+const incorrectYamlSyntaxOriginalLocation = "/etc/cray/upgrade/csm/test-activity/incorrectYamlSyntax-345"
 const incorrectYamlSyntaxManifest = `
 ---
 iuf_version: ^0.5.0

@@ -58,7 +58,7 @@ func NewEnv(log Logger) Env {
 
 	// for the intiial realse, this is hard coded
 	if len(env.MediaDirBase) == 0 {
-		env.MediaDirBase = "/opt/cray/iuf"
+		env.MediaDirBase = "/etc/cray/upgrade/csm"
 	}
 
 	log.Infof("%+v \n", env)
