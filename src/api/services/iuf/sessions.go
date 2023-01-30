@@ -470,11 +470,14 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 		}
 		jsonManifest, _ := json.Marshal(manifest)
 		if manifest["name"] != nil && manifest["version"] != nil {
+			// normalize the product version so that we force-follow semver format
+			productVersion := s.normalizeProductVersion(fmt.Sprintf("%v", manifest["version"]))
+			manifest["version"] = productVersion
 			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
 			// add product to activity object
 			activity.Products = append(activity.Products, iuf.Product{
 				Name:             fmt.Sprintf("%v", manifest["name"]),
-				Version:          fmt.Sprintf("%v", manifest["version"]),
+				Version:          productVersion,
 				Validated:        validated,
 				Manifest:         string(jsonManifest),
 				OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),

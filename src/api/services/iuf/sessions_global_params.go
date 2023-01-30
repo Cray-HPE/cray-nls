@@ -50,7 +50,12 @@ func (s iufService) getProductVersionKey(product iuf.Product) string {
 }
 
 func (s iufService) getProductVersionKeyFromNameAndVersion(name string, version string) string {
-	return strings.ReplaceAll(name+"-"+version, ".", "-")
+	return strings.ReplaceAll(name+"-"+s.normalizeProductVersion(version), ".", "-")
+}
+
+//normalizeProductVersion normalize the product version so that we force-follow semver format
+func (s iufService) normalizeProductVersion(version string) string {
+	return strings.ReplaceAll(version, "_", "-")
 }
 
 func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_product iuf.Product) map[string]interface{} {
@@ -63,6 +68,9 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 		json.Unmarshal(manifestJsonBytes, &manifestJson)
 		if s.getProductVersionKey(product) == s.getProductVersionKey(in_product) {
 			currentProductManifest = manifestJson
+		}
+		if manifestJson["version"] != nil {
+			manifestJson["version"] = s.normalizeProductVersion(manifestJson["version"].(string))
 		}
 		resProducts[s.getProductVersionKey(product)] = map[string]interface{}{
 			"manifest":          manifestJson,
