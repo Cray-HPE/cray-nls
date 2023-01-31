@@ -45,9 +45,11 @@ import (
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/activities/{activity_name}/history [get]
 func (u IufController) ListHistory(c *gin.Context) {
-	res, err := u.iufService.ListActivityHistory(c.Param("activity_name"))
+	activityName := c.Param("activity_name")
+	u.logger.Infof("ListHistory: received request for activity %s with params %#v", activityName, c.Request.Form)
+	res, err := u.iufService.ListActivityHistory(activityName)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("ListHistory: An error occurred listing history for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -67,22 +69,26 @@ func (u IufController) ListHistory(c *gin.Context) {
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/activities/{activity_name}/history/{start_time} [get]
 func (u IufController) GetHistory(c *gin.Context) {
-	startTime, err := strconv.Atoi(c.Param("start_time"))
+	startTimeParam := c.Param("start_time")
+	activityName := c.Param("activity_name")
+	u.logger.Infof("GetHistory: received request for activity %s and start time %v with params %#v", activityName, startTimeParam, c.Request.Form)
+
+	startTime, err := strconv.Atoi(startTimeParam)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("GetHistory: An error occurred parsing start time %v for activity %s: %v", startTimeParam, activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.GetActivityHistory(c.Param("activity_name"), int32(startTime))
+	res, err := u.iufService.GetActivityHistory(activityName, int32(startTime))
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("GetHistory: An error occurred getting history for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
 	}
 	if res.StartTime == 0 {
-		err := fmt.Errorf("history with start_time:%d not found", startTime)
+		err := fmt.Errorf("GetHistory: An error occurred because getting history with start_time %d was not found for activity %s", startTime, activityName)
 		u.logger.Error(err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusNotFound, errResponse)
@@ -105,23 +111,27 @@ func (u IufController) GetHistory(c *gin.Context) {
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/activities/{activity_name}/history/{start_time} [patch]
 func (u IufController) ReplaceHistoryComment(c *gin.Context) {
-	startTime, err := strconv.Atoi(c.Param("start_time"))
+	startTimeParam := c.Param("start_time")
+	activityName := c.Param("activity_name")
+	u.logger.Infof("ReplaceHistoryComment: received request for activity %s and start time %v with params %#v", activityName, startTimeParam, c.Request.Form)
+
+	startTime, err := strconv.Atoi(startTimeParam)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("ReplaceHistoryComment: An error occurred parsing start time %v for activity %s: %v", startTimeParam, activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
 	var requestBody iuf.ReplaceHistoryCommentRequest
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("ReplaceHistoryComment: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.ReplaceHistoryComment(c.Param("activity_name"), int32(startTime), requestBody)
+	res, err := u.iufService.ReplaceHistoryComment(activityName, int32(startTime), requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("ReplaceHistoryComment: An error occurred replacing history comment for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -140,16 +150,19 @@ func (u IufController) ReplaceHistoryComment(c *gin.Context) {
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/activities/{activity_name}/history/run [post]
 func (u IufController) HistoryRunAction(c *gin.Context) {
+	activityName := c.Param("activity_name")
+	u.logger.Infof("HistoryRunAction: received request for activity %s with params %#v", activityName, c.Request.Form)
+
 	var requestBody iuf.HistoryRunActionRequest
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryRunAction: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.HistoryRunAction(c.Param("activity_name"), requestBody)
+	res, err := u.iufService.HistoryRunAction(activityName, requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryRunAction: An error occurred during run for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -168,15 +181,17 @@ func (u IufController) HistoryRunAction(c *gin.Context) {
 //	@Router		/iuf/v1/activities/{activity_name}/history/blocked [post]
 func (u IufController) HistoryBlockedAction(c *gin.Context) {
 	var requestBody iuf.HistoryActionRequest
+	activityName := c.Param("activity_name")
+	u.logger.Infof("HistoryBlockedAction: received request for activity %s with params %#v", activityName, c.Request.Form)
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryBlockedAction: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.HistoryBlockedAction(c.Param("activity_name"), requestBody)
+	res, err := u.iufService.HistoryBlockedAction(activityName, requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryBlockedAction: An error occurred calling blocked action for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -195,15 +210,19 @@ func (u IufController) HistoryBlockedAction(c *gin.Context) {
 //	@Router		/iuf/v1/activities/{activity_name}/history/resume [post]
 func (u IufController) HistoryResumeAction(c *gin.Context) {
 	var requestBody iuf.HistoryActionRequest
+	activityName := c.Param("activity_name")
+	u.logger.Infof("HistoryResumeAction: received request for activity %s with params %#v", activityName, c.Request.Form)
+
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryResumeAction: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.HistoryResumeAction(c.Param("activity_name"), requestBody)
+
+	res, err := u.iufService.HistoryResumeAction(activityName, requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryResumeAction: An error occurred calling resume action for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -222,15 +241,19 @@ func (u IufController) HistoryResumeAction(c *gin.Context) {
 //	@Router		/iuf/v1/activities/{activity_name}/history/paused [post]
 func (u IufController) HistoryPausedAction(c *gin.Context) {
 	var requestBody iuf.HistoryActionRequest
+	activityName := c.Param("activity_name")
+	u.logger.Infof("HistoryPausedAction: received request for activity %s with params %#v", activityName, c.Request.Form)
+
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryPausedAction: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.HistoryPausedAction(c.Param("activity_name"), requestBody)
+
+	res, err := u.iufService.HistoryPausedAction(activityName, requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryPausedAction: An error occurred calling resume action for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
@@ -249,15 +272,18 @@ func (u IufController) HistoryPausedAction(c *gin.Context) {
 //	@Router		/iuf/v1/activities/{activity_name}/history/abort [post]
 func (u IufController) HistoryAbortAction(c *gin.Context) {
 	var requestBody iuf.HistoryAbortRequest
+	activityName := c.Param("activity_name")
+	u.logger.Infof("HistoryAbortAction: received request for activity %s with params %#v", activityName, c.Request.Form)
+
 	if err := c.BindJSON(&requestBody); err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryAbortAction: An error occurred parsing request body for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
-	res, err := u.iufService.HistoryAbortAction(c.Param("activity_name"), requestBody)
+	res, err := u.iufService.HistoryAbortAction(activityName, requestBody)
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("HistoryAbortAction: An error occurred calling resume action for activity %s: %v", activityName, err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return

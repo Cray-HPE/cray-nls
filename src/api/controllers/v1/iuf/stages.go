@@ -41,11 +41,12 @@ import (
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/stages [get]
 func (u IufController) GetStages(c *gin.Context) {
+	u.logger.Infof("GetStages: received request with params %#v", c.Request.Form)
 
 	res, err := u.iufService.GetStages()
 
 	if err != nil {
-		u.logger.Error(err)
+		u.logger.Errorf("GetStages: An error occurred getting stages: %v", err)
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, errResponse)
 		return
