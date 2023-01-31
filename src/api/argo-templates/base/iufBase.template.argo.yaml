@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,26 @@ spec:
       inputs:
        parameters:
          - name: scriptContent
+           description: >
+             The content of the script that will be run
          - name: dryRun
+           description: >
+             A flag indicating whether to run the script or not.
+             True means do not run the script merely output it to a file.
+         - name: script_output_file
+           value: "/tmp/script_output"
+           description: >
+             The file containing any output the script chooses to write.
+             Writing to this file is optional.
+             This file's name is stored in the environment variable SCRIPT_OUTPUT_FILE,
+             which is accessible to the script.
+      outputs:
+        parameters:
+          - name: output
+            description: >
+              Output from the script
+            valueFrom:
+              path: "{{inputs.parameters.script_output_file}}"
       metadata:
         annotations:
           sidecar.istio.io/inject: "false"
@@ -46,9 +65,7 @@ spec:
          factor: "2"
          maxDuration: "1m"
       script:
-        # use portainer/kubectl-shell that has:
-        #  - kubectl, craycli, loftsman, git, manifestgen, and more
-        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.1.1
+        image: artifactory.algol60.net/csm-docker/stable/iuf:v0.1.2
         command: [sh]
         source: |
           #!/host_usr_bin/bash
@@ -98,6 +115,10 @@ spec:
           export CRAY_CREDENTIALS=/tmp/setup-token.json
           cray init --hostname $API_GW --no-auth --overwrite > /dev/null
 
+          # Create the output file.
+          touch {{inputs.parameters.script_output_file}}
+
+          # Run the script
           {{inputs.parameters.scriptContent}}
           EOF2
           chmod +x /tmp/${ts}.sh
@@ -110,6 +131,9 @@ spec:
           else
             bash -e /tmp/${ts}.sh
           fi
+        env:
+          - name: SCRIPT_OUTPUT_FILE
+            value: "{{inputs.parameters.script_output_file}}"
         volumeMounts:
           # mount csi from host to docker
           # csi is go compiled so it can be used from host to container
