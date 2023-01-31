@@ -51,11 +51,16 @@ func (s IufRoutes) Setup() {
 		api.GET("/activities/:activity_name/history", s.iufController.ListHistory)
 		api.GET("/activities/:activity_name/history/:start_time", s.iufController.GetHistory)
 		api.POST("/activities/:activity_name/history/run", s.iufController.HistoryRunAction)
+		api.POST("/activities/:activity_name/history/abort", s.iufController.HistoryAbortAction)
+		api.POST("/activities/:activity_name/history/blocked", s.iufController.HistoryBlockedAction)
+		api.POST("/activities/:activity_name/history/paused", s.iufController.HistoryPausedAction)
+		api.POST("/activities/:activity_name/history/resume", s.iufController.HistoryResumeAction)
 		api.PATCH("/activities/:activity_name/history/:start_time", s.iufController.ReplaceHistoryComment)
 		// session CRUD
 		api.GET("/activities/:activity_name/sessions", s.iufController.ListSessions)
 		api.GET("/activities/:activity_name/sessions/:session_name", s.iufController.GetSession)
 		api.POST("/session/sync", s.iufController.Sync)
+		api.POST("/session/workflowsync", s.iufController.WorkflowSync)
 		// stages
 		api.GET("/stages", s.iufController.GetStages)
 	}

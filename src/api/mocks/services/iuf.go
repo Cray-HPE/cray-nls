@@ -141,6 +141,81 @@ func (mr *MockIufServiceMockRecorder) GetStages() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStages", reflect.TypeOf((*MockIufService)(nil).GetStages))
 }
 
+// HistoryAbortAction mocks base method.
+func (m *MockIufService) HistoryAbortAction(activityName string, req iuf.HistoryAbortRequest) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HistoryAbortAction", activityName, req)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HistoryAbortAction indicates an expected call of HistoryAbortAction.
+func (mr *MockIufServiceMockRecorder) HistoryAbortAction(activityName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryAbortAction", reflect.TypeOf((*MockIufService)(nil).HistoryAbortAction), activityName, req)
+}
+
+// HistoryBlockedAction mocks base method.
+func (m *MockIufService) HistoryBlockedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HistoryBlockedAction", activityName, req)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HistoryBlockedAction indicates an expected call of HistoryBlockedAction.
+func (mr *MockIufServiceMockRecorder) HistoryBlockedAction(activityName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryBlockedAction", reflect.TypeOf((*MockIufService)(nil).HistoryBlockedAction), activityName, req)
+}
+
+// HistoryPausedAction mocks base method.
+func (m *MockIufService) HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HistoryPausedAction", activityName, req)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HistoryPausedAction indicates an expected call of HistoryPausedAction.
+func (mr *MockIufServiceMockRecorder) HistoryPausedAction(activityName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryPausedAction", reflect.TypeOf((*MockIufService)(nil).HistoryPausedAction), activityName, req)
+}
+
+// HistoryRestartAction mocks base method.
+func (m *MockIufService) HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HistoryRestartAction", activityName, req)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HistoryRestartAction indicates an expected call of HistoryRestartAction.
+func (mr *MockIufServiceMockRecorder) HistoryRestartAction(activityName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryRestartAction", reflect.TypeOf((*MockIufService)(nil).HistoryRestartAction), activityName, req)
+}
+
+// HistoryResumeAction mocks base method.
+func (m *MockIufService) HistoryResumeAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HistoryResumeAction", activityName, req)
+	ret0, _ := ret[0].(iuf.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HistoryResumeAction indicates an expected call of HistoryResumeAction.
+func (mr *MockIufServiceMockRecorder) HistoryResumeAction(activityName, req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryResumeAction", reflect.TypeOf((*MockIufService)(nil).HistoryResumeAction), activityName, req)
+}
+
 // HistoryRunAction mocks base method.
 func (m *MockIufService) HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error) {
 	m.ctrl.T.Helper()

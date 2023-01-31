@@ -26,7 +26,7 @@ kind: WorkflowTemplate
 metadata:
   name: iuf-base-template
   labels:
-    version: "1"
+    version: "2"
 spec:
   entrypoint: shell-script
   templates:
@@ -118,4 +118,4 @@ spec:
           - name: ca-bundle
             mountPath: /var/lib/ca-certificates
           - name: iuf
-            mountPath: /opt/cray/iuf
+            mountPath: /etc/cray/upgrade/csm

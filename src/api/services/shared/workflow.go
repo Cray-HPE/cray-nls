@@ -360,7 +360,8 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 		}
 
 		for _, workflowTemplate := range workflowTemplateList.Items {
-			if workflowTemplate.Name == myWorkflowTemplate.Name && myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"] {
+			if workflowTemplate.Name == myWorkflowTemplate.Name && (myWorkflowTemplate.ObjectMeta.Labels == nil || workflowTemplate.ObjectMeta.Labels == nil ||
+				myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"]) {
 				s.logger.Info("workflow template has already been initialized")
 				s.workflowTemplateClient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
 					Namespace: "argo",

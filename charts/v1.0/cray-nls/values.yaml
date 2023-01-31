@@ -52,7 +52,7 @@ cray-service:
         name: iuf-install-workflow-stages-files
     - name: iuf
       hostPath:
-        path: /opt/cray/iuf
+        path: /etc/cray/upgrade/csm
   tolerations:
     - key: "node-role.kubernetes.io/master"
       operator: "Exists"
@@ -100,11 +100,11 @@ cray-service:
           readOnly: true
           mountPath: /workflows/iuf/stages
         - name: iuf
-          mountPath: /opt/cray/iuf
+          mountPath: /etc/cray/upgrade/csm
       name: "cray-nls"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 0.9.15
+        tag: 0.9.16
       resources:
         limits:
           cpu: 1
@@ -135,7 +135,7 @@ cray-service:
         - name: IUF_INSTALL_WORKFLOW_FILES
           value: "/workflows/iuf"
         - name: MEDIA_DIR_BASE
-          value: "/opt/cray/iuf"
+          value: "/etc/cray/upgrade/csm"
       ports:
         - name: http
           containerPort: 3000

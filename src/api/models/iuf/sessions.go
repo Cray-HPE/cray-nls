@@ -26,6 +26,7 @@
 package iuf
 
 import (
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	core_v1 "k8s.io/api/core/v1"
 )
 
@@ -33,7 +34,7 @@ import (
 type Session struct {
 	InputParameters InputParameters   `json:"input_parameters"`
 	SiteParameters  SiteParameters    `json:"site_parameters"`
-	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed"`
+	CurrentState    SessionState      `json:"current_state" enums:"paused,in_progress,debug,completed,aborted"`
 	CurrentStage    string            `json:"stage"`
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
@@ -44,10 +45,12 @@ type Session struct {
 type SessionState string
 
 const (
-	SessionStateInProgress SessionState = "in_progress"
-	SessionStatePaused     SessionState = "paused"
-	SessionStateDebug      SessionState = "debug"
-	SessionStateCompleted  SessionState = "completed"
+	SessionStateInProgress    SessionState = "in_progress"
+	SessionStateTransitioning SessionState = "transitioning"
+	SessionStatePaused        SessionState = "paused"
+	SessionStateDebug         SessionState = "debug"
+	SessionStateCompleted     SessionState = "completed"
+	SessionStateAborted       SessionState = "aborted"
 )
 
 type SessionWorkflow struct {
@@ -57,6 +60,9 @@ type SessionWorkflow struct {
 
 type SyncRequest struct {
 	Object core_v1.ConfigMap `json:"object"`
+}
+type WorkflowSyncRequest struct {
+	Object v1alpha1.Workflow `json:"object"`
 }
 
 type SyncResponse struct {

@@ -26,6 +26,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
   name: sat-general-template
+  labels:
+    version: "1"
 spec:
   entrypoint: sat-wrapper
   templates:

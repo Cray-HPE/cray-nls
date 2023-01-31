@@ -67,10 +67,19 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 
 	res.ObjectMeta.Labels = map[string]string{
 		"session":    session.Name,
+		"activity":   session.ActivityRef,
 		"stage":      stageMetadata.Name,
 		"stage_type": stageMetadata.Type,
+		"iuf":        "true",
 	}
-	res.Spec.PodMetadata = &v1alpha1.Metadata{Annotations: map[string]string{"sidecar.istio.io/inject": "false"}}
+	res.Spec.PodMetadata = &v1alpha1.Metadata{
+		Labels: map[string]string{
+			"iuf":      "true",
+			"session":  session.Name,
+			"activity": session.ActivityRef,
+		},
+		Annotations: map[string]string{"sidecar.istio.io/inject": "false"},
+	}
 	hostPathDir := corev1.HostPathDirectory
 	res.Spec.Volumes = []corev1.Volume{
 		{
@@ -91,7 +100,36 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		},
 	}
 	res.Spec.PodPriorityClassName = "system-node-critical"
+
+	var concurrency int64 = 10 // default concurrency is 10
+	if session.InputParameters.Concurrency > 0 {
+		concurrency = session.InputParameters.Concurrency
+	}
+
+	res.Spec.Parallelism = &concurrency
+
+	// TODO: commenting this out because devs are finding it confusing why tasks are being retried automatically.
+	//retryLimit := intstr.FromInt(3)
+	//retryBackoffFactor := intstr.FromInt(2)
+	//
+	//res.Spec.RetryStrategy = &v1alpha1.RetryStrategy{
+	//	Limit:       &retryLimit,
+	//	RetryPolicy: v1alpha1.RetryPolicyAlways,
+	//	Backoff: &v1alpha1.Backoff{
+	//		Duration:    "1m",
+	//		Factor:      &retryBackoffFactor,
+	//		MaxDuration: "10m",
+	//	},
+	//}
+
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
+
+	// TODO: commenting this out because adding this seems to make it harder to debug
+	//var secondsAfterSuccess int32 = 60
+	//res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
+	//	SecondsAfterSuccess: &secondsAfterSuccess,
+	//}
+
 	res.Spec.Tolerations = []corev1.Toleration{
 		{
 			Key:      "node-role.kubernetes.io/master",
@@ -133,7 +171,44 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	}
 	res.Spec.Entrypoint = "main"
 
-	dagTasks, err := s.getDAGTasks(session, stageMetadata, stagesMetadata)
+	// global stages have product-less global parameters.
+	globalParams := s.getGlobalParams(session, iuf.Product{}, stagesMetadata)
+	globalParamsContent, err := json.Marshal(globalParams)
+	if err != nil {
+		marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not marshal globalParams %v %v", globalParams, err)}
+		s.logger.Error(marshalErr)
+		return v1alpha1.Workflow{}, marshalErr, false
+	}
+
+	globalParamsStr := string(globalParamsContent)
+	const globalParamsName = "global_params"
+
+	// Generate global_params for all products in advance
+	globalParamsPerProduct := map[string]string{}
+	globalParamsNamesPerProduct := map[string]string{}
+	for _, product := range session.Products {
+		productGlobalParams := s.getGlobalParams(session, product, stagesMetadata)
+		b, err := json.Marshal(productGlobalParams)
+		if err != nil {
+			marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not marshal globalParams %v %v", productGlobalParams, err)}
+			s.logger.Error(marshalErr)
+			continue
+		}
+		productKey := s.getProductVersionKey(product)
+		globalParamsPerProduct[productKey] = string(b)
+		globalParamsNamesPerProduct[productKey] = productKey
+	}
+
+	// generate auth token in advance
+	authToken, err := s.keycloakService.NewKeycloakAccessToken()
+	if err != nil {
+		marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not generate authToken %v", err)}
+		s.logger.Error(marshalErr)
+		return v1alpha1.Workflow{}, marshalErr, false
+	}
+	const authTokenName = "auth_token"
+
+	dagTasks, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName)
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err, false
@@ -142,19 +217,48 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		return v1alpha1.Workflow{}, nil, true
 	}
 
+	failFast := false
+
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
 			DAG: &v1alpha1.DAGTemplate{
-				Tasks: dagTasks,
+				Tasks:    dagTasks,
+				FailFast: &failFast,
 			},
 		},
 	}
+
+	var specArgumentsParameters []v1alpha1.Parameter
+	for productKey, globalParams := range globalParamsPerProduct {
+		param := v1alpha1.Parameter{
+			Name:  globalParamsNamesPerProduct[productKey],
+			Value: v1alpha1.AnyStringPtr(globalParams),
+		}
+		specArgumentsParameters = append(specArgumentsParameters, param)
+	}
+
+	specArgumentsParameters = append(specArgumentsParameters, v1alpha1.Parameter{
+		Name:  authTokenName,
+		Value: v1alpha1.AnyStringPtr(authToken),
+	})
+
+	specArgumentsParameters = append(specArgumentsParameters, v1alpha1.Parameter{
+		Name:  globalParamsName,
+		Value: v1alpha1.AnyStringPtr(globalParamsStr),
+	})
+
+	res.Spec.Arguments = v1alpha1.Arguments{
+		Parameters: specArgumentsParameters,
+	}
+
 	return res, nil, false
 }
 
 // Gets DAG tasks for the given session and stage
-func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages) ([]v1alpha1.DAGTask, error) {
+func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameGlobalParamsForGlobalStage string,
+	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
 	s.logger.Infof("create DAG for stage: %s", stage)
@@ -173,30 +277,12 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		existingArgoUploadedTemplateMap[t.Name] = true
 	}
 
-	// Generate global_params for all products in advance
-	globalParamsPerProduct := map[string][]byte{}
-	for _, product := range session.Products {
-		globalParams := s.getGlobalParams(session, product, stages)
-		b, err := json.Marshal(globalParams)
-		if err != nil {
-			s.logger.Error(err)
-			continue
-		}
-		globalParamsPerProduct[s.getProductVersionKey(product)] = b
-	}
-
-	// generate auth token in advance
-	authToken, err := s.keycloakService.NewKeycloakAccessToken()
-	if err != nil {
-		return []v1alpha1.DAGTask{}, err
-	}
-
-	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, existingArgoUploadedTemplateMap, globalParamsPerProduct, authToken)
+	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		res = s.getDAGTasksForProductStage(session, stageInfo, existingArgoUploadedTemplateMap, preSteps, postSteps, globalParamsPerProduct, authToken, res)
+		res = s.getDAGTasksForProductStage(session, stageInfo, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
 	} else {
-		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, authToken, res)
+		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
 	}
 
 	return res, nil
@@ -205,12 +291,9 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 // Gets the DAG tasks for a product stage
 func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iuf.Stage, templateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	globalParamsPerProduct map[string][]byte, authToken string,
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string,
 	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
 
-	// this is a list of all the first steps only from each product. We will modify these to include a dependency
-	// on the last product in order to control concurrency.
-	var initialProductSteps []*v1alpha1.DAGTask
 	var resPtrs []*v1alpha1.DAGTask
 
 	for _, product := range session.Products {
@@ -220,7 +303,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		var lastOpDependency string
 		if exists {
 			lastOpDependency = preStageHook.Name
-			initialProductSteps = append(initialProductSteps, &preStageHook)
 			resPtrs = append(resPtrs, &preStageHook)
 		}
 
@@ -240,8 +322,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				task.Dependencies = []string{
 					lastOpDependency,
 				}
-			} else {
-				initialProductSteps = append(initialProductSteps, &task)
 			}
 
 			lastOpDependency = opName
@@ -250,11 +330,11 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				Parameters: []v1alpha1.Parameter{
 					{
 						Name:  "auth_token",
-						Value: v1alpha1.AnyStringPtr(authToken),
+						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
 					},
 					{
 						Name:  "global_params",
-						Value: v1alpha1.AnyStringPtr(string(globalParamsPerProduct[productKey])),
+						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
 					},
 				},
 			}
@@ -272,29 +352,9 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				postStageHook.Dependencies = []string{
 					lastOpDependency,
 				}
-			} else {
-				initialProductSteps = append(initialProductSteps, &postStageHook)
 			}
 
 			resPtrs = append(resPtrs, &postStageHook)
-		}
-	}
-
-	if session.InputParameters.Concurrency > 0 {
-		var lastOpDependencies []string
-		var nextOpDependencies []string
-		currentCount := 0
-		for _, step := range initialProductSteps {
-			if currentCount == session.InputParameters.Concurrency {
-				lastOpDependencies = nextOpDependencies
-				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-				nextOpDependencies = []string{step.Name}
-				currentCount = 1
-			} else {
-				step.Dependencies = append(step.Dependencies, lastOpDependencies...)
-				nextOpDependencies = append(nextOpDependencies, step.Name)
-				currentCount++
-			}
 		}
 	}
 
@@ -309,7 +369,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	existingArgoUploadedTemplateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	authToken string, res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
+	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
 
 	var lastOpDependencies []string
 
@@ -321,10 +381,6 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			res = append(res, preStageHook)
 		}
 	}
-
-	// global stages have product-less global parameters.
-	globalParams := s.getGlobalParams(session, iuf.Product{}, stages)
-	b, _ := json.Marshal(globalParams)
 
 	for _, operation := range stageInfo.Operations {
 		if !existingArgoUploadedTemplateMap[operation.Name] {
@@ -343,11 +399,11 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			Parameters: []v1alpha1.Parameter{
 				{
 					Name:  "auth_token",
-					Value: v1alpha1.AnyStringPtr(authToken),
+					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
 				},
 				{
 					Name:  "global_params",
-					Value: v1alpha1.AnyStringPtr(string(b)),
+					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameGlobalParamsForGlobalStage)),
 				},
 			},
 		}

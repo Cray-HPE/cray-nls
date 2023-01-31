@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"strings"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -141,7 +142,7 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = session.ActivityRef
 	// set completed label so metacontroller won't sync it again
-	if session.CurrentState == iuf.SessionStateCompleted {
+	if session.CurrentState == iuf.SessionStateCompleted || session.CurrentState == iuf.SessionStateAborted {
 		configmap.Labels["completed"] = "true"
 	}
 	_, err = s.k8sRestClientSet.
@@ -178,7 +179,7 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 
 func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) error {
 	var activityState iuf.ActivityState
-	if session.CurrentState == iuf.SessionStateCompleted {
+	if session.CurrentState == iuf.SessionStateCompleted || session.CurrentState == iuf.SessionStateAborted {
 		activityState = iuf.ActivityStateWaitForAdmin
 	} else {
 		activityState = iuf.ActivityState(session.CurrentState)
@@ -350,29 +351,46 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		s.logger.Error(err)
 		return err
 	}
-	// get tasks we care about (top level dag)
-	tasks := workflow.Spec.Templates[0].DAG.Tasks
 	switch workflow.Labels["stage_type"] {
 	case "product":
-		for _, task := range tasks {
-			operationName := task.TemplateRef.Name
-			nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-			var productKey string
-			for _, param := range nodeStatus.Inputs.Parameters {
-				if param.Name == "global_params" {
-					var valueJson map[string]interface{}
-					json.Unmarshal([]byte(param.Value.String()), &valueJson)
-					productManifest := valueJson["product_manifest"].(map[string]interface{})
-					currentProduct := productManifest["current_product"].(map[string]interface{})
-					manifest := currentProduct["manifest"].(map[string]interface{})
-					productKey = s.getProductVersionKeyFromNameAndVersion(manifest["name"].(string), manifest["version"].(string))
+		// first generate a map of all productKeys to Products
+		productKeyMap := map[string]iuf.Product{}
+		for _, product := range session.Products {
+			productKeyMap[s.getProductVersionKey(product)] = product
+		}
+
+		// now go through all the nodeStatus items
+		changed := false
+		for _, nodeStatus := range workflow.Status.Nodes {
+			if nodeStatus.Type == v1alpha1.NodeTypePod &&
+				strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+				len(nodeStatus.Outputs.Parameters) > 0 {
+
+				// check which product this is for
+				for productKey, _ := range productKeyMap {
+					if strings.HasPrefix(nodeStatus.DisplayName, productKey) {
+						operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+						stepName := nodeStatus.DisplayName
+						s.logger.Infof("process output for Activity %s, Operation %s, step %s with value %v", activity.Name, operationName, stepName, nodeStatus.Outputs)
+						stepChanged, err := s.updateActivityOperationOutputFromWorkflow(&activity, session, &nodeStatus, operationName, stepName, productKey)
+						if err != nil {
+							s.logger.Infof("An error occurred while processing output for Activity %s, Operation %s, step %s with value %v: %v", activity.Name, operationName, stepName, nodeStatus.Outputs, err)
+						} else if stepChanged {
+							changed = true
+						}
+					}
+
 					break
 				}
 			}
-			s.logger.Infof("process output of: %s, product: %s, %v", operationName, productKey, nodeStatus.Outputs)
-			s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, productKey)
 		}
-		return nil
+
+		if changed {
+			_, err := s.updateActivity(activity)
+			return err
+		} else {
+			return nil
+		}
 	case "global":
 		// special handling of process media
 		if workflow.Labels["stage"] == "process-media" {
@@ -390,13 +408,29 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 			}
 			return nil
 		} else {
-			for _, task := range tasks {
-				operationName := task.TemplateRef.Name
-				nodeStatus := workflow.Status.Nodes.FindByDisplayName(task.Name)
-				s.logger.Infof("process output of: %s, %v", operationName, nodeStatus.Outputs)
-				s.updateActivityOperationOutputFromWorkflow(activity, *session, nodeStatus, operationName, "")
+			changed := false
+			for _, nodeStatus := range workflow.Status.Nodes {
+				if nodeStatus.Type == v1alpha1.NodeTypePod &&
+					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+					len(nodeStatus.Outputs.Parameters) > 0 {
+					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+					stepName := nodeStatus.DisplayName
+					s.logger.Infof("process output for Activity %s, Operation %s, step %s with value %v", activity.Name, operationName, stepName, nodeStatus.Outputs)
+					stepChanged, err := s.updateActivityOperationOutputFromWorkflow(&activity, session, &nodeStatus, operationName, stepName, "")
+					if err != nil {
+						s.logger.Infof("An error occurred while processing output for Activity %s, Operation %s, step %s with value %v: %v", activity.Name, operationName, stepName, nodeStatus.Outputs, err)
+					} else if stepChanged {
+						changed = true
+					}
+				}
 			}
-			return nil
+
+			if changed {
+				_, err := s.updateActivity(activity)
+				return err
+			} else {
+				return nil
+			}
 		}
 	default:
 		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
@@ -436,11 +470,14 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 		}
 		jsonManifest, _ := json.Marshal(manifest)
 		if manifest["name"] != nil && manifest["version"] != nil {
+			// normalize the product version so that we force-follow semver format
+			productVersion := s.normalizeProductVersion(fmt.Sprintf("%v", manifest["version"]))
+			manifest["version"] = productVersion
 			s.logger.Infof("manifest: %s - %s", manifest["name"], manifest["version"])
 			// add product to activity object
 			activity.Products = append(activity.Products, iuf.Product{
 				Name:             fmt.Sprintf("%v", manifest["name"]),
-				Version:          fmt.Sprintf("%v", manifest["version"]),
+				Version:          productVersion,
 				Validated:        validated,
 				Manifest:         string(jsonManifest),
 				OriginalLocation: nodeStatus.Outputs.Parameters[1].Value.String(),
@@ -456,59 +493,167 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 }
 
 func (s iufService) updateActivityOperationOutputFromWorkflow(
-	activity iuf.Activity,
-	session iuf.Session,
+	activity *iuf.Activity,
+	session *iuf.Session,
 	nodeStatus *v1alpha1.NodeStatus,
 	operationName string,
+	stepName string,
 	productKey string,
-) error {
+) (bool, error) {
 	// no-op if there is no outputs
 	if nodeStatus.Outputs == nil {
-		return nil
+		return false, nil
 	}
+
+	changed := false
 	if activity.OperationOutputs == nil {
 		activity.OperationOutputs = make(map[string]interface{})
 	}
-	if activity.OperationOutputs[session.CurrentStage] == nil {
-		activity.OperationOutputs[session.CurrentStage] = make(map[string]interface{})
+
+	if activity.OperationOutputs["stage_params"] == nil {
+		activity.OperationOutputs["stage_params"] = make(map[string]interface{})
 	}
-	outputStage := activity.OperationOutputs[session.CurrentStage].(map[string]interface{})
-	if outputStage[operationName] == nil {
-		outputStage[operationName] = make(map[string]interface{})
+	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
+
+	if stageParams[session.CurrentStage] == nil {
+		stageParams[session.CurrentStage] = make(map[string]interface{})
 	}
-	outputOperation := outputStage[operationName].(map[string]interface{})
+	outputStage := stageParams[session.CurrentStage].(map[string]interface{})
+
+	var outputGlobalOrProduct map[string]interface{}
+
 	if productKey != "" {
-		if outputOperation[productKey] == nil {
-			outputOperation[productKey] = make(map[string]interface{})
+		if outputStage[productKey] == nil {
+			outputStage[productKey] = make(map[string]interface{})
 		}
-		operationOutputOfProduct := outputOperation[productKey].(map[string]interface{})
-		for _, param := range nodeStatus.Outputs.Parameters {
-			operationOutputOfProduct[param.Name] = param.Value
-		}
-
+		outputGlobalOrProduct = outputStage[productKey].(map[string]interface{})
 	} else {
-		for _, param := range nodeStatus.Outputs.Parameters {
-			outputOperation[param.Name] = param.Value
-		}
+		outputGlobalOrProduct = outputStage
 	}
-	activity.OperationOutputs[session.CurrentStage] = outputStage
-	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
+
+	if outputGlobalOrProduct[operationName] == nil {
+		outputGlobalOrProduct[operationName] = make(map[string]interface{})
+	}
+	outputOperation := outputGlobalOrProduct[operationName].(map[string]interface{})
+
+	if outputOperation[stepName] == nil {
+		outputOperation[stepName] = make(map[string]interface{})
+	}
+	outputStep := outputOperation[stepName].(map[string]interface{})
+
+	for _, param := range nodeStatus.Outputs.Parameters {
+		outputStep[param.Name] = param.Value
+		changed = true
+	}
+
+	outputOperation[stepName] = outputStep
+	outputGlobalOrProduct[operationName] = outputOperation
+	if productKey != "" {
+		outputStage[productKey] = outputGlobalOrProduct
+	} else {
+		outputStage = outputGlobalOrProduct
+	}
+
+	(activity.OperationOutputs["stage_params"].(map[string]interface{}))[session.CurrentStage] = outputStage
+
+	return changed, nil
+}
+
+func (s iufService) PauseSession(session *iuf.Session) error {
+	// first, set session and activity to aborted state
+	session.CurrentState = iuf.SessionStatePaused
+
+	err := s.UpdateSessionAndActivity(*session)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("PauseSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
 		return err
 	}
 
-	_, err = s.k8sRestClientSet.
-		CoreV1().
-		ConfigMaps(DEFAULT_NAMESPACE).
-		Update(
-			context.TODO(),
-			&configmap,
-			v1.UpdateOptions{},
-		)
+	// now pause the workflows
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.SuspendWorkflow(context.TODO(), &workflow.WorkflowSuspendRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("PauseSession: An error(s) occurred while terminating workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
+}
+
+func (s iufService) ResumeSession(session *iuf.Session) error {
+	// set session and activity to aborted state
+	session.CurrentState = iuf.SessionStateInProgress
+
+	err := s.UpdateSessionAndActivity(*session)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("ResumeSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
 		return err
 	}
-	return nil
+
+	// now resume the workflows
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("ResumeSession: An error(s) occurred while terminating workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
+}
+
+func (s iufService) AbortSession(session *iuf.Session, force bool) error {
+	// first, set session and activity to aborted state
+	session.CurrentState = iuf.SessionStateAborted
+
+	err := s.UpdateSessionAndActivity(*session)
+	if err != nil {
+		s.logger.Errorf("AbortSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		return err
+	}
+
+	if !force {
+		return nil
+	}
+
+	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.TerminateWorkflow(context.TODO(), &workflow.WorkflowTerminateRequest{
+			Name:      workflowRef.Id,
+			Namespace: "argo",
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("AbortSession: An error(s) occurred while terminating workflows: %v", errors)
+
+		// we don't want to return error when we had issues terminating
+		return nil
+	} else {
+		return nil
+	}
 }

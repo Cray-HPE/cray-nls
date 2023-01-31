@@ -39,9 +39,13 @@ type ReplaceHistoryCommentRequest struct {
 } //	@name	History.ReplaceHistoryCommentRequest
 
 type HistoryActionRequest struct {
-	StartTime int32  `json:"start_time" validate:"optional"` // Epoch timestamp
-	Comment   string `json:"comment" validate:"optional"`    // Comment
+	Comment string `json:"comment"` // Comment
 } //	@name	History.HistoryActionRequest
+
+type HistoryAbortRequest struct {
+	Comment string `json:"comment"` // Comment
+	Force   bool   `json:"force"`   // Force terminate Argo workflows non-gracefully
+} //	@name	History.HistoryAbortRequest
 
 type HistoryRunActionRequest struct {
 	InputParameters InputParameters `json:"input_parameters" binding:"required"`
