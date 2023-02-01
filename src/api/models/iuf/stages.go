@@ -40,6 +40,7 @@ type Stages struct {
 } //	@name	Stages
 
 type Operations struct {
-	Name             string                 `yaml:"name" json:"name" binding:"required"` // Name of the operation
-	StaticParameters map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
+	Name                       string                 `yaml:"name" json:"name" binding:"required"` // Name of the operation
+	StaticParameters           map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
+	RequiredManifestAttributes []string               `yaml:"static-parameters" json:"required-manifest-attributes"`
 } //	@name	Operations

@@ -35,6 +35,9 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	"reflect"
+	"sigs.k8s.io/yaml"
+	"strings"
 )
 
 func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
@@ -310,6 +313,45 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 			if !templateMap[operation.Name] {
 				s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
 				continue
+			}
+
+			if operation.RequiredManifestAttributes != nil && len(operation.RequiredManifestAttributes) > 0 {
+				// check if the operation's required manifest attributes are satisfied in the product's manifest
+				manifestBytes := []byte(product.Manifest)
+				manifestJsonBytes, err := yaml.YAMLToJSON(manifestBytes)
+				if err != nil {
+					s.logger.Warnf("getDAGTasksForProductStage: Cannot convert JSON to YAML for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err)
+					continue
+				}
+				var manifestJson map[string]interface{}
+				err = json.Unmarshal(manifestJsonBytes, &manifestJson)
+				if err != nil {
+					s.logger.Warnf("getDAGTasksForProductStage: Cannot parse manifest for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err)
+					continue
+				}
+
+				found := true
+
+				for _, requiredAttributes := range operation.RequiredManifestAttributes {
+					attributeHierarchy := strings.Split(requiredAttributes, ".")
+					var jsonStruct map[string]interface{}
+					jsonStruct = manifestJson
+					for _, key := range attributeHierarchy {
+						if jsonStruct == nil || jsonStruct[key] == nil {
+							s.logger.Warnf("getDAGTasksForProductStage: Skipping operation %s for product %s in the session %s in activity %s", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef)
+							found = false
+							break
+						} else if reflect.TypeOf(jsonStruct[key]).String() == "map[string]interface {}" {
+							jsonStruct = jsonStruct[key].(map[string]interface{})
+						} else {
+							jsonStruct = nil
+						}
+					}
+				}
+
+				if !found {
+					continue
+				}
 			}
 
 			opName := utils.GenerateName(productKey + "-" + operation.Name)

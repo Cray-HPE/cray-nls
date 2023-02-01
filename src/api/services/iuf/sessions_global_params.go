@@ -63,9 +63,17 @@ func (s iufService) getGlobalParamsProductManifest(session iuf.Session, in_produ
 	var currentProductManifest map[string]interface{}
 	for _, product := range session.Products {
 		manifestBytes := []byte(product.Manifest)
-		manifestJsonBytes, _ := yaml.YAMLToJSON(manifestBytes)
+		manifestJsonBytes, err := yaml.YAMLToJSON(manifestBytes)
+		if err != nil {
+			s.logger.Errorf("getGlobalParamsProductManifest: There was an error converting YAML to JSON for the manifest for the product %s during global param construction for the session %s in activity %s. The YAML contents: %s. Error %v", s.getProductVersionKey(in_product), session.Name, session.ActivityRef, product.Manifest, err)
+			continue
+		}
 		var manifestJson map[string]interface{}
-		json.Unmarshal(manifestJsonBytes, &manifestJson)
+		err = json.Unmarshal(manifestJsonBytes, &manifestJson)
+		if err != nil {
+			s.logger.Errorf("getGlobalParamsProductManifest: There was an error parsing JSON for the manifest for the product %s during global param construction for the session %s in activity %s. The YAML contents: %s. Error %v", s.getProductVersionKey(in_product), session.Name, session.ActivityRef, product.Manifest, err)
+			continue
+		}
 		if s.getProductVersionKey(product) == s.getProductVersionKey(in_product) {
 			currentProductManifest = manifestJson
 		}

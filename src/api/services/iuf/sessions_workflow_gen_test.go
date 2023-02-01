@@ -441,6 +441,82 @@ func TestGetDagTasks(t *testing.T) {
 
 		assert.Equal(t, 6, found)
 	})
+
+	t.Run("It should skip operations which do not have the appropriate required attributes in the manifest.", func(t *testing.T) {
+		session := iuf.Session{
+			Products: []iuf.Product{
+				{
+					Name: "product_A",
+					Manifest: `
+---
+iuf_version: ^0.5.0
+name: product_A
+
+content:
+ op1: hello
+ op2:
+  - op2_A
+  - op2_B
+`,
+				},
+				{
+					Name: "product_B",
+					Manifest: `
+---
+iuf_version: ^0.5.0
+name: product_B
+
+content:
+ op1: hello
+`,
+				},
+				{
+					Name: "product_C",
+					Manifest: `
+---
+iuf_version: ^0.5.0
+name: product_C
+
+content:
+ op2:
+  - op2_A
+  - op2_B
+`,
+				},
+			},
+			ActivityRef: activityName,
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "product",
+			Operations: []iuf.Operations{
+				{
+					Name:                       "this-is-an-operation-1",
+					RequiredManifestAttributes: []string{"content.op1"},
+				},
+				{
+					Name:                       "this-is-an-operation-2",
+					RequiredManifestAttributes: []string{"content.op2"},
+				},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 4, len(dagTasks))
+		assert.True(t, strings.Contains(dagTasks[0].Name, "this-is-an-operation-1"))
+		assert.True(t, strings.Contains(dagTasks[0].Name, "product-A"))
+		assert.True(t, strings.Contains(dagTasks[1].Name, "this-is-an-operation-2"))
+		assert.True(t, strings.Contains(dagTasks[1].Name, "product-A"))
+		assert.True(t, strings.Contains(dagTasks[2].Name, "this-is-an-operation-1"))
+		assert.True(t, strings.Contains(dagTasks[2].Name, "product-B"))
+		assert.True(t, strings.Contains(dagTasks[3].Name, "this-is-an-operation-2"))
+		assert.True(t, strings.Contains(dagTasks[3].Name, "product-C"))
+	})
 }
 
 func setup(t *testing.T) (string, string, iufService) {
