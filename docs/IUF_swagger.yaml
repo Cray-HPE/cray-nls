@@ -139,6 +139,16 @@ definitions:
         description: Comment
         type: string
     type: object
+  iuf.HistoryRestartRequest:
+    properties:
+      comment:
+        description: Comment
+        type: string
+      force:
+        description: Force all operations to be re-executed irrespective if they have
+          been successful in the past
+        type: boolean
+    type: object
   iuf.HistoryRunActionRequest:
     properties:
       comment:
@@ -638,6 +648,36 @@ paths:
         "201":
           description: Created
       summary: Pause a session
+      tags:
+      - History
+  /iuf/v1/activities/{activity_name}/history/restart:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: activity name
+        in: path
+        name: activity_name
+        required: true
+        type: string
+      - description: Action Request
+        in: body
+        name: action_request
+        required: true
+        schema:
+          $ref: '#/definitions/iuf.HistoryRestartRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/iuf.Session'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ResponseError'
+      summary: Restart a session
       tags:
       - History
   /iuf/v1/activities/{activity_name}/history/resume:

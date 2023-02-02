@@ -187,7 +187,7 @@ func (mr *MockIufServiceMockRecorder) HistoryPausedAction(activityName, req inte
 }
 
 // HistoryRestartAction mocks base method.
-func (m *MockIufService) HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
+func (m *MockIufService) HistoryRestartAction(activityName string, req iuf.HistoryRestartRequest) (iuf.Session, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "HistoryRestartAction", activityName, req)
 	ret0, _ := ret[0].(iuf.Session)

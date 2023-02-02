@@ -356,6 +356,52 @@ const docTemplateIUF = `{
                 }
             }
         },
+        "/iuf/v1/activities/{activity_name}/history/restart": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "History"
+                ],
+                "summary": "Restart a session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "activity name",
+                        "name": "activity_name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Action Request",
+                        "name": "action_request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iuf.HistoryRestartRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/iuf.Session"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ResponseError"
+                        }
+                    }
+                }
+            }
+        },
         "/iuf/v1/activities/{activity_name}/history/resume": {
             "post": {
                 "consumes": [
@@ -827,6 +873,19 @@ const docTemplateIUF = `{
                 "comment": {
                     "description": "Comment",
                     "type": "string"
+                }
+            }
+        },
+        "iuf.HistoryRestartRequest": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "Comment",
+                    "type": "string"
+                },
+                "force": {
+                    "description": "Force all operations to be re-executed irrespective if they have been successful in the past",
+                    "type": "boolean"
                 }
             }
         },
