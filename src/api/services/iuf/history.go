@@ -31,8 +31,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -159,9 +161,21 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 	}
 
 	var errors []error
-	for _, session := range sessions {
-		if session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted {
-			err := s.AbortSession(&session, req.Force)
+
+	for i := len(sessions) - 1; i >= 0; i-- {
+		session := sessions[i]
+
+		// if this session still has workflows running, then this is a good session for abort irrespective of its
+		//  current state (i.e. even if it was aborted in the past).
+
+		if s.isSessionAbortable(session) {
+			// add a history entry for aborted sessions
+			comment := req.Comment
+			if comment == "" {
+				comment = fmt.Sprintf("Aborted at stage %s", session.CurrentStage)
+			}
+
+			err := s.AbortSession(&session, comment, req.Force)
 			if err != nil {
 				errors = append(errors, err)
 			}
@@ -173,23 +187,27 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 		return iuf.Session{}, err
 	}
 
-	// add a history entry for aborted sessions
-	comment := req.Comment
-	if comment == "" {
-		comment = "Aborted"
-	}
-
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateWaitForAdmin, comment)
-	if err != nil {
-		s.logger.Errorf("HistoryAbortAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
-		return iuf.Session{}, err
-	}
-
 	if len(sessions) > 0 {
 		return sessions[len(sessions)-1], nil
 	} else {
 		return iuf.Session{}, nil
 	}
+}
+
+func (s iufService) isSessionAbortable(session iuf.Session) bool {
+	isAbortable := session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted
+
+	for _, workflowId := range session.Workflows {
+		workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      workflowId.Id,
+			Namespace: "argo",
+		})
+		if err == nil && (workflowObj.Status.Phase == v1alpha1.WorkflowRunning || workflowObj.Status.Phase == v1alpha1.WorkflowPending) {
+			isAbortable = true
+			break
+		}
+	}
+	return isAbortable
 }
 
 func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
@@ -201,29 +219,26 @@ func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActi
 	}
 
 	var errors []error
-	for _, session := range sessions {
+	for i := len(sessions) - 1; i >= 0; i-- {
+		session := sessions[i]
 		if session.CurrentState == iuf.SessionStateInProgress {
-			err := s.PauseSession(&session)
+			// add a history entry for paused sessions
+			comment := req.Comment
+			if comment == "" {
+				comment = fmt.Sprintf("Paused at stage %s", session.CurrentStage)
+			}
+
+			err := s.PauseSession(&session, comment)
 			if err != nil {
 				errors = append(errors, err)
 			}
+
+			break
 		}
 	}
 
 	if len(errors) > 0 {
 		s.logger.Errorf("HistoryPausedAction: An error(s) occurred while aborting sessions for activity %s: %v", activityName, errors)
-		return iuf.Session{}, err
-	}
-
-	comment := req.Comment
-	if comment == "" {
-		comment = "Paused"
-	}
-
-	// add a history entry for aborted sessions
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStatePaused, comment)
-	if err != nil {
-		s.logger.Errorf("HistoryPausedAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
 		return iuf.Session{}, err
 	}
 
@@ -242,42 +257,87 @@ func (s iufService) HistoryResumeAction(activityName string, req iuf.HistoryActi
 		return iuf.Session{}, err
 	}
 
-	var errors []error
-	for _, session := range sessions {
-		if session.CurrentState == iuf.SessionStatePaused {
-			err := s.ResumeSession(&session)
-			if err != nil {
-				errors = append(errors, err)
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		s.logger.Errorf("HistoryResumeAction: An error(s) occurred while aborting sessions for activity %s: %v", activityName, errors)
+	// when resuming, we only look at the very last session so that we don't accidentally run more than one session
+	//  from the history
+	if len(sessions) == 0 {
+		err := utils.GenericError{Message: fmt.Sprintf("HistoryResumeAction: There are no sessions in activity %s", activityName)}
+		s.logger.Error(err)
 		return iuf.Session{}, err
 	}
 
+	session := sessions[len(sessions)-1]
+
+	// add a history entry for paused sessions
 	comment := req.Comment
 	if comment == "" {
-		comment = "Resumed"
+		comment = fmt.Sprintf("Resuming stage %s", session.CurrentStage)
 	}
 
-	// add a history entry for aborted sessions
-	err = s.CreateHistoryEntry(activityName, iuf.ActivityStateInProgress, comment)
-	if err != nil {
-		s.logger.Errorf("HistoryResumeAction: An error occurred while creating history entry for activity %s: %v", activityName, err)
-		return iuf.Session{}, err
-	}
-
-	if len(sessions) > 0 {
-		return sessions[len(sessions)-1], nil
+	if session.CurrentState == iuf.SessionStatePaused {
+		err := s.ResumePausedSession(&session, comment)
+		if err != nil {
+			s.logger.Errorf("HistoryResumeAction: An error occured while resuming a paused session %s in activity %s: %v", session.Name, session.ActivityRef, err)
+			return iuf.Session{}, err
+		}
+		return session, nil
+	} else if session.CurrentState == iuf.SessionStateDebug {
+		err := s.ResumeDebugSession(&session, comment)
+		if err != nil {
+			s.logger.Errorf("HistoryResumeAction: An error occured while resuming a debug session %s in activity %s: %v", session.Name, session.ActivityRef, err)
+			return iuf.Session{}, err
+		}
+		return session, nil
+	} else if session.CurrentState == iuf.SessionStateInProgress || session.CurrentState == iuf.SessionStateTransitioning {
+		err := utils.GenericError{Message: fmt.Sprintf("HistoryResumeAction: The session %s in activity %s cannot be resumed because it is In Progress", session.Name, activityName)}
+		s.logger.Error(err)
+		return session, err
 	} else {
-		return iuf.Session{}, nil
+		err := utils.GenericError{Message: fmt.Sprintf("HistoryResumeAction: The session %s in activity %s cannot be resumed because it is either Completed or Aborted. Try restarting or running a new session.", session.Name, activityName)}
+		s.logger.Error(err)
+		return session, err
 	}
 }
 
-func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
-	return iuf.Session{}, nil
+func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryRestartRequest) (iuf.Session, error) {
+	// go through the sessions and if there is any session that is abortable, abort it first.
+	sessions, err := s.ListSessions(activityName)
+	if err != nil {
+		s.logger.Errorf("HistoryRestartAction: An error occurred while listing sessions for activity %s: %v", activityName, err)
+		return iuf.Session{}, err
+	}
+
+	// when restarting, we only look at the very last session so that we don't accidentally run more than one session
+	//  from the history
+	if len(sessions) == 0 {
+		err := utils.GenericError{Message: fmt.Sprintf("HistoryRestartAction: There are no sessions in activity %s", activityName)}
+		s.logger.Error(err)
+		return iuf.Session{}, err
+	}
+
+	session := sessions[len(sessions)-1]
+
+	if s.isSessionAbortable(session) {
+		// first abort this session
+		err := s.AbortSession(&session, "Aborting before restart", true)
+		if err != nil {
+			// just print the warning. We don't care if it doesn't abort
+			s.logger.Warnf("HistoryRestartAction: There was an error aborting the current session before restarting. Session name %s in activity %s. Error: %v", session.Name, session.ActivityRef, err)
+		}
+	}
+
+	// add a history entry for restart
+	comment := req.Comment
+	if comment == "" {
+		comment = fmt.Sprintf("Restarting from stage %s to %s", session.InputParameters.Stages[0], session.InputParameters.Stages[len(session.InputParameters.Stages)-1])
+	}
+
+	// now modify the session so the current stage is blank (so it can be restarted)
+	session.CurrentStage = ""
+	session.CurrentState = iuf.SessionStateInProgress
+	session.InputParameters.Force = req.Force
+	err = s.UpdateSessionAndActivity(session, comment)
+
+	return session, err
 }
 
 func (s iufService) HistoryBlockedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
@@ -329,7 +389,7 @@ func (s iufService) HistoryBlockedAction(activityName string, req iuf.HistoryAct
 
 	comment := req.Comment
 	if comment == "" {
-		comment = "Blocked"
+		comment = fmt.Sprintf("Blocked at stage %s", lastSession.CurrentStage)
 	}
 
 	// add a history entry for blocked activity

@@ -181,6 +181,11 @@ func TestRunNextStage(t *testing.T) {
 
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
 	wfServiceClientMock.On(
+		"GetWorkflow",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.Workflow), nil)
+	wfServiceClientMock.On(
 		"CreateWorkflow",
 		mock.Anything,
 		mock.Anything,

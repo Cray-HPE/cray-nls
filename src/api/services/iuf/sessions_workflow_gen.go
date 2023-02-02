@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -299,6 +300,55 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 	var resPtrs []*v1alpha1.DAGTask
 
+	prevStepsCompleted := map[string]map[string]bool{}
+	for _, product := range session.Products {
+		productKey := s.getProductVersionKey(product)
+		prevStepsCompleted[productKey] = make(map[string]bool)
+	}
+
+	if !session.InputParameters.Force {
+		// go through all the previous workflows of this session and see what steps were completed previously
+		for _, workflowId := range session.Workflows {
+			workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+				Name:      workflowId.Id,
+				Namespace: "argo",
+			})
+			if err != nil {
+				// we don't really care about errors because it should not block us from creating a new DAG.
+				continue
+			}
+
+			if workflowObj.ObjectMeta.Labels["stage"] != session.CurrentStage {
+				// not the current stage? Don't use this then.
+				continue
+			}
+
+			if workflowObj.Status.Phase != v1alpha1.WorkflowSucceeded {
+				// hasn't succeeded? Don't use this then because the outputs from this workflow were not extracted into
+				//  the containing activity
+				continue
+			}
+
+			for _, nodeStatus := range workflowObj.Status.Nodes {
+				if nodeStatus.Type == v1alpha1.NodeTypePod &&
+					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+					nodeStatus.Phase == v1alpha1.NodeSucceeded {
+					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+
+					// go through the products and see which product this belongs to
+					for productKey, opMap := range prevStepsCompleted {
+
+						if strings.Contains(nodeStatus.Name, productKey) {
+							opMap[operationName] = true
+							prevStepsCompleted[productKey] = opMap
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
 		productKey := s.getProductVersionKey(product)
@@ -310,8 +360,13 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		}
 
 		for _, operation := range stageInfo.Operations {
+			if prevStepsCompleted[productKey][operation.Name] {
+				s.logger.Warnf("getDAGTasksForProductStage: Operation %s is being skipped for product %s because it was previously completed successfully in session %s in activity %s", operation.Name, productKey, session.Name, session.ActivityRef)
+				continue
+			}
+
 			if !templateMap[operation.Name] {
-				s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+				s.logger.Infof("getDAGTasksForProductStage: The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
 				continue
 			}
 

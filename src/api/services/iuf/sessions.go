@@ -117,7 +117,7 @@ func (s iufService) CreateSession(session iuf.Session, name string, activity iuf
 	return session, err
 }
 
-func (s iufService) UpdateSessionAndActivity(session iuf.Session) error {
+func (s iufService) UpdateSessionAndActivity(session iuf.Session, comment string) error {
 	err := s.UpdateSession(session)
 	if err != nil {
 		return err
@@ -125,7 +125,7 @@ func (s iufService) UpdateSessionAndActivity(session iuf.Session) error {
 
 	// if the session update was successful, we also want to update the activity
 	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
-	err = s.UpdateActivityStateFromSessionState(session)
+	err = s.UpdateActivityStateFromSessionState(session, comment)
 	if err != nil {
 		s.logger.Error(err)
 		return err
@@ -177,7 +177,7 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 	return nil
 }
 
-func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) error {
+func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, comment string) error {
 	var activityState iuf.ActivityState
 	if session.CurrentState == iuf.SessionStateCompleted || session.CurrentState == iuf.SessionStateAborted {
 		activityState = iuf.ActivityStateWaitForAdmin
@@ -216,6 +216,7 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session) err
 		StartTime:     int32(time.Now().UnixMilli()),
 		Name:          name,
 		SessionName:   session.Name,
+		Comment:       comment,
 	}
 	configmap, err = s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
 	if err != nil {
@@ -301,7 +302,7 @@ func (s iufService) SetSessionToCompleted(session *iuf.Session) (iuf.SyncRespons
 	session.CurrentState = iuf.SessionStateCompleted
 	s.logger.Infof("Session completed. Last stage was %s", session.CurrentStage)
 
-	err := s.UpdateSessionAndActivity(*session)
+	err := s.UpdateSessionAndActivity(*session, fmt.Sprintf("Completed %s", session.CurrentStage))
 	if err != nil {
 		s.logger.Errorf("Error while updating the session %v", err)
 		return iuf.SyncResponse{}, err, false
@@ -332,7 +333,7 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 	}
 
 	s.logger.Infof("Update session: %v", session)
-	err = s.UpdateSessionAndActivity(*session)
+	err = s.UpdateSessionAndActivity(*session, fmt.Sprintf("Running %s", stageToRun))
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err, skipStage
@@ -559,13 +560,13 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	return changed, nil
 }
 
-func (s iufService) PauseSession(session *iuf.Session) error {
-	// first, set session and activity to aborted state
+func (s iufService) PauseSession(session *iuf.Session, comment string) error {
+	// first, set session and activity to paused state
 	session.CurrentState = iuf.SessionStatePaused
 
-	err := s.UpdateSessionAndActivity(*session)
+	err := s.UpdateSessionAndActivity(*session, comment)
 	if err != nil {
-		s.logger.Errorf("PauseSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		s.logger.Errorf("PauseSession: An error(s) occurred while setting session %s to Paused: %v", session.Name, err)
 		return err
 	}
 
@@ -590,13 +591,45 @@ func (s iufService) PauseSession(session *iuf.Session) error {
 	}
 }
 
-func (s iufService) ResumeSession(session *iuf.Session) error {
-	// set session and activity to aborted state
+func (s iufService) ResumeDebugSession(session *iuf.Session, comment string) error {
+	// set session and activity to in progress state
 	session.CurrentState = iuf.SessionStateInProgress
 
-	err := s.UpdateSessionAndActivity(*session)
+	err := s.UpdateSessionAndActivity(*session, comment)
 	if err != nil {
-		s.logger.Errorf("ResumeSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
+		s.logger.Errorf("ResumeDebugSession: An error(s) occurred while setting session %s to In Progress: %v", session.Name, err)
+		return err
+	}
+
+	// now retry the workflows
+	var errors []error
+	for _, workflowRef := range session.Workflows {
+		_, err := s.workflowClient.RetryWorkflow(context.TODO(), &workflow.WorkflowRetryRequest{
+			Name:              workflowRef.Id,
+			Namespace:         "argo",
+			RestartSuccessful: true,
+		})
+
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		s.logger.Errorf("ResumeDebugSession: An error(s) occurred while resuming workflows: %v", errors)
+		return errors[0]
+	} else {
+		return nil
+	}
+}
+
+func (s iufService) ResumePausedSession(session *iuf.Session, comment string) error {
+	// set session and activity to in progress state
+	session.CurrentState = iuf.SessionStateInProgress
+
+	err := s.UpdateSessionAndActivity(*session, comment)
+	if err != nil {
+		s.logger.Errorf("ResumePausedSession: An error(s) occurred while setting session %s to in progress: %v", session.Name, err)
 		return err
 	}
 
@@ -614,18 +647,18 @@ func (s iufService) ResumeSession(session *iuf.Session) error {
 	}
 
 	if len(errors) > 0 {
-		s.logger.Errorf("ResumeSession: An error(s) occurred while terminating workflows: %v", errors)
+		s.logger.Errorf("ResumePausedSession: An error(s) occurred while resuming workflows: %v", errors)
 		return errors[0]
 	} else {
 		return nil
 	}
 }
 
-func (s iufService) AbortSession(session *iuf.Session, force bool) error {
+func (s iufService) AbortSession(session *iuf.Session, comment string, force bool) error {
 	// first, set session and activity to aborted state
 	session.CurrentState = iuf.SessionStateAborted
 
-	err := s.UpdateSessionAndActivity(*session)
+	err := s.UpdateSessionAndActivity(*session, comment)
 	if err != nil {
 		s.logger.Errorf("AbortSession: An error(s) occurred while setting session %s to aborted: %v", session.Name, err)
 		return err
@@ -637,6 +670,7 @@ func (s iufService) AbortSession(session *iuf.Session, force bool) error {
 
 	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
 	var errors []error
+	var workflowIDsToCheck []string
 	for _, workflowRef := range session.Workflows {
 		_, err := s.workflowClient.TerminateWorkflow(context.TODO(), &workflow.WorkflowTerminateRequest{
 			Name:      workflowRef.Id,
@@ -644,7 +678,39 @@ func (s iufService) AbortSession(session *iuf.Session, force bool) error {
 		})
 
 		if err != nil {
-			errors = append(errors, err)
+			// delete the workflow right away.
+			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
+				Name:      workflowRef.Id,
+				Namespace: "argo",
+			})
+
+			if err != nil {
+				errors = append(errors, err)
+			}
+		} else {
+			workflowIDsToCheck = append(workflowIDsToCheck, workflowRef.Id)
+		}
+	}
+
+	// wait 10 seconds before checking that all workflows have in fact been terminated.
+	time.Sleep(10 * time.Second)
+
+	for _, workflowToCheckId := range workflowIDsToCheck {
+		workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      workflowToCheckId,
+			Namespace: "argo",
+		})
+
+		if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
+			// good candidate to nuke the workflow.
+			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
+				Name:      workflowToCheckId,
+				Namespace: "argo",
+			})
+
+			if err != nil {
+				errors = append(errors, err)
+			}
 		}
 	}
 

@@ -61,7 +61,7 @@ type IufService interface {
 	HistoryAbortAction(activityName string, req iuf.HistoryAbortRequest) (iuf.Session, error)
 	HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
 	HistoryResumeAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
-	HistoryRestartAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
+	HistoryRestartAction(activityName string, req iuf.HistoryRestartRequest) (iuf.Session, error)
 	HistoryBlockedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error)
 	GetActivityHistory(activityName string, startTime int32) (iuf.History, error)
 	ReplaceHistoryComment(activityName string, startTime int32, req iuf.ReplaceHistoryCommentRequest) (iuf.History, error)
@@ -70,9 +70,9 @@ type IufService interface {
 	GetSession(sessionName string) (iuf.Session, error)
 	// session operator
 	ConfigMapDataToSession(data string) (iuf.Session, error)
-	UpdateActivityStateFromSessionState(session iuf.Session) error
+	UpdateActivityStateFromSessionState(session iuf.Session, comment string) error
 	UpdateSession(session iuf.Session) error
-	UpdateSessionAndActivity(session iuf.Session) error
+	UpdateSessionAndActivity(session iuf.Session, comment string) error
 	CreateIufWorkflow(req iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool)
 	RunNextStage(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
 	ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error

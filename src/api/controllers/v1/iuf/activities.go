@@ -44,7 +44,6 @@ import (
 //	@Failure	500	{object}	utils.ResponseError
 //	@Router		/iuf/v1/activities [post]
 func (u IufController) CreateActivity(c *gin.Context) {
-	u.logger.Infof("CreateActivity: received request with params %#v", c.Request.Form)
 	var requestBody iuf.CreateActivityRequest
 	if err := c.BindJSON(&requestBody); err != nil {
 		u.logger.Errorf("CreateActivity: An error occurred while parsing parameters for an activity named %s: %v", requestBody.Name, err)
@@ -52,6 +51,9 @@ func (u IufController) CreateActivity(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
+
+	u.logger.Infof("CreateActivity: received request with params %#v and parsed params %#v", c.Request.Form, requestBody)
+
 	res, err := u.iufService.CreateActivity(requestBody)
 	if err != nil {
 		u.logger.Errorf("CreateActivity: An error occurred while creating an activity named %s: %v", requestBody.Name, err)
@@ -119,7 +121,6 @@ func (u IufController) GetActivity(c *gin.Context) {
 func (u IufController) PatchActivity(c *gin.Context) {
 	var requestBody iuf.PatchActivityRequest
 	name := c.Param("activity_name")
-	u.logger.Infof("PatchActivity: received request for activity %s with params %#v", name, c.Request.Form)
 	activity, err := u.iufService.GetActivity(name)
 	if err != nil {
 		u.logger.Errorf("PatchActivity: An error occurred while fetching activity %s: %v", name, err)
@@ -134,6 +135,9 @@ func (u IufController) PatchActivity(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, errResponse)
 		return
 	}
+
+	u.logger.Infof("PatchActivity: received request for activity %s with params %#v and parsed params %#v", name, c.Request.Form, requestBody)
+
 	res, err := u.iufService.PatchActivity(activity, requestBody)
 	if err != nil {
 		u.logger.Errorf("PatchActivity: An error occurred patching activity %s: %v", name, err)

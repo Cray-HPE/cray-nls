@@ -523,6 +523,11 @@ func setup(t *testing.T) (string, string, iufService) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+	wfServiceClientMock.On(
+		"GetWorkflow",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.Workflow), nil)
 	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
 	availableOps := []string{
 		"this-is-an-operation-1", "this-is-an-operation-2",
