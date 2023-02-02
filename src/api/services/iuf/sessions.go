@@ -446,13 +446,24 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 	if len(nodesWithOutputs) == 0 {
 		return nil
 	}
-	activity.OperationOutputs = map[string]interface{}{
-		"stage_params": map[string]interface{}{
-			"process-media": map[string]interface{}{
-				"products": map[string]interface{}{},
-			},
-		},
+
+	if activity.OperationOutputs == nil {
+		activity.OperationOutputs = make(map[string]interface{})
 	}
+
+	if activity.OperationOutputs["stage_params"] == nil {
+		activity.OperationOutputs["stage_params"] = make(map[string]interface{})
+	}
+	stageParams := activity.OperationOutputs["stage_params"].(map[string]interface{})
+
+	if stageParams["process-media"] == nil {
+		stageParams["process-media"] = make(map[string]interface{})
+	}
+	outputStage := stageParams["process-media"].(map[string]interface{})
+
+	outputStage["products"] = map[string]interface{}{}
+	productsMap := outputStage["products"].(map[string]interface{})
+
 	activity.Products = []iuf.Product{}
 	for _, nodeStatus := range nodesWithOutputs {
 		var manifest map[string]interface{}
@@ -485,11 +496,16 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 			})
 			productKey := s.getProductVersionKeyFromNameAndVersion(manifest["name"].(string), manifest["version"].(string))
 
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", productKey)] = make(map[string]interface{})
+			productsMap[fmt.Sprintf("%v", productKey)] = make(map[string]interface{})
 
-			activity.OperationOutputs["stage_params"].(map[string]interface{})["process-media"].(map[string]interface{})["products"].(map[string]interface{})[fmt.Sprintf("%v", productKey)].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
+			productsMap[fmt.Sprintf("%v", productKey)].(map[string]interface{})["parent_directory"] = nodeStatus.Outputs.Parameters[1].Value.String()
 		}
 	}
+
+	outputStage["products"] = productsMap
+	stageParams["process-media"] = outputStage
+	activity.OperationOutputs["stage_params"] = stageParams
+
 	return nil
 }
 
