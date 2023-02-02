@@ -27,7 +27,7 @@ kind: WorkflowTemplate
 metadata:
   name: sat-general-template
   labels:
-    version: "1"
+    version: "2"
 spec:
   entrypoint: sat-wrapper
   templates:
