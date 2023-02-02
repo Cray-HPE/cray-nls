@@ -281,25 +281,6 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		existingArgoUploadedTemplateMap[t.Name] = true
 	}
 
-	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
-
-	if stageInfo.Type == "product" {
-		res = s.getDAGTasksForProductStage(session, stageInfo, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
-	} else {
-		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
-	}
-
-	return res, nil
-}
-
-// Gets the DAG tasks for a product stage
-func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iuf.Stage, templateMap map[string]bool,
-	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string,
-	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
-
-	var resPtrs []*v1alpha1.DAGTask
-
 	prevStepsCompleted := map[string]map[string]bool{}
 	for _, product := range session.Products {
 		productKey := s.getProductVersionKey(product)
@@ -323,17 +304,19 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				continue
 			}
 
-			if workflowObj.Status.Phase != v1alpha1.WorkflowSucceeded {
-				// hasn't succeeded? Don't use this then because the outputs from this workflow were not extracted into
-				//  the containing activity
-				continue
-			}
-
 			for _, nodeStatus := range workflowObj.Status.Nodes {
 				if nodeStatus.Type == v1alpha1.NodeTypePod &&
 					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
 					nodeStatus.Phase == v1alpha1.NodeSucceeded {
-					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+					var operationName string
+
+					if strings.Contains(nodeStatus.Name, "-pre-hook-") {
+						operationName = "-pre-hook-" + session.CurrentStage
+					} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
+						operationName = "-post-hook-" + session.CurrentStage
+					} else {
+						operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+					}
 
 					// go through the products and see which product this belongs to
 					for productKey, opMap := range prevStepsCompleted {
@@ -348,6 +331,27 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 			}
 		}
 	}
+
+	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsCompleted, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
+
+	if stageInfo.Type == "product" {
+		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsCompleted, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
+	} else {
+		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
+	}
+
+	return res, nil
+}
+
+// Gets the DAG tasks for a product stage
+func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iuf.Stage,
+	prevStepsCompleted map[string]map[string]bool,
+	templateMap map[string]bool,
+	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string,
+	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
+
+	var resPtrs []*v1alpha1.DAGTask
 
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.

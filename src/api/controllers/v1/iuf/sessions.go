@@ -136,6 +136,12 @@ func (u IufController) Sync(context *gin.Context) {
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
 			u.logger.Infof("Sync: Workflow is in failed/error state. Workflow: %s, resource version: %s, session: %s, activity: %s", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 
+			// still extract the outputs from the successful steps so that if we restart we can skip over those steps.
+			err := u.iufService.ProcessOutput(&session, activeWorkflow)
+			if err != nil {
+				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+			}
+
 			// refresh the session just before we take action on this
 			session, err := u.iufService.GetSession(sessionName)
 			if err != nil {
@@ -173,7 +179,6 @@ func (u IufController) Sync(context *gin.Context) {
 			err := u.iufService.ProcessOutput(&session, activeWorkflow)
 			if err != nil {
 				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				context.JSON(500, err.Error())
 			}
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflowInfo.Id, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage

@@ -62,7 +62,7 @@ func TestGetProductHookTasks(t *testing.T) {
 	t.Run("creates correct number of product hook tasks across multiple products", func(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name: "pre-install-check",
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 1, len(preSteps))
 		assert.Equal(t, 2, len(postSteps))
 	})
@@ -70,35 +70,35 @@ func TestGetProductHookTasks(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name:    "pre-install-check",
 			NoHooks: true,
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 0, len(preSteps))
 		assert.Equal(t, 0, len(postSteps))
 	})
 	t.Run("correctly ignores hooks not populated with script_path and with missing hook templates", func(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name: "deliver-product",
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 0, len(preSteps))
 		assert.Equal(t, 0, len(postSteps))
 	})
 	t.Run("correctly ignores hooks with script_path that is empty", func(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name: "prepare-images",
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 0, len(preSteps))
 		assert.Equal(t, 0, len(postSteps))
 	})
 	t.Run("creates correct number of product hook tasks across a single product", func(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name: "update-vcs-config",
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 0, len(preSteps))
 		assert.Equal(t, 1, len(postSteps))
 	})
 	t.Run("correctly ignores hooks with invalid schema", func(t *testing.T) {
 		preSteps, postSteps := iufService.getProductHookTasks(session, iuf.Stage{
 			Name: "deploy-product",
-		}, stages, allTemplatesByName, globalParamsPerProduct, authToken)
+		}, stages, map[string]map[string]bool{}, allTemplatesByName, globalParamsPerProduct, authToken)
 		assert.Equal(t, 0, len(preSteps))
 		assert.Equal(t, 0, len(postSteps))
 	})
@@ -298,7 +298,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "master_host",
 		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
-			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+			session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.NoError(t, err)
 		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1-2-3-pre-hook-%s", stage.Name)))
 		assert.Equal(t, "master-host-hook-script", task.TemplateRef.Name)
@@ -313,7 +313,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "worker_host",
 		}, iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3"),
-			session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+			session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.NoError(t, err)
 		assert.True(t, strings.HasPrefix(task.Name, fmt.Sprintf("cos-1-2-3-post-hook-%s", stage.Name)))
 		assert.Equal(t, "worker-host-hook-script", task.TemplateRef.Name)
@@ -327,7 +327,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "",
 			ExecutionContext: "master_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+		}, "cos", session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -335,7 +335,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+		}, "cos", session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -343,7 +343,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "storage_host",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+		}, "cos", session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
 	})
 
@@ -351,8 +351,23 @@ func TestCreateHookDAGTask(t *testing.T) {
 		_, err := iufService.createHookDAGTask(true, iuf.ManifestHookScript{
 			ScriptPath:       "/something/something/something/darkside",
 			ExecutionContext: "non_existent_execution_context",
-		}, "cos", session, stage, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+		}, "cos", session, stage, map[string]map[string]bool{}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.Error(t, err)
+	})
+
+	t.Run("doesn't create a task when there is a corresponding entry in prevStepsCompleted", func(t *testing.T) {
+		productKey := iufService.getProductVersionKeyFromNameAndVersion("cos", "1.2.3")
+		task, err := iufService.createHookDAGTask(false, iuf.ManifestHookScript{
+			ScriptPath:       "/something/something/something/darkside",
+			ExecutionContext: "worker_host",
+		}, productKey,
+			session, stage, map[string]map[string]bool{
+				productKey: map[string]bool{
+					"-post-hook-" + stage.Name: true,
+				},
+			}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
+		assert.NoError(t, err)
+		assert.True(t, task.Name == "")
 	})
 }
 
