@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.6.0
+version: 0.6.1
 type: object
 required:
 - iuf_version
@@ -327,6 +327,11 @@ properties:
         - path
         additionalProperties: false
         properties:
+          repo_name:
+            description: >
+              The name to use for the repository in VCS. This overrides the
+              default name, which is "<PRODUCT_NAME>-config-management".
+            type: string
           path:
             description: >
               The relative path to the directory containing the content to
