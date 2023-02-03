@@ -42,6 +42,11 @@ type HistoryActionRequest struct {
 	Comment string `json:"comment"` // Comment
 } //	@name	History.HistoryActionRequest
 
+type HistoryRestartRequest struct {
+	Comment string `json:"comment"` // Comment
+	Force   bool   `json:"force"`   // Force all operations to be re-executed irrespective if they have been successful in the past
+} //	@name	History.HistoryRestartRequest
+
 type HistoryAbortRequest struct {
 	Comment string `json:"comment"` // Comment
 	Force   bool   `json:"force"`   // Force terminate Argo workflows non-gracefully
