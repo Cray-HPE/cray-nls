@@ -27,7 +27,7 @@ kind: WorkflowTemplate
 metadata:
   name: sat-general-template
   labels:
-    version: "1"
+    version: "2"
 spec:
   entrypoint: sat-wrapper
   templates:
@@ -150,9 +150,8 @@ spec:
             mountPath: "{{inputs.parameters.media_dir}}"
       volumes:
         - name: certs
-          hostPath:
-            # This directory contains the cluster certs on the ncn-m001 node
-            path: /etc/pki/trust/anchors
+          configMap:
+            name: cray-configmap-ca-public-key
         - name: media-dir
           hostPath:
             path: "{{inputs.parameters.media_dir}}"
