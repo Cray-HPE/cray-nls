@@ -365,6 +365,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		for _, nodeStatus := range workflow.Status.Nodes {
 			if nodeStatus.Type == v1alpha1.NodeTypePod &&
 				strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+				nodeStatus.Outputs != nil &&
 				len(nodeStatus.Outputs.Parameters) > 0 {
 
 				// check which product this is for
@@ -413,6 +414,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 			for _, nodeStatus := range workflow.Status.Nodes {
 				if nodeStatus.Type == v1alpha1.NodeTypePod &&
 					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
+					nodeStatus.Outputs != nil &&
 					len(nodeStatus.Outputs.Parameters) > 0 {
 					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 					stepName := nodeStatus.DisplayName
