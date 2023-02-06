@@ -333,7 +333,7 @@ func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryRes
 
 	// now modify the session so the current stage is blank (so it can be restarted)
 	session.CurrentStage = ""
-	session.CurrentState = iuf.SessionStateInProgress
+	session.CurrentState = ""
 	session.InputParameters.Force = req.Force
 	err = s.UpdateSessionAndActivity(session, comment)
 
