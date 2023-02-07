@@ -31,6 +31,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"sort"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -208,6 +209,11 @@ func (s iufService) ListActivities() ([]iuf.Activity, error) {
 		s.logger.Error(err)
 		return []iuf.Activity{}, err
 	}
+
+	sort.Slice(rawConfigMapList.Items, func(i, j int) bool {
+		return rawConfigMapList.Items[i].CreationTimestamp.Before(&rawConfigMapList.Items[j].CreationTimestamp)
+	})
+
 	var res []iuf.Activity
 	for _, rawConfigMap := range rawConfigMapList.Items {
 		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[LABEL_ACTIVITY])

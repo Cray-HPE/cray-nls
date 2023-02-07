@@ -27,22 +27,23 @@ package services_iuf
 import (
 	"encoding/json"
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
-	"github.com/golang/mock/gomock"
-	"regexp"
-	"testing"
-
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
 	workflowtemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fake "k8s.io/client-go/kubernetes/fake"
+	"regexp"
+	"sort"
+	"testing"
+	"time"
 )
 
 func TestCreateIufWorkflow(t *testing.T) {
@@ -173,6 +174,54 @@ func TestCreateIufWorkflow(t *testing.T) {
 		// this is tested in the render package
 		assert.NotNil(t, err)
 	})
+}
+
+func TestSort(t *testing.T) {
+	d1 := metav1.Date(2023, 02, 01, 12, 00, 0, 0, time.UTC)
+	d2 := metav1.Date(2023, 02, 01, 12, 00, 1, 0, time.UTC)
+	d0 := metav1.Date(2023, 02, 01, 11, 00, 1, 0, time.UTC)
+	rawConfigMapList := &v1.ConfigMapList{
+		Items: []v1.ConfigMap{
+			v1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "what",
+					APIVersion: "v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "x",
+					CreationTimestamp: d1,
+				},
+			},
+			v1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "what",
+					APIVersion: "v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "y",
+					CreationTimestamp: d2,
+				},
+			},
+			v1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "what",
+					APIVersion: "v1",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:              "z",
+					CreationTimestamp: d0,
+				},
+			},
+		},
+	}
+
+	sort.Slice(rawConfigMapList.Items, func(i, j int) bool {
+		return rawConfigMapList.Items[i].CreationTimestamp.Before(&rawConfigMapList.Items[j].CreationTimestamp)
+	})
+
+	assert.Equal(t, rawConfigMapList.Items[0].CreationTimestamp, d0)
+	assert.Equal(t, rawConfigMapList.Items[1].CreationTimestamp, d1)
+	assert.Equal(t, rawConfigMapList.Items[2].CreationTimestamp, d2)
 }
 
 func TestRunNextStage(t *testing.T) {

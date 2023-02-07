@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	"sort"
 	"strings"
 	"time"
 
@@ -77,6 +78,11 @@ func (s iufService) ListSessions(activityName string) ([]iuf.Session, error) {
 		s.logger.Error(err)
 		return []iuf.Session{}, err
 	}
+
+	sort.Slice(rawConfigMapList.Items, func(i, j int) bool {
+		return rawConfigMapList.Items[i].CreationTimestamp.Before(&rawConfigMapList.Items[j].CreationTimestamp)
+	})
+
 	var res []iuf.Session
 	for _, rawConfigMap := range rawConfigMapList.Items {
 		tmp, err := s.ConfigMapDataToSession(rawConfigMap.Data[LABEL_SESSION])

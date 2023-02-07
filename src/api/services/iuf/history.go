@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"sort"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -52,6 +53,11 @@ func (s iufService) ListActivityHistory(activityName string) ([]iuf.History, err
 		s.logger.Error(err)
 		return []iuf.History{}, err
 	}
+
+	sort.Slice(rawConfigMapList.Items, func(i, j int) bool {
+		return rawConfigMapList.Items[i].CreationTimestamp.Before(&rawConfigMapList.Items[j].CreationTimestamp)
+	})
+
 	var res []iuf.History
 	for _, rawConfigMap := range rawConfigMapList.Items {
 		tmp, err := s.configMapDataToHistory(rawConfigMap.Data[LABEL_HISTORY])
