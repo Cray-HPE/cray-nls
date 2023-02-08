@@ -837,7 +837,7 @@ func (s iufService) SyncWorkflowsToSession(session *iuf.Session) error {
 		ListOptions: &v1.ListOptions{
 			LabelSelector: fmt.Sprintf("session=%s", session.Name),
 		},
-		Fields: "-items.spec",
+		Fields: "-items.spec,-items.status",
 	})
 	if err != nil {
 		s.logger.Errorf("SyncWorkflowsToSession.1: An error occurred while retrieving list of workflows for session %s in activity %s: %v", session.Name, session.ActivityRef, err)
