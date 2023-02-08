@@ -75,7 +75,7 @@ func (s iufService) ListSessions(activityName string) ([]iuf.Session, error) {
 			},
 		)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("ListSessions.1: An error occurred while retrieving list of sessions for activity %s: %v", activityName, err)
 		return []iuf.Session{}, err
 	}
 
@@ -87,7 +87,6 @@ func (s iufService) ListSessions(activityName string) ([]iuf.Session, error) {
 	for _, rawConfigMap := range rawConfigMapList.Items {
 		tmp, err := s.ConfigMapDataToSession(rawConfigMap.Data[LABEL_SESSION])
 		if err != nil {
-			s.logger.Error(err)
 			return []iuf.Session{}, err
 		}
 		res = append(res, tmp)
@@ -99,7 +98,7 @@ func (s iufService) ConfigMapDataToSession(data string) (iuf.Session, error) {
 	var res iuf.Session
 	err := json.Unmarshal([]byte(data), &res)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("ConfigMapDataToSession: An error occurred while parsing JSON: %s: %v", data, err)
 		return res, err
 	}
 	return res, err
@@ -130,10 +129,9 @@ func (s iufService) UpdateSessionAndActivity(session iuf.Session, comment string
 	}
 
 	// if the session update was successful, we also want to update the activity
-	s.logger.Infof("Update activity state, session state: %s", session.CurrentState)
+	s.logger.Infof("UpdateSessionAndActivity.1: update activity activity %s from session %s with comment %s: %#v", session.ActivityRef, session.Name, comment, session)
 	err = s.UpdateActivityStateFromSessionState(session, comment)
 	if err != nil {
-		s.logger.Error(err)
 		return err
 	}
 
@@ -143,7 +141,7 @@ func (s iufService) UpdateSessionAndActivity(session iuf.Session, comment string
 func (s iufService) UpdateSession(session iuf.Session) error {
 	configmap, err := s.iufObjectToConfigMapData(session, session.Name, LABEL_SESSION)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("UpdateSession.1: error while update session %s in activity %s with contents %#v: %v", session.Name, session.ActivityRef, session, err)
 		return err
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = session.ActivityRef
@@ -161,21 +159,21 @@ func (s iufService) UpdateSession(session iuf.Session) error {
 		)
 	if err != nil {
 		// does it even exist? If it doesn't, let's create it instead
-		_, err := s.k8sRestClientSet.
+		_, err2 := s.k8sRestClientSet.
 			CoreV1().
 			ConfigMaps(DEFAULT_NAMESPACE).
 			Get(context.TODO(), configmap.Name, v1.GetOptions{})
-		if err != nil {
-			_, err := s.k8sRestClientSet.
+		if err2 != nil {
+			_, err3 := s.k8sRestClientSet.
 				CoreV1().
 				ConfigMaps(DEFAULT_NAMESPACE).
 				Create(context.TODO(), &configmap, v1.CreateOptions{})
-			if err != nil {
-				s.logger.Error(err)
+			if err3 != nil {
+				s.logger.Errorf("UpdateSession.2: error while creating a new session %s in activity %s with contents %#v: %v", session.Name, session.ActivityRef, session, err3)
 				return err
 			}
 		} else {
-			s.logger.Error(err)
+			s.logger.Errorf("UpdateSession.3: error while update session %s in activity %s with contents %#v: %v", session.Name, session.ActivityRef, session, err)
 			return err
 		}
 	}
@@ -192,14 +190,12 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, com
 	}
 	activity, err := s.GetActivity(session.ActivityRef)
 	if err != nil {
-		s.logger.Error(err)
 		return err
 	}
 
 	activity.ActivityState = activityState
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
-		s.logger.Error(err)
 		return err
 	}
 	_, err = s.k8sRestClientSet.
@@ -211,7 +207,7 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, com
 			v1.UpdateOptions{},
 		)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("UpdateActivityStateFromSessionState.1: An error occurred while trying to save activity %s with contents %#v: %v", activity.Name, activity, err)
 		return err
 	}
 
@@ -226,7 +222,6 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, com
 	}
 	configmap, err = s.iufObjectToConfigMapData(iufHistory, name, LABEL_HISTORY)
 	if err != nil {
-		s.logger.Error(err)
 		return err
 	}
 	configmap.Labels[LABEL_ACTIVITY_REF] = activity.Name
@@ -238,6 +233,10 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, com
 			&configmap,
 			v1.CreateOptions{},
 		)
+
+	if err != nil {
+		s.logger.Errorf("UpdateActivityStateFromSessionState.2: An error occurred while trying to save activity %s with contents %#v: %v", activity.Name, activity, err)
+	}
 
 	return err
 }
@@ -615,67 +614,151 @@ func (s iufService) PauseSession(session *iuf.Session, comment string) error {
 	}
 }
 
-func (s iufService) ResumeDebugSession(session *iuf.Session, comment string) error {
-	// set session and activity to in progress state
-	session.CurrentState = iuf.SessionStateInProgress
+func (s iufService) ResumeSession(session *iuf.Session, comment string) error {
+	var err error
+	lastWorkflowIndex := len(session.Workflows) - 1
+	if lastWorkflowIndex < 0 {
+		// how can there be no workflows for the current stage? Only explanation here
+		//  is that workflows were deleted either manually or through forced abort. In this case,
+		//  let's go rerun the current stage
+		err = utils.GenericError{Message: fmt.Sprintf("ResumeSession.1: There are no workflows to resume for session %s in activity %s: %v", session.Name, session.ActivityRef, err)}
+		s.logger.Warn(err)
 
-	err := s.UpdateSessionAndActivity(*session, comment)
-	if err != nil {
-		s.logger.Errorf("ResumeDebugSession: An error(s) occurred while setting session %s to In Progress: %v", session.Name, err)
-		return err
+		return s.RestartCurrentStage(session, comment)
 	}
 
-	// now retry the workflows
-	var errors []error
-	for _, workflowRef := range session.Workflows {
-		_, err := s.workflowClient.RetryWorkflow(context.TODO(), &workflow.WorkflowRetryRequest{
-			Name:              workflowRef.Id,
+	// if there are some workflows, then let's attempt the last failed or error workflow that belongs to the current stage
+	lastWorkflow := s.FindLastWorkflowForCurrentStage(session)
+
+	if lastWorkflow == nil {
+		// didn't find the workflow? Retry the current stage.
+		return s.RestartCurrentStage(session, comment)
+	} else if lastWorkflow.Status.Successful() {
+		// err...the last workflow was actually successful. We need to go to the next stage instead.
+		return s.GotoNextStage(session, comment)
+	} else if lastWorkflow.Status.Phase == v1alpha1.WorkflowFailed ||
+		lastWorkflow.Status.Phase == v1alpha1.WorkflowError {
+		// not successful? retry that error workflow
+		_, err = s.workflowClient.RetryWorkflow(context.TODO(), &workflow.WorkflowRetryRequest{
+			Name:              lastWorkflow.Name,
 			Namespace:         "argo",
-			RestartSuccessful: true,
+			RestartSuccessful: false,
 		})
 
+		// if there was an error with retrying, then let's resubmit
 		if err != nil {
-			errors = append(errors, err)
+			s.logger.Errorf("ResumeSession.2: An error occurred while retrying workflow %s in session %s in activity %s: %v. Going to try resubmit instead", lastWorkflow.Name, session.Name, session.ActivityRef, err)
+
+			newWorkflow, err := s.workflowClient.ResubmitWorkflow(context.TODO(), &workflow.WorkflowResubmitRequest{
+				Name:      lastWorkflow.Name,
+				Namespace: "argo",
+			})
+
+			if err != nil {
+				s.logger.Errorf("ResumeSession.3: An error occurred while resubmitting workflow %s in session %s in activity %s: %v. Going to try resubmit instead", lastWorkflow.Name, session.Name, session.ActivityRef, err)
+
+				// couldn't resubmit either. Let's do a restart instead.
+				return s.RestartCurrentStage(session, comment)
+			}
+
+			session.Workflows = append(session.Workflows, iuf.SessionWorkflow{
+				Id: newWorkflow.Name,
+			})
+
+			// fall below to saving the session
 		}
-	}
+	} else if lastWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
+		// try resuming the workflow...if there is an error, that's ok, let it complete on its own
+		s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
+			Name:      lastWorkflow.Name,
+			Namespace: "argo",
+		})
+	} // other states are Pending, both for which we do nothing except update session and activity as below
 
-	if len(errors) > 0 {
-		s.logger.Errorf("ResumeDebugSession: An error(s) occurred while resuming workflows: %v", errors)
-		return errors[0]
-	} else {
-		return nil
-	}
-}
-
-func (s iufService) ResumePausedSession(session *iuf.Session, comment string) error {
 	// set session and activity to in progress state
 	session.CurrentState = iuf.SessionStateInProgress
 
-	err := s.UpdateSessionAndActivity(*session, comment)
+	err = s.UpdateSessionAndActivity(*session, comment)
 	if err != nil {
-		s.logger.Errorf("ResumePausedSession: An error(s) occurred while setting session %s to in progress: %v", session.Name, err)
 		return err
 	}
 
-	// now resume the workflows
-	var errors []error
-	for _, workflowRef := range session.Workflows {
-		_, err := s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
-			Name:      workflowRef.Id,
+	return nil
+}
+
+func (s iufService) FindLastWorkflowForCurrentStage(session *iuf.Session) *v1alpha1.Workflow {
+	if len(session.Workflows) == 0 {
+		return nil
+	}
+
+	var lastWorkflow *v1alpha1.Workflow
+	for i := len(session.Workflows) - 1; i >= 0; i-- {
+		w := session.Workflows[i]
+
+		lastWorkflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      w.Id,
 			Namespace: "argo",
 		})
 
+		if err == nil && lastWorkflowObj != nil &&
+			lastWorkflowObj.ObjectMeta.Labels != nil && lastWorkflowObj.ObjectMeta.Labels["stage"] == session.CurrentStage {
+			lastWorkflow = lastWorkflowObj
+			break
+		}
+	}
+	return lastWorkflow
+}
+
+func (s iufService) GotoNextStage(session *iuf.Session, comment string) error {
+	session.CurrentState = ""
+	err := s.UpdateSessionAndActivity(*session, comment)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s iufService) RestartCurrentStage(session *iuf.Session, comment string) error {
+	if len(session.InputParameters.Stages) == 0 {
+		// should have never happened. This is just a bad request.
+		err := utils.GenericError{Message: fmt.Sprintf("RestartCurrentStage.1: There are no stages to resume for session %s in activity %s", session.Name, session.ActivityRef)}
+		s.logger.Error(err)
+		return err
+	}
+
+	if session.CurrentStage == "" || session.CurrentStage == session.InputParameters.Stages[0] {
+		// if we are still on the current stage, then restart
+		session.CurrentState = ""
+		session.CurrentStage = ""
+		err := s.UpdateSessionAndActivity(*session, comment)
 		if err != nil {
-			errors = append(errors, err)
+			return err
+		}
+
+		return nil
+	}
+
+	// set the current state to empty so that it can get picked up by the Sync call to RunNextStage.
+	session.CurrentState = ""
+
+	// find the previous stage
+	session.CurrentStage = session.InputParameters.Stages[0]
+
+	for i := 1; i < len(session.InputParameters.Stages); i++ {
+		if session.CurrentStage == session.InputParameters.Stages[i] {
+			break
+		} else {
+			session.CurrentStage = session.InputParameters.Stages[i]
 		}
 	}
 
-	if len(errors) > 0 {
-		s.logger.Errorf("ResumePausedSession: An error(s) occurred while resuming workflows: %v", errors)
-		return errors[0]
-	} else {
-		return nil
+	err := s.UpdateSessionAndActivity(*session, comment)
+	if err != nil {
+		return err
 	}
+
+	return nil
 }
 
 func (s iufService) AbortSession(session *iuf.Session, comment string, force bool) error {
@@ -746,4 +829,45 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 	} else {
 		return nil
 	}
+}
+
+func (s iufService) SyncWorkflowsToSession(session *iuf.Session) error {
+	workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
+		Namespace: "argo",
+		ListOptions: &v1.ListOptions{
+			LabelSelector: fmt.Sprintf("session=%s", session.Name),
+		},
+		Fields: "-items.spec",
+	})
+	if err != nil {
+		s.logger.Errorf("SyncWorkflowsToSession.1: An error occurred while retrieving list of workflows for session %s in activity %s: %v", session.Name, session.ActivityRef, err)
+		return err
+	}
+
+	sort.Slice(workflows.Items, func(i, j int) bool {
+		return workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
+	})
+
+	// now we make sure that the stored workflows in the session are in sync with the workflows
+	needsSync := len(session.Workflows) != len(workflows.Items)
+	if len(workflows.Items) > 0 {
+		for i, workflowObj := range workflows.Items {
+			if i >= len(session.Workflows) || workflowObj.Name != session.Workflows[i].Id {
+				needsSync = true
+				break
+			}
+		}
+	}
+
+	if needsSync {
+		session.Workflows = []iuf.SessionWorkflow{}
+		for _, workflowObj := range workflows.Items {
+			session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflowObj.Name})
+		}
+
+		// try to update the session and ignore errors because this is meant to be eventually persistent
+		s.UpdateSession(*session)
+	}
+
+	return nil
 }

@@ -68,6 +68,9 @@ type IufService interface {
 	// session
 	ListSessions(activityName string) ([]iuf.Session, error)
 	GetSession(sessionName string) (iuf.Session, error)
+	SyncWorkflowsToSession(session *iuf.Session) error
+	FindLastWorkflowForCurrentStage(session *iuf.Session) *v1alpha1.Workflow
+	RestartCurrentStage(session *iuf.Session, comment string) error
 	// session operator
 	ConfigMapDataToSession(data string) (iuf.Session, error)
 	UpdateActivityStateFromSessionState(session iuf.Session, comment string) error
@@ -111,7 +114,7 @@ func NewIufService(logger utils.Logger, argoService services_shared.ArgoService,
 func (s iufService) iufObjectToConfigMapData(activity interface{}, name string, iufType string) (core_v1.ConfigMap, error) {
 	reqBytes, err := json.Marshal(activity)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("iufObjectToConfigMapData.1: an error occurred while trying to convert %s of type %s to ConfigMap json %#v: %v", name, iufType, activity, err)
 		return core_v1.ConfigMap{}, err
 	}
 	res := core_v1.ConfigMap{
