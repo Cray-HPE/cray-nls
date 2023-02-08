@@ -282,9 +282,11 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	}
 
 	prevStepsCompleted := map[string]map[string]bool{}
+	prevStepsFailed := map[string]map[string]bool{}
 	for _, product := range session.Products {
 		productKey := s.getProductVersionKey(product)
 		prevStepsCompleted[productKey] = make(map[string]bool)
+		prevStepsFailed[productKey] = make(map[string]bool)
 	}
 
 	if !session.InputParameters.Force {
@@ -305,9 +307,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			}
 
 			for _, nodeStatus := range workflowObj.Status.Nodes {
-				if nodeStatus.Type == v1alpha1.NodeTypePod &&
-					strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") &&
-					nodeStatus.Phase == v1alpha1.NodeSucceeded {
+				if strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") {
 					var operationName string
 
 					if strings.Contains(nodeStatus.Name, "-pre-hook-") {
@@ -322,8 +322,26 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 					for productKey, opMap := range prevStepsCompleted {
 
 						if strings.Contains(nodeStatus.Name, productKey) {
-							opMap[operationName] = true
-							prevStepsCompleted[productKey] = opMap
+
+							if nodeStatus.Phase == v1alpha1.NodeSucceeded {
+								// do not join the two ifs in one block -- see note below in else.
+								if !prevStepsFailed[productKey][operationName] {
+									// if we have determined that previously at least one node in the subgraph of
+									//  productKey-operationName has failed, then do not mark this as succeeded.
+									opMap[operationName] = true
+									prevStepsCompleted[productKey] = opMap
+								}
+							} else {
+								// anything other than succeeded needs to be marked as necessary to run.
+								// Note that because we are traversing through a DAG, there maybe child steps that have
+								//  errors but not the parent steps and vice versa. As such, what we are saying here is that
+								//  if any node in the subgraph of a particular productKey-operationName has not succeeded,
+								//  then the entire subgraph (i.e. the operation itself) must be retried.
+								opMap[operationName] = false
+								prevStepsCompleted[productKey] = opMap
+
+								prevStepsFailed[productKey][operationName] = true
+							}
 							break
 						}
 					}
