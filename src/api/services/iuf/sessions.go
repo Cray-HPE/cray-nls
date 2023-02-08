@@ -771,10 +771,6 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 		return err
 	}
 
-	if !force {
-		return nil
-	}
-
 	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
 	var errors []error
 	var workflowIDsToCheck []string
@@ -799,24 +795,26 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 		}
 	}
 
-	// wait 10 seconds before checking that all workflows have in fact been terminated.
-	time.Sleep(10 * time.Second)
+	if force {
+		// wait 10 seconds before checking that all workflows have in fact been terminated.
+		time.Sleep(10 * time.Second)
 
-	for _, workflowToCheckId := range workflowIDsToCheck {
-		workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
-			Name:      workflowToCheckId,
-			Namespace: "argo",
-		})
-
-		if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
-			// good candidate to nuke the workflow.
-			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
+		for _, workflowToCheckId := range workflowIDsToCheck {
+			workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
 				Name:      workflowToCheckId,
 				Namespace: "argo",
 			})
 
-			if err != nil {
-				errors = append(errors, err)
+			if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
+				// good candidate to nuke the workflow.
+				_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
+					Name:      workflowToCheckId,
+					Namespace: "argo",
+				})
+
+				if err != nil {
+					errors = append(errors, err)
+				}
 			}
 		}
 	}
