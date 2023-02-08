@@ -26,7 +26,7 @@ kind: WorkflowTemplate
 metadata:
   name: iuf-base-template
   labels:
-    version: "2"
+    version: "3"
 spec:
   entrypoint: shell-script
   templates:
@@ -128,6 +128,7 @@ spec:
             echo "=======DRY RUN======="
             echo "====================="
             cat /tmp/${ts}.sh
+            touch {{inputs.parameters.script_output_file}}
           else
             bash -e /tmp/${ts}.sh
           fi
