@@ -860,6 +860,7 @@ func (s iufService) SyncWorkflowsToSession(session *iuf.Session) error {
 	}
 
 	if needsSync {
+		s.logger.Infof("SyncWorkflowsToSession: workflows in session %s in activiy %s need to be synced with %#v", session.Name, session.ActivityRef, workflows.Items)
 		session.Workflows = []iuf.SessionWorkflow{}
 		for _, workflowObj := range workflows.Items {
 			session.Workflows = append(session.Workflows, iuf.SessionWorkflow{Id: workflowObj.Name})
