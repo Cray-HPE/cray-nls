@@ -31,6 +31,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"sort"
 	"time"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -104,7 +105,7 @@ func (s iufService) CreateHistoryEntry(activityName string, activityState iuf.Ac
 			v1.CreateOptions{},
 		)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("CreateHistoryEntry: error when saving history entry in config maps for activity %s and data %#v: %v", activityName, iufHistory, err)
 		return err
 	}
 
@@ -121,13 +122,12 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 			v1.GetOptions{},
 		)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("GetActivity.1: An error occurred while trying to get activity %s, %v", name, err)
 		return iuf.Activity{}, err
 	}
 
 	res, err := s.configMapDataToActivity(rawConfigMapData.Data[LABEL_ACTIVITY])
 	if err != nil {
-		s.logger.Error(err)
 		return res, err
 	}
 	return res, err
@@ -208,6 +208,11 @@ func (s iufService) ListActivities() ([]iuf.Activity, error) {
 		s.logger.Error(err)
 		return []iuf.Activity{}, err
 	}
+
+	sort.Slice(rawConfigMapList.Items, func(i, j int) bool {
+		return rawConfigMapList.Items[i].CreationTimestamp.Before(&rawConfigMapList.Items[j].CreationTimestamp)
+	})
+
 	var res []iuf.Activity
 	for _, rawConfigMap := range rawConfigMapList.Items {
 		tmp, err := s.configMapDataToActivity(rawConfigMap.Data[LABEL_ACTIVITY])
@@ -224,7 +229,7 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 	var res iuf.Activity
 	err := json.Unmarshal([]byte(data), &res)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("configMapDataToActivity.1: An error occurred while trying to parse activity configmap %s, %v", data, err)
 		return res, err
 	}
 	return res, err
@@ -233,7 +238,6 @@ func (s iufService) configMapDataToActivity(data string) (iuf.Activity, error) {
 func (s iufService) updateActivity(activity iuf.Activity) (iuf.Activity, error) {
 	configmap, err := s.iufObjectToConfigMapData(activity, activity.Name, LABEL_ACTIVITY)
 	if err != nil {
-		s.logger.Error(err)
 		return iuf.Activity{}, err
 	}
 
@@ -246,7 +250,7 @@ func (s iufService) updateActivity(activity iuf.Activity) (iuf.Activity, error) 
 			v1.UpdateOptions{},
 		)
 	if err != nil {
-		s.logger.Error(err)
+		s.logger.Errorf("updateActivity: error while saving activity %s with %#v: %v", activity.Name, activity, err)
 		return iuf.Activity{}, err
 	}
 	return activity, err

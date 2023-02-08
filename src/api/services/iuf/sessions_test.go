@@ -27,22 +27,21 @@ package services_iuf
 import (
 	"encoding/json"
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
-	"github.com/golang/mock/gomock"
-	"regexp"
-	"testing"
-
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
 	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
 	workflowtemplatemocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate/mocks"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fake "k8s.io/client-go/kubernetes/fake"
+	"regexp"
+	"testing"
 )
 
 func TestCreateIufWorkflow(t *testing.T) {
