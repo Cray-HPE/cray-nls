@@ -141,16 +141,14 @@ func (u IufController) Sync(context *gin.Context) {
 			return
 		}
 
-		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
+		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning || activeWorkflow.Status.Phase == v1alpha1.WorkflowPending {
 			u.logger.Infof("Sync: Workflow %s is still running for session %s in activity %s", activeWorkflow.Name, sessionName, session.ActivityRef)
 			response = iuf.SyncResponse{
 				ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
 			}
 			context.JSON(200, response)
 			return
-		}
-
-		if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
+		} else if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
 			u.logger.Infof("Sync: Workflow is in failed/error state. Workflow: %s, resource version: %s, session: %s, activity: %s", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 
 			// still extract the outputs from the successful steps so that if we restart we can skip over those steps.
@@ -185,9 +183,7 @@ func (u IufController) Sync(context *gin.Context) {
 			}
 			context.JSON(200, response)
 			return
-		}
-
-		if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
+		} else if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
 			// this procedure may take a long time and we may get called again. So in the meantime, let's set the session
 			//  state to transitioning
 			session.CurrentState = iuf.SessionStateTransitioning
@@ -208,6 +204,9 @@ func (u IufController) Sync(context *gin.Context) {
 				return
 			}
 
+			context.JSON(200, response)
+			return
+		} else {
 			context.JSON(200, response)
 			return
 		}
