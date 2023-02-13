@@ -89,14 +89,14 @@ func (u IufController) Sync(context *gin.Context) {
 	var requestBody iuf.SyncRequest
 	if err := context.BindJSON(&requestBody); err != nil {
 		u.logger.Errorf("Sync.1: An error occurred parsing sync request %#v: %v", context.Request.Form, err)
-		context.JSON(500, err.Error())
+		context.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
 	}
 	sessionName := requestBody.Object.Name
 	session, err := u.iufService.GetSession(sessionName)
 	if err != nil {
 		u.logger.Errorf("Sync.2: An error occurred getting session %s: %v", sessionName, err)
-		context.JSON(500, err.Error())
+		context.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
 	}
 	err = u.iufService.SyncWorkflowsToSession(&session)
@@ -110,34 +110,15 @@ func (u IufController) Sync(context *gin.Context) {
 		u.logger.Infof("Sync: State is empty, creating workflow: %s, resource version: %s, session: %s, activity: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 		response, err, _ := u.iufService.RunNextStage(&session)
 		if err != nil {
-			context.JSON(500, err.Error())
+			context.JSON(500, utils.ResponseError{Message: err.Error()})
+			return
 		}
 		context.JSON(200, response)
 		return
 	case iuf.SessionStateInProgress:
-		if len(session.Workflows) == 0 {
-			break
-		}
-
 		activeWorkflow := u.iufService.FindLastWorkflowForCurrentStage(&session)
 		if activeWorkflow == nil {
-			err = u.iufService.RestartCurrentStage(&session, session.CurrentStage)
-			if err != nil {
-				u.logger.Errorf("Sync: Unable to restart current stage. Current stage: %s, resource version: %s, session: %s, activity: %s, error: %v", session.CurrentStage, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
-				//  This is the downside of using a non-transactional storage such as CRDs.
-				context.JSON(500, iuf.SyncResponse{})
-
-				session.CurrentState = iuf.SessionStateDebug
-				u.iufService.UpdateSessionAndActivity(session, "Unable to restart current stage")
-				return
-			}
-
-			u.logger.Infof("Sync: Restarting stage %s in session %s in activity %s", session.Name, sessionName, session.ActivityRef)
-			response = iuf.SyncResponse{
-				ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
-			}
-			context.JSON(200, response)
+			u.restartCurrentStageFromSyncCall(context, session, requestBody, response)
 			return
 		}
 
@@ -155,13 +136,14 @@ func (u IufController) Sync(context *gin.Context) {
 			err := u.iufService.ProcessOutput(&session, activeWorkflow)
 			if err != nil {
 				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+				// do not return error, just continue because process output should not re-attempt stage.
 			}
 
 			// refresh the session just before we take action on this
 			session, err := u.iufService.GetSession(sessionName)
 			if err != nil {
 				u.logger.Errorf("Sync: An error occurred refreshing the session. Workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				context.JSON(500, err.Error())
+				context.JSON(500, utils.ResponseError{Message: err.Error()})
 				return
 			}
 
@@ -192,7 +174,9 @@ func (u IufController) Sync(context *gin.Context) {
 			err := u.iufService.ProcessOutput(&session, activeWorkflow)
 			if err != nil {
 				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+				// do not return error, just continue because process output should not re-attempt stage.
 			}
+
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage
 			response, err, _ := u.iufService.RunNextStage(&session)
@@ -200,7 +184,7 @@ func (u IufController) Sync(context *gin.Context) {
 				u.logger.Errorf("Sync: Unable to go to next stage. Current stage: %s, workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", currentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
 				// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
 				//  This is the downside of using a non-transactional storage such as CRDs.
-				context.JSON(500, iuf.SyncResponse{})
+				context.JSON(500, utils.ResponseError{Message: err.Error()})
 				return
 			}
 
@@ -212,20 +196,48 @@ func (u IufController) Sync(context *gin.Context) {
 		}
 	case iuf.SessionStateTransitioning, iuf.SessionStateAborted, iuf.SessionStatePaused, iuf.SessionStateDebug, iuf.SessionStateCompleted:
 		u.logger.Infof("Sync: The session %s in activity %s is in state %s and there is nothing to do", session.Name, session.ActivityRef, session.CurrentState)
-		response = iuf.SyncResponse{}
-		context.JSON(200, response)
+		context.JSON(200, iuf.SyncResponse{})
 		return
 	default:
-		err := fmt.Errorf("sync: unknown state %s for session %s in activity %s", session.CurrentState, sessionName, session.ActivityRef)
+		session.CurrentState = iuf.SessionStateDebug
+		err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Unknown state %s", session.CurrentState))
+		if err != nil {
+			context.JSON(500, utils.ResponseError{Message: err.Error()})
+			return
+		}
+
+		err = fmt.Errorf("sync: unknown state %s for session %s in activity %s", session.CurrentState, sessionName, session.ActivityRef)
 		u.logger.Error(err)
+
+		context.JSON(500, utils.ResponseError{Message: err.Error()})
+		return
+	}
+
+	// why did we end up here? Golang really needs better static analysis.
+	context.JSON(500, utils.ResponseError{Message: "Sync: Unknown code path. Shouldn't have landed here."})
+	return
+}
+
+func (u IufController) restartCurrentStageFromSyncCall(context *gin.Context, session iuf.Session, requestBody iuf.SyncRequest, response iuf.SyncResponse) {
+	u.logger.Infof("Sync: Restarting stage %s in session %s in activity %s", session.CurrentStage, session.Name, session.ActivityRef)
+
+	err := u.iufService.RestartCurrentStage(&session, session.CurrentStage)
+	if err != nil {
+		u.logger.Errorf("Sync: Unable to restart current stage. Current stage: %s, resource version: %s, session: %s, activity: %s, error: %v", session.CurrentStage, requestBody.Object.ObjectMeta.ResourceVersion, session.Name, session.ActivityRef, err)
+		// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
+		//  This is the downside of using a non-transactional storage such as CRDs.
 		context.JSON(500, utils.ResponseError{Message: err.Error()})
 
 		session.CurrentState = iuf.SessionStateDebug
-		err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Unknown state %s", session.CurrentState))
-		u.logger.Error(err)
-
+		u.iufService.UpdateSessionAndActivity(session, "Unable to restart current stage")
 		return
 	}
+
+	response = iuf.SyncResponse{
+		ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
+	}
+
+	context.JSON(200, response)
 }
 
 //WorkflowSync **experimental** Instead of a webhook on Session, we should have defined a webhook on Argo workflows instead

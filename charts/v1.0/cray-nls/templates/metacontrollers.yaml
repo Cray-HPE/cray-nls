@@ -57,4 +57,5 @@ spec:
     sync:
       webhook:
         url: "http://{{ index .Values "argo-host" }}/apis/iuf/v1/session/sync"
+        timeout: 30s
 
