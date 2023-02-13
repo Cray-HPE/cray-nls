@@ -214,7 +214,7 @@ func (u IufController) Sync(context *gin.Context) {
 	}
 
 	// why did we end up here? Golang really needs better static analysis.
-	context.JSON(500, utils.ResponseError{Message: "Sync: Unknown code path. Should't have landed here."})
+	context.JSON(500, utils.ResponseError{Message: "Sync: Unknown code path. Shouldn't have landed here."})
 	return
 }
 
