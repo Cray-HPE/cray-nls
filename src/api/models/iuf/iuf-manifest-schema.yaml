@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.6.1
+version: 0.7.0
 type: object
 required:
 - iuf_version
@@ -336,21 +336,6 @@ properties:
             description: >
               The relative path to the directory containing the content to
               upload to a repository in VCS.
-            type: string
-          import_branch:
-            description: >
-              The branch name to which the content in the given path should be
-              uploaded in VCS. If omitted, this will default to
-              cray/PRODUCT_NAME/PRODUCT_VERSION where PRODUCT_NAME and
-              PRODUCT_VERSION are the name and version of the product,
-              respectively. It is recommended not to override this value unless
-              it is absolutely required to do so.
-            type: string
-          site_branch:
-            description: >
-              The branch name to use as the branch for site customizations. If
-              omitted this will default to "integration-PRODUCT_VERSION" where
-              "PRODUCT_VERSION" is the version of the product.
             type: string
 
       ims:
