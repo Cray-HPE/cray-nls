@@ -199,15 +199,15 @@ func (u IufController) Sync(context *gin.Context) {
 		context.JSON(200, iuf.SyncResponse{})
 		return
 	default:
-		err := fmt.Errorf("sync: unknown state %s for session %s in activity %s", session.CurrentState, sessionName, session.ActivityRef)
-		u.logger.Error(err)
-
 		session.CurrentState = iuf.SessionStateDebug
 		err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Unknown state %s", session.CurrentState))
 		if err != nil {
 			context.JSON(500, utils.ResponseError{Message: err.Error()})
 			return
 		}
+
+		err = fmt.Errorf("sync: unknown state %s for session %s in activity %s", session.CurrentState, sessionName, session.ActivityRef)
+		u.logger.Error(err)
 
 		context.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
