@@ -159,7 +159,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 	name := utils.GenerateName(activity.Name)
 	session := iuf.Session{
 		InputParameters: activity.InputParameters,
-		SiteParameters:  s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters),
+		SiteParameters:  activity.SiteParameters,
 		Products:        activity.Products,
 		Name:            name,
 		ActivityRef:     activityName,

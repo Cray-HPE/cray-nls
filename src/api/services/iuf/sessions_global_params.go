@@ -40,7 +40,7 @@ func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product,
 	return map[string]interface{}{
 		"product_manifest": s.getGlobalParamsProductManifest(session, in_product),
 		"input_params":     s.getGlobalParamsInputParams(session, in_product),
-		"site_params":      s.getGlobalParamsSiteParams(session, in_product),
+		"site_params":      s.getGlobalParamsSiteParams(session, in_product, stages),
 		"stage_params":     s.getGlobalParamsStageParams(session, in_product, stages),
 	}
 }
@@ -149,26 +149,39 @@ func (s iufService) getGlobalParamsStageParams(session iuf.Session, in_product i
 	return res
 }
 
-func (s iufService) getSiteParams(deprecatedSiteParameters string, structSiteParams iuf.SiteParameters) iuf.SiteParameters {
-	// check which site parameters we are using first
+func (s iufService) getSiteParams(structSiteParams iuf.SiteParameters, currentStage string, stages iuf.Stages) iuf.SiteParameters {
 	var siteParams iuf.SiteParameters
-	//if len(structSiteParams.Products) > 0 {
-	siteParams.Products = structSiteParams.Products
+
+	idx := slices.IndexFunc(stages.Stages, func(stage iuf.Stage) bool { return stage.Name == currentStage })
+	var includeDefaultProduct bool
+	if idx >= 0 {
+		for _, operation := range stages.Stages[idx].Operations {
+			if operation.IncludeDefaultProductInSiteParams {
+				includeDefaultProduct = true
+				break
+			}
+		}
+	}
+
+	if !includeDefaultProduct {
+		siteParams.Products = make(map[string]map[string]interface{})
+		// remove any "default" product
+		for key, value := range structSiteParams.Products {
+			if strings.ToLower(key) != "default" {
+				siteParams.Products[key] = value
+			}
+		}
+	} else {
+		siteParams.Products = structSiteParams.Products
+	}
+
 	siteParams.Global = structSiteParams.Global
-	//} else {
-	//	err := json.Unmarshal([]byte(deprecatedSiteParameters), siteParams)
-	//	if err != nil {
-	//		// fallback
-	//		siteParams.Products = structSiteParams.Products
-	//		siteParams.Global = structSiteParams.Global
-	//	}
-	//}
 
 	return siteParams
 }
 
-func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product) iuf.SiteParametersForOperationsAndHooks {
-	params := s.getSiteParams(session.InputParameters.SiteParameters, session.SiteParameters)
+func (s iufService) getGlobalParamsSiteParams(session iuf.Session, in_product iuf.Product, stages iuf.Stages) iuf.SiteParametersForOperationsAndHooks {
+	params := s.getSiteParams(session.SiteParameters, session.CurrentStage, stages)
 	return iuf.SiteParametersForOperationsAndHooks{
 		SiteParameters: params,
 		// Note that we don't key by productName-productVersion here intentionally. There is only one set of configuration

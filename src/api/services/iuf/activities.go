@@ -183,7 +183,7 @@ func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchAc
 	for _, session := range sessions {
 		if session.CurrentState != iuf.SessionStateCompleted {
 			session.InputParameters = activity.InputParameters
-			session.SiteParameters = s.getSiteParams(activity.InputParameters.SiteParameters, activity.SiteParameters)
+			session.SiteParameters = activity.SiteParameters
 			err := s.UpdateSession(session)
 			if err != nil {
 				return iuf.Activity{}, err
