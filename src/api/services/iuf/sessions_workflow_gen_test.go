@@ -528,6 +528,11 @@ func setup(t *testing.T) (string, string, iufService) {
 		mock.Anything,
 		mock.Anything,
 	).Return(new(v1alpha1.Workflow), nil)
+	wfServiceClientMock.On(
+		"ListWorkflows",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.WorkflowList), nil)
 	wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
 	availableOps := []string{
 		"this-is-an-operation-1", "this-is-an-operation-2",
