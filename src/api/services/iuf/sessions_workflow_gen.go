@@ -294,8 +294,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	// we only skip existing operations if force=false AND stage type is product. Note that it is dangerous to skip
 	//  stages that are global, because product content may have changed.
 	if !session.InputParameters.Force && stageInfo.Type == "product" {
-		// go through all the previous sessions of the activity, and see if we can pick up something that is already
-		//  completed. Note that
+		// go through all the previous sessions of the activity, and see if we can pick up something that is already completed.
 		workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 			Namespace: "argo",
 			ListOptions: &v1.ListOptions{
@@ -304,12 +303,12 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			Fields: "-items.spec",
 		})
 
-		sort.Slice(workflows.Items, func(i, j int) bool {
-			// Note: this is reverse-sort (latest item first)
-			return !workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
-		})
-
 		if err == nil {
+			sort.Slice(workflows.Items, func(i, j int) bool {
+				// Note: this is reverse-sort (latest item first)
+				return !workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
+			})
+
 			for _, workflowObj := range workflows.Items {
 				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
 				//  steps have failed
@@ -326,15 +325,15 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						var operationName string
 
 						if strings.Contains(nodeStatus.Name, "-pre-hook-") {
-							operationName = "-pre-hook-" + session.CurrentStage
+							operationName = "-pre-hook-" + stageInfo.Name
 						} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
-							operationName = "-post-hook-" + session.CurrentStage
+							operationName = "-post-hook-" + stageInfo.Name
 						} else {
 							operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 						}
 
 						// go through the products and see which product this belongs to
-						for productKey, _ := range prevStepsSuccessfulInWorkflow {
+						for productKey := range prevStepsSuccessfulInWorkflow {
 
 							if strings.Contains(nodeStatus.Name, productKey) {
 
