@@ -300,7 +300,6 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			ListOptions: &v1.ListOptions{
 				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stageInfo.Name),
 			},
-			Fields: "-items.spec",
 		})
 
 		if err == nil {
@@ -310,6 +309,8 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			})
 
 			for _, workflowObj := range workflows.Items {
+				s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stageInfo.Name, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
+
 				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
 				//  steps have failed
 				prevStepsFailedInWorkflow := map[string]map[string]bool{}
@@ -331,6 +332,8 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						} else {
 							operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 						}
+
+						s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if step %s of operation type %s in previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stageInfo.Name, nodeStatus.Name, operationName, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 
 						// go through the products and see which product this belongs to
 						for productKey := range prevStepsSuccessfulInWorkflow {
@@ -438,7 +441,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 			// do some validations before we are sure to run the operation.
 			if prevStepsCompleted[productKey][operation.Name] != "" {
-				s.setEchoTemplate(false, &task, fmt.Sprintf("getDAGTasksForProductStage: Operation %s is being skipped for product %s because it was previously completed successfully in workflow %s", operation.Name, productKey, prevStepsCompleted[productKey][operation.Name]))
+				s.setEchoTemplate(false, &task, fmt.Sprintf("Operation %s is being skipped for product %s because it was previously completed successfully in workflow %s", operation.Name, productKey, prevStepsCompleted[productKey][operation.Name]))
 				hasEchoTemplate = true
 			} else if !templateMap[operation.Name] {
 				// this is a backend error so we don't use a template to inform the user here.
@@ -448,13 +451,13 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				manifestBytes := []byte(product.Manifest)
 				manifestJsonBytes, err := yaml.YAMLToJSON(manifestBytes)
 				if err != nil {
-					s.setEchoTemplate(true, &task, fmt.Sprintf("getDAGTasksForProductStage: Cannot convert JSON to YAML for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
+					s.setEchoTemplate(true, &task, fmt.Sprintf("Cannot convert JSON to YAML for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
 					hasEchoTemplate = true
 				} else {
 					var manifestJson map[string]interface{}
 					err = json.Unmarshal(manifestJsonBytes, &manifestJson)
 					if err != nil {
-						s.setEchoTemplate(true, &task, fmt.Sprintf("getDAGTasksForProductStage: Cannot parse manifest for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
+						s.setEchoTemplate(true, &task, fmt.Sprintf("Cannot parse manifest for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
 						hasEchoTemplate = true
 					} else if operation.RequiredManifestAttributes != nil && len(operation.RequiredManifestAttributes) > 0 {
 						// check if the operation's required manifest attributes are satisfied in the product's manifest
