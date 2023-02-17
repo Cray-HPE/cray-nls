@@ -492,7 +492,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 						}
 
 						if !found {
-							s.setEchoTemplate(true, &task, fmt.Sprintf("Skipping operation %s for product %s in the session %s in activity %s because the content for it is not defined in the product's manifest (need at least one of [%s]).", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef, strings.Join(operation.RequiredManifestAttributes, ",")))
+							s.setEchoTemplate(false, &task, fmt.Sprintf("Skipping operation %s for product %s in the session %s in activity %s because the content for it is not defined in the product's manifest (need at least one of [%s]).", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef, strings.Join(operation.RequiredManifestAttributes, ",")))
 							hasEchoTemplate = true
 						}
 					}
