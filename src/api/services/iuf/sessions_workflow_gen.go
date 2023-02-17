@@ -300,7 +300,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			ListOptions: &v1.ListOptions{
 				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stage),
 			},
-			Fields: "items.name,items.creationTimestamp",
+			Fields: "-items.status.nodes,-items.spec",
 		})
 
 		if err == nil {
@@ -313,7 +313,6 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 				workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
 					Name:      workflowObjWithName.Name,
 					Namespace: "argo",
-					Fields:    "name,status",
 				})
 
 				if err != nil {
