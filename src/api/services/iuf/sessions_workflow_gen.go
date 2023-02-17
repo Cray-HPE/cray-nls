@@ -442,7 +442,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				hasEchoTemplate = true
 			} else if !templateMap[operation.Name] {
 				// this is a backend error so we don't use a template to inform the user here.
-				s.logger.Warnf("getDAGTasksForProductStage: The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+				s.logger.Errorf("getDAGTasksForProductStage: The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
 				continue
 			} else {
 				manifestBytes := []byte(product.Manifest)
@@ -477,8 +477,9 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 						}
 
 						if !found {
-							s.setEchoTemplate(false, &task, fmt.Sprintf("getDAGTasksForProductStage: Skipping operation %s for product %s in the session %s in activity %s because the content for it does not exist in the manifest.", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef))
-							hasEchoTemplate = true
+							// we do not create an echo template for this because it is too much noise otherwise.
+							s.logger.Infof("getDAGTasksForProductStage: Skipping operation %s for product %s in the session %s in activity %s because the content for it does not exist in the manifest.", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef)
+							continue
 						}
 					}
 				}

@@ -367,7 +367,7 @@ func TestCreateHookDAGTask(t *testing.T) {
 				},
 			}, hookTemplateMap, allTemplatesByName, globalParamsPerProduct, authTokenName)
 		assert.NoError(t, err)
-		assert.True(t, task.Name == "")
+		assert.True(t, task.TemplateRef.Name == "echo-template")
 	})
 }
 

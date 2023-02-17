@@ -507,7 +507,7 @@ content:
 		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 6, len(dagTasks))
+		assert.Equal(t, 4, len(dagTasks))
 		assert.True(t, strings.Contains(dagTasks[0].Name, "this-is-an-operation-1"))
 		assert.True(t, strings.Contains(dagTasks[0].Name, "product-A"))
 		assert.True(t, dagTasks[0].TemplateRef.Name == "this-is-an-operation-1")
@@ -520,17 +520,21 @@ content:
 		assert.True(t, strings.Contains(dagTasks[2].Name, "product-B"))
 		assert.True(t, dagTasks[2].TemplateRef.Name == "this-is-an-operation-1")
 
+		//assert.True(t, strings.Contains(dagTasks[3].Name, "this-is-an-operation-2"))
+		//assert.True(t, strings.Contains(dagTasks[3].Name, "product-B"))
+		//assert.True(t, dagTasks[3].TemplateRef.Name == "echo-template")
+		//
+		//assert.True(t, strings.Contains(dagTasks[4].Name, "this-is-an-operation-1"))
+		//assert.True(t, strings.Contains(dagTasks[4].Name, "product-C"))
+		//assert.True(t, dagTasks[4].TemplateRef.Name == "echo-template")
+
+		// The above was commented out because we do not create a task for skipped operations that do not have content
+		// if we decide to put that back in, then uncomment the above, set the total tasks from 4 -> 6, and change the
+		// index below from 3 -> 5
+
 		assert.True(t, strings.Contains(dagTasks[3].Name, "this-is-an-operation-2"))
-		assert.True(t, strings.Contains(dagTasks[3].Name, "product-B"))
-		assert.True(t, dagTasks[3].TemplateRef.Name == "echo-template")
-
-		assert.True(t, strings.Contains(dagTasks[4].Name, "this-is-an-operation-1"))
-		assert.True(t, strings.Contains(dagTasks[4].Name, "product-C"))
-		assert.True(t, dagTasks[4].TemplateRef.Name == "echo-template")
-
-		assert.True(t, strings.Contains(dagTasks[5].Name, "this-is-an-operation-2"))
-		assert.True(t, strings.Contains(dagTasks[5].Name, "product-C"))
-		assert.True(t, dagTasks[5].TemplateRef.Name == "this-is-an-operation-2")
+		assert.True(t, strings.Contains(dagTasks[3].Name, "product-C"))
+		assert.True(t, dagTasks[3].TemplateRef.Name == "this-is-an-operation-2")
 	})
 }
 
