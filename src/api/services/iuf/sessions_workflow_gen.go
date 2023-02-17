@@ -267,7 +267,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
-	s.logger.Infof("create DAG for stage: %s", stage)
+	s.logger.Infof("getDAGTasks: create workflow DAG for stage %s in session %s in activity %s", stage, session.Name, session.ActivityRef)
 
 	// first find out what templates are available in the system.
 	listTemplates := workflowtemplate.WorkflowTemplateListRequest{
@@ -298,8 +298,9 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 			Namespace: "argo",
 			ListOptions: &v1.ListOptions{
-				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stageInfo.Name),
+				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stage),
 			},
+			Fields: "items.name,items.status.nodes",
 		})
 
 		if err == nil {
@@ -309,7 +310,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			})
 
 			for _, workflowObj := range workflows.Items {
-				s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stageInfo.Name, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
+				s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 
 				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
 				//  steps have failed
@@ -321,19 +322,20 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 					prevStepsSuccessfulInWorkflow[productKey] = make(map[string]string)
 				}
 
+				s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if any of the %v nodes in previous workflow %s have any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, len(workflowObj.Status.Nodes), workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
+
 				for _, nodeStatus := range workflowObj.Status.Nodes {
+					s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if step %s of operation type %s in previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, nodeStatus.Name, nodeStatus.TemplateScope, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 					if strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") {
 						var operationName string
 
 						if strings.Contains(nodeStatus.Name, "-pre-hook-") {
-							operationName = "-pre-hook-" + stageInfo.Name
+							operationName = "-pre-hook-" + stage
 						} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
-							operationName = "-post-hook-" + stageInfo.Name
+							operationName = "-post-hook-" + stage
 						} else {
 							operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 						}
-
-						s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if step %s of operation type %s in previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stageInfo.Name, nodeStatus.Name, operationName, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 
 						// go through the products and see which product this belongs to
 						for productKey := range prevStepsSuccessfulInWorkflow {
@@ -368,7 +370,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						if success != "" && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
 							prevStepsSuccessful[productKey][opKey] = success
-							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, skipping previously successful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, skipping previously successful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
@@ -377,7 +379,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						if failed && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
 							prevStepsSuccessful[productKey][opKey] = ""
-							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not going to skip previously unsuccessful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not going to skip previously unsuccessful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
@@ -386,16 +388,16 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						productKey := s.getProductVersionKey(product)
 						opKey := op.Name
 						if !prevStepsAlreadyProcessed[productKey][opKey] {
-							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, couldn't determine whether or not to skip operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, couldn't determine whether or not to skip operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
 			}
 		} else {
-			s.logger.Errorf("getDAGTasks: Got an error while trying to List all workflows for session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s: %v", session.Name, session.ActivityRef, stageInfo.Name, session.InputParameters.Force, stageInfo.Type, err)
+			s.logger.Errorf("getDAGTasks: Got an error while trying to List all workflows for session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s: %v", session.Name, session.ActivityRef, stage, session.InputParameters.Force, stageInfo.Type, err)
 		}
 	} else {
-		s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, session.InputParameters.Force, stageInfo.Type)
+		s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, session.InputParameters.Force, stageInfo.Type)
 	}
 
 	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
