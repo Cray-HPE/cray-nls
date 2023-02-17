@@ -60,6 +60,11 @@ func TestCreateIufWorkflow(t *testing.T) {
 			mock.Anything,
 			mock.Anything,
 		).Return(new(v1alpha1.Workflow), nil)
+		wfServiceClientMock.On(
+			"ListWorkflows",
+			mock.Anything,
+			mock.Anything,
+		).Return(new(v1alpha1.WorkflowList), nil)
 		wfTemplateServiceClientMock := &workflowtemplatemocks.WorkflowTemplateServiceClient{}
 		wfTemplateServiceClientMock.On(
 			"ListWorkflowTemplates",
@@ -184,6 +189,11 @@ func TestRunNextStage(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 	).Return(new(v1alpha1.Workflow), nil)
+	wfServiceClientMock.On(
+		"ListWorkflows",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.WorkflowList), nil)
 	wfServiceClientMock.On(
 		"CreateWorkflow",
 		mock.Anything,

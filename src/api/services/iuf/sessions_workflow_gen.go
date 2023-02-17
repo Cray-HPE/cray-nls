@@ -36,8 +36,10 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 	"sigs.k8s.io/yaml"
+	"sort"
 	"strings"
 )
 
@@ -281,68 +283,96 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		existingArgoUploadedTemplateMap[t.Name] = true
 	}
 
-	prevStepsCompleted := map[string]map[string]bool{}
-	prevStepsFailed := map[string]map[string]bool{}
+	prevStepsSuccessful := map[string]map[string]bool{}
+	prevStepsAlreadyProcessed := map[string]map[string]bool{}
 	for _, product := range session.Products {
 		productKey := s.getProductVersionKey(product)
-		prevStepsCompleted[productKey] = make(map[string]bool)
-		prevStepsFailed[productKey] = make(map[string]bool)
+		prevStepsSuccessful[productKey] = make(map[string]bool)
+		prevStepsAlreadyProcessed[productKey] = make(map[string]bool)
 	}
 
-	if !session.InputParameters.Force {
-		// go through all the previous workflows of this session and see what steps were completed previously
-		for _, workflowId := range session.Workflows {
-			workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
-				Name:      workflowId.Id,
-				Namespace: "argo",
+	// we only skip existing operations if force=false AND stage type is product. Note that it is dangerous to skip
+	//  stages that are global, because product content may have changed.
+	if !session.InputParameters.Force && stageInfo.Type == "product" {
+		// go through all the previous sessions of the activity, and see if we can pick up something that is already completed.
+		workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
+			Namespace: "argo",
+			ListOptions: &v1.ListOptions{
+				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stageInfo.Name),
+			},
+			Fields: "-items.spec",
+		})
+
+		if err == nil {
+			sort.Slice(workflows.Items, func(i, j int) bool {
+				// Note: this is reverse-sort (latest item first)
+				return !workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
 			})
-			if err != nil {
-				// we don't really care about errors because it should not block us from creating a new DAG.
-				continue
-			}
 
-			if workflowObj.ObjectMeta.Labels["stage"] != session.CurrentStage {
-				// not the current stage? Don't use this then.
-				continue
-			}
+			for _, workflowObj := range workflows.Items {
+				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
+				//  steps have failed
+				prevStepsFailedInWorkflow := map[string]map[string]bool{}
+				prevStepsSuccessfulInWorkflow := map[string]map[string]bool{}
+				for _, product := range session.Products {
+					productKey := s.getProductVersionKey(product)
+					prevStepsFailedInWorkflow[productKey] = make(map[string]bool)
+					prevStepsSuccessfulInWorkflow[productKey] = make(map[string]bool)
+				}
 
-			for _, nodeStatus := range workflowObj.Status.Nodes {
-				if strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") {
-					var operationName string
+				for _, nodeStatus := range workflowObj.Status.Nodes {
+					if strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") {
+						var operationName string
 
-					if strings.Contains(nodeStatus.Name, "-pre-hook-") {
-						operationName = "-pre-hook-" + session.CurrentStage
-					} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
-						operationName = "-post-hook-" + session.CurrentStage
-					} else {
-						operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
-					}
+						if strings.Contains(nodeStatus.Name, "-pre-hook-") {
+							operationName = "-pre-hook-" + stageInfo.Name
+						} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
+							operationName = "-post-hook-" + stageInfo.Name
+						} else {
+							operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
+						}
 
-					// go through the products and see which product this belongs to
-					for productKey, opMap := range prevStepsCompleted {
+						// go through the products and see which product this belongs to
+						for productKey := range prevStepsSuccessfulInWorkflow {
 
-						if strings.Contains(nodeStatus.Name, productKey) {
+							if strings.Contains(nodeStatus.Name, productKey) {
 
-							if nodeStatus.Phase == v1alpha1.NodeSucceeded {
-								// do not join the two ifs in one block -- see note below in else.
-								if !prevStepsFailed[productKey][operationName] {
-									// if we have determined that previously at least one node in the subgraph of
-									//  productKey-operationName has failed, then do not mark this as succeeded.
-									opMap[operationName] = true
-									prevStepsCompleted[productKey] = opMap
+								if nodeStatus.Phase == v1alpha1.NodeSucceeded {
+									// do not join the two ifs in one block -- see note below in else.
+									if !prevStepsFailedInWorkflow[productKey][operationName] {
+										// if we have determined that previously at least one node in the subgraph of
+										//  productKey-operationName has failed, then do not mark this as succeeded.
+										prevStepsSuccessfulInWorkflow[productKey][operationName] = true
+									}
+								} else {
+									// anything other than succeeded needs to be marked as necessary to run.
+									// Note that because we are traversing through a DAG, there maybe child steps that have
+									//  errors but not the parent steps and vice versa. As such, what we are saying here is that
+									//  if any node in the subgraph of a particular productKey-operationName has not succeeded,
+									//  then the entire subgraph (i.e. the operation itself) must be retried.
+									prevStepsSuccessfulInWorkflow[productKey][operationName] = false
+									prevStepsFailedInWorkflow[productKey][operationName] = true
 								}
-							} else {
-								// anything other than succeeded needs to be marked as necessary to run.
-								// Note that because we are traversing through a DAG, there maybe child steps that have
-								//  errors but not the parent steps and vice versa. As such, what we are saying here is that
-								//  if any node in the subgraph of a particular productKey-operationName has not succeeded,
-								//  then the entire subgraph (i.e. the operation itself) must be retried.
-								opMap[operationName] = false
-								prevStepsCompleted[productKey] = opMap
-
-								prevStepsFailed[productKey][operationName] = true
+								break
 							}
-							break
+						}
+					}
+				}
+
+				// now go through all the failed and successful workflows and mark them as successful or already processed
+				for productKey, opMap := range prevStepsSuccessfulInWorkflow {
+					for opKey, success := range opMap {
+						if success && !prevStepsAlreadyProcessed[productKey][opKey] {
+							prevStepsAlreadyProcessed[productKey][opKey] = true
+							prevStepsSuccessful[productKey][opKey] = true
+						}
+					}
+				}
+				for productKey, opMap := range prevStepsFailedInWorkflow {
+					for opKey, failed := range opMap {
+						if failed && !prevStepsAlreadyProcessed[productKey][opKey] {
+							prevStepsAlreadyProcessed[productKey][opKey] = true
+							prevStepsSuccessful[productKey][opKey] = false
 						}
 					}
 				}
@@ -350,10 +380,10 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		}
 	}
 
-	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsCompleted, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
+	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsCompleted, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
+		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
 	} else {
 		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
 	}

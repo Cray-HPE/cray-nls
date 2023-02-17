@@ -40,7 +40,8 @@ type Stages struct {
 } //	@name	Stages
 
 type Operations struct {
-	Name                       string                 `yaml:"name" json:"name" binding:"required"` // Name of the operation
-	StaticParameters           map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
-	RequiredManifestAttributes []string               `yaml:"static-parameters" json:"required-manifest-attributes"`
+	Name                              string                 `yaml:"name" json:"name" binding:"required"` // Name of the operation
+	StaticParameters                  map[string]interface{} `yaml:"static-parameters" json:"static-parameters" binding:"required"`
+	RequiredManifestAttributes        []string               `yaml:"required-manifest-attributes" json:"required-manifest-attributes"`
+	IncludeDefaultProductInSiteParams bool                   `yaml:"include-default-product-in-site-params" json:"include-default-product-in-site-params"`
 } //	@name	Operations

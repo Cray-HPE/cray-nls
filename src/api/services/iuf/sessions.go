@@ -803,6 +803,7 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 			workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
 				Name:      workflowToCheckId,
 				Namespace: "argo",
+				Fields:    "status.phase",
 			})
 
 			if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
