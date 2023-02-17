@@ -365,6 +365,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						if success && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
 							prevStepsSuccessful[productKey][opKey] = true
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, skipping previously successful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
@@ -373,11 +374,25 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 						if failed && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
 							prevStepsSuccessful[productKey][opKey] = false
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not going to skip previously unsuccessful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
+						}
+					}
+				}
+				for _, product := range session.Products {
+					for _, op := range stageInfo.Operations {
+						productKey := s.getProductVersionKey(product)
+						opKey := op.Name
+						if !prevStepsAlreadyProcessed[productKey][opKey] {
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, couldn't determine whether or not to skip operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
 			}
+		} else {
+			s.logger.Errorf("getDAGTasks: Got an error while trying to List all workflows for session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s: %v", session.Name, session.ActivityRef, stageInfo.Name, session.InputParameters.Force, stageInfo.Type, err)
 		}
+	} else {
+		s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s", session.Name, session.ActivityRef, stageInfo.Name, session.InputParameters.Force, stageInfo.Type)
 	}
 
 	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
