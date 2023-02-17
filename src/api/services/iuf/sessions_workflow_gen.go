@@ -300,7 +300,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 			ListOptions: &v1.ListOptions{
 				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stage),
 			},
-			Fields: "items.name,items.status.nodes",
+			Fields: "items.name,items.creationTimestamp",
 		})
 
 		if err == nil {
@@ -309,7 +309,18 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 				return !workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
 			})
 
-			for _, workflowObj := range workflows.Items {
+			for _, workflowObjWithName := range workflows.Items {
+				workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+					Name:      workflowObjWithName.Name,
+					Namespace: "argo",
+					Fields:    "name,status",
+				})
+
+				if err != nil {
+					s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, an error occurred while checking the previous workflow %s: %v", session.Name, session.ActivityRef, stage, workflowObj.Name, err)
+					continue
+				}
+
 				s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 
 				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
