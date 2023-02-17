@@ -42,7 +42,7 @@ import (
 
 // gets a map of productName vs hook task for pre-stage and post-stage hooks.
 func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, stages iuf.Stages,
-	prevStepsCompleted map[string]map[string]bool,
+	prevStepsCompleted map[string]map[string]string,
 	allTemplatesByName map[string]bool,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (preSteps map[string]v1alpha1.DAGTask,
 	postSteps map[string]v1alpha1.DAGTask) {
@@ -140,7 +140,7 @@ func (s iufService) extractPathAndExecutionContext(stageName string, manifest *i
 
 // creates a DAG task  for a hook
 func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, productKey string, session iuf.Session, stage iuf.Stage,
-	prevStepsCompleted map[string]map[string]bool,
+	prevStepsCompleted map[string]map[string]string,
 	hookTemplateMap map[string]string, allTemplatesByName map[string]bool,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (v1alpha1.DAGTask, error) {
 
@@ -169,7 +169,7 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 		preOrPost = "-post-hook-"
 	}
 
-	if prevStepsCompleted[productKey][preOrPost+stage.Name] {
+	if prevStepsCompleted[productKey][preOrPost+stage.Name] != "" {
 		// this hook script was already completed in a previous run, so skip it.
 		return v1alpha1.DAGTask{}, nil
 	}
