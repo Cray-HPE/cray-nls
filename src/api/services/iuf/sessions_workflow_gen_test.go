@@ -507,15 +507,30 @@ content:
 		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
-		assert.Equal(t, 4, len(dagTasks))
+		assert.Equal(t, 6, len(dagTasks))
 		assert.True(t, strings.Contains(dagTasks[0].Name, "this-is-an-operation-1"))
 		assert.True(t, strings.Contains(dagTasks[0].Name, "product-A"))
+		assert.True(t, dagTasks[0].TemplateRef.Name == "this-is-an-operation-1")
+
 		assert.True(t, strings.Contains(dagTasks[1].Name, "this-is-an-operation-2"))
 		assert.True(t, strings.Contains(dagTasks[1].Name, "product-A"))
+		assert.True(t, dagTasks[1].TemplateRef.Name == "this-is-an-operation-2")
+
 		assert.True(t, strings.Contains(dagTasks[2].Name, "this-is-an-operation-1"))
 		assert.True(t, strings.Contains(dagTasks[2].Name, "product-B"))
+		assert.True(t, dagTasks[2].TemplateRef.Name == "this-is-an-operation-1")
+
 		assert.True(t, strings.Contains(dagTasks[3].Name, "this-is-an-operation-2"))
-		assert.True(t, strings.Contains(dagTasks[3].Name, "product-C"))
+		assert.True(t, strings.Contains(dagTasks[3].Name, "product-B"))
+		assert.True(t, dagTasks[3].TemplateRef.Name == "echo-template")
+
+		assert.True(t, strings.Contains(dagTasks[4].Name, "this-is-an-operation-1"))
+		assert.True(t, strings.Contains(dagTasks[4].Name, "product-C"))
+		assert.True(t, dagTasks[4].TemplateRef.Name == "echo-template")
+
+		assert.True(t, strings.Contains(dagTasks[5].Name, "this-is-an-operation-2"))
+		assert.True(t, strings.Contains(dagTasks[5].Name, "product-C"))
+		assert.True(t, dagTasks[5].TemplateRef.Name == "this-is-an-operation-2")
 	})
 }
 

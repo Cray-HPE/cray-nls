@@ -42,7 +42,7 @@ import (
 
 // gets a map of productName vs hook task for pre-stage and post-stage hooks.
 func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, stages iuf.Stages,
-	prevStepsCompleted map[string]map[string]bool,
+	prevStepsCompleted map[string]map[string]string,
 	allTemplatesByName map[string]bool,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (preSteps map[string]v1alpha1.DAGTask,
 	postSteps map[string]v1alpha1.DAGTask) {
@@ -140,7 +140,7 @@ func (s iufService) extractPathAndExecutionContext(stageName string, manifest *i
 
 // creates a DAG task  for a hook
 func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, productKey string, session iuf.Session, stage iuf.Stage,
-	prevStepsCompleted map[string]map[string]bool,
+	prevStepsCompleted map[string]map[string]string,
 	hookTemplateMap map[string]string, allTemplatesByName map[string]bool,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (v1alpha1.DAGTask, error) {
 
@@ -153,7 +153,17 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 		}
 	}
 
+	preOrPost := "-pre-hook-"
+	if !pre {
+		preOrPost = "-post-hook-"
+	}
+
+	task := v1alpha1.DAGTask{
+		Name: utils.GenerateName(productKey + preOrPost + stage.Name),
+	}
+
 	if hook.ScriptPath == "" || hook.ExecutionContext == "" || originalLocation == "" {
+		// we do not create an echo template for this because it is too much noise otherwise.
 		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("No valid hook script found for product %s in stage %s.", productKey, stage.Name)}
 	}
 
@@ -161,22 +171,20 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 	filePath := filepath.Clean(filepath.Join(originalLocation, hook.ScriptPath))
 	if strings.Index(filePath, originalLocation) != 0 {
 		// possible hack attempt ... reading a parent directory through relative paths.
-		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("Bad hook script path %v found for product %s in stage %s.", filePath, productKey, stage.Name)}
+		s.setEchoTemplate(true, &task, fmt.Sprintf("Bad hook script path %v found for product %s in stage %s ... reading a parent directory through relative paths.", filePath, productKey, stage.Name))
+		return task, nil
 	}
 
-	preOrPost := "-pre-hook-"
-	if !pre {
-		preOrPost = "-post-hook-"
-	}
-
-	if prevStepsCompleted[productKey][preOrPost+stage.Name] {
+	if prevStepsCompleted[productKey][preOrPost+stage.Name] != "" {
 		// this hook script was already completed in a previous run, so skip it.
-		return v1alpha1.DAGTask{}, nil
+		s.setEchoTemplate(false, &task, fmt.Sprintf("The hook script for product %s in stage %s was already successfully completed in previous workflow %s, so skipping it.", productKey, stage.Name, prevStepsCompleted[productKey][preOrPost+stage.Name]))
+		return task, nil
 	}
 
 	hookTemplateName := hookTemplateMap[hook.ExecutionContext]
 	templateExists := allTemplatesByName[hookTemplateName]
 	if hookTemplateName == "" || !templateExists {
+		// this is a backend error so we don't use a template to inform the user here.
 		return v1alpha1.DAGTask{}, utils.GenericError{Message: fmt.Sprintf("The template %s is not available in Argo.", hookTemplateName)}
 	}
 
@@ -184,27 +192,25 @@ func (s iufService) createHookDAGTask(pre bool, hook iuf.ManifestHookScript, pro
 		Name:     hookTemplateName,
 		Template: "main",
 	}
+	task.TemplateRef = &templateRef
 
-	task := v1alpha1.DAGTask{
-		Name:        utils.GenerateName(productKey + preOrPost + stage.Name),
-		TemplateRef: &templateRef,
-		Arguments: v1alpha1.Arguments{
-			Parameters: []v1alpha1.Parameter{
-				{
-					Name:  "auth_token",
-					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
-				},
-				{
-					Name:  "global_params",
-					Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
-				},
-				{
-					Name:  "script_path",
-					Value: v1alpha1.AnyStringPtr(filePath),
-				},
+	task.Arguments = v1alpha1.Arguments{
+		Parameters: []v1alpha1.Parameter{
+			{
+				Name:  "auth_token",
+				Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
+			},
+			{
+				Name:  "global_params",
+				Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
+			},
+			{
+				Name:  "script_path",
+				Value: v1alpha1.AnyStringPtr(filePath),
 			},
 		},
 	}
+
 	return task, nil
 }
 

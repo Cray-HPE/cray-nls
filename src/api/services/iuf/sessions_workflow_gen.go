@@ -267,7 +267,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
-	s.logger.Infof("create DAG for stage: %s", stage)
+	s.logger.Infof("getDAGTasks: create workflow DAG for stage %s in session %s in activity %s", stage, session.Name, session.ActivityRef)
 
 	// first find out what templates are available in the system.
 	listTemplates := workflowtemplate.WorkflowTemplateListRequest{
@@ -283,11 +283,11 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		existingArgoUploadedTemplateMap[t.Name] = true
 	}
 
-	prevStepsSuccessful := map[string]map[string]bool{}
+	prevStepsSuccessful := map[string]map[string]string{}
 	prevStepsAlreadyProcessed := map[string]map[string]bool{}
 	for _, product := range session.Products {
 		productKey := s.getProductVersionKey(product)
-		prevStepsSuccessful[productKey] = make(map[string]bool)
+		prevStepsSuccessful[productKey] = make(map[string]string)
 		prevStepsAlreadyProcessed[productKey] = make(map[string]bool)
 	}
 
@@ -298,9 +298,9 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 			Namespace: "argo",
 			ListOptions: &v1.ListOptions{
-				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stageInfo.Name),
+				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stage),
 			},
-			Fields: "-items.spec",
+			Fields: "-items.status.nodes,-items.spec",
 		})
 
 		if err == nil {
@@ -309,25 +309,40 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 				return !workflows.Items[i].CreationTimestamp.Before(&workflows.Items[j].CreationTimestamp)
 			})
 
-			for _, workflowObj := range workflows.Items {
+			for _, workflowObjWithName := range workflows.Items {
+				workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+					Name:      workflowObjWithName.Name,
+					Namespace: "argo",
+				})
+
+				if err != nil {
+					s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, an error occurred while checking the previous workflow %s: %v", session.Name, session.ActivityRef, stage, workflowObj.Name, err)
+					continue
+				}
+
+				//s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
+
 				// for this workflow only, construct a map of previously failed steps so that we can check if grouped
 				//  steps have failed
 				prevStepsFailedInWorkflow := map[string]map[string]bool{}
-				prevStepsSuccessfulInWorkflow := map[string]map[string]bool{}
+				prevStepsSuccessfulInWorkflow := map[string]map[string]string{}
 				for _, product := range session.Products {
 					productKey := s.getProductVersionKey(product)
 					prevStepsFailedInWorkflow[productKey] = make(map[string]bool)
-					prevStepsSuccessfulInWorkflow[productKey] = make(map[string]bool)
+					prevStepsSuccessfulInWorkflow[productKey] = make(map[string]string)
 				}
 
+				//s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if any of the %v nodes in previous workflow %s have any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, len(workflowObj.Status.Nodes), workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
+
 				for _, nodeStatus := range workflowObj.Status.Nodes {
+					//s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, about to check if step %s of operation type %s in previous workflow %s has any successful operations, because force=%v and stage-type=%s...", session.Name, session.ActivityRef, stage, nodeStatus.Name, nodeStatus.TemplateScope, workflowObj.Name, session.InputParameters.Force, stageInfo.Type)
 					if strings.HasPrefix(nodeStatus.TemplateScope, "namespaced/") {
 						var operationName string
 
 						if strings.Contains(nodeStatus.Name, "-pre-hook-") {
-							operationName = "-pre-hook-" + stageInfo.Name
+							operationName = "-pre-hook-" + stage
 						} else if strings.Contains(nodeStatus.Name, "-post-hook-") {
-							operationName = "-post-hook-" + stageInfo.Name
+							operationName = "-post-hook-" + stage
 						} else {
 							operationName = nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 						}
@@ -342,7 +357,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 									if !prevStepsFailedInWorkflow[productKey][operationName] {
 										// if we have determined that previously at least one node in the subgraph of
 										//  productKey-operationName has failed, then do not mark this as succeeded.
-										prevStepsSuccessfulInWorkflow[productKey][operationName] = true
+										prevStepsSuccessfulInWorkflow[productKey][operationName] = workflowObj.Name
 									}
 								} else {
 									// anything other than succeeded needs to be marked as necessary to run.
@@ -350,7 +365,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 									//  errors but not the parent steps and vice versa. As such, what we are saying here is that
 									//  if any node in the subgraph of a particular productKey-operationName has not succeeded,
 									//  then the entire subgraph (i.e. the operation itself) must be retried.
-									prevStepsSuccessfulInWorkflow[productKey][operationName] = false
+									prevStepsSuccessfulInWorkflow[productKey][operationName] = ""
 									prevStepsFailedInWorkflow[productKey][operationName] = true
 								}
 								break
@@ -362,9 +377,10 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 				// now go through all the failed and successful workflows and mark them as successful or already processed
 				for productKey, opMap := range prevStepsSuccessfulInWorkflow {
 					for opKey, success := range opMap {
-						if success && !prevStepsAlreadyProcessed[productKey][opKey] {
+						if success != "" && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
-							prevStepsSuccessful[productKey][opKey] = true
+							prevStepsSuccessful[productKey][opKey] = success
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, skipping previously successful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
@@ -372,12 +388,27 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 					for opKey, failed := range opMap {
 						if failed && !prevStepsAlreadyProcessed[productKey][opKey] {
 							prevStepsAlreadyProcessed[productKey][opKey] = true
-							prevStepsSuccessful[productKey][opKey] = false
+							prevStepsSuccessful[productKey][opKey] = ""
+							s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not going to skip previously unsuccessful operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
 						}
 					}
 				}
 			}
+
+			for _, product := range session.Products {
+				for _, op := range stageInfo.Operations {
+					productKey := s.getProductVersionKey(product)
+					opKey := op.Name
+					if !prevStepsAlreadyProcessed[productKey][opKey] {
+						s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, couldn't determine whether or not to skip operation %s for product %s because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, opKey, productKey, session.InputParameters.Force, stageInfo.Type)
+					}
+				}
+			}
+		} else {
+			s.logger.Errorf("getDAGTasks: Got an error while trying to List all workflows for session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s: %v", session.Name, session.ActivityRef, stage, session.InputParameters.Force, stageInfo.Type, err)
 		}
+	} else {
+		s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, session.InputParameters.Force, stageInfo.Type)
 	}
 
 	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
@@ -393,7 +424,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 
 // Gets the DAG tasks for a product stage
 func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iuf.Stage,
-	prevStepsCompleted map[string]map[string]bool,
+	prevStepsCompleted map[string]map[string]string,
 	templateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string,
@@ -412,60 +443,82 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		}
 
 		for _, operation := range stageInfo.Operations {
-			if prevStepsCompleted[productKey][operation.Name] {
-				s.logger.Warnf("getDAGTasksForProductStage: Operation %s is being skipped for product %s because it was previously completed successfully in session %s in activity %s", operation.Name, productKey, session.Name, session.ActivityRef)
-				continue
-			}
-
-			if !templateMap[operation.Name] {
-				s.logger.Infof("getDAGTasksForProductStage: The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
-				continue
-			}
-
-			if operation.RequiredManifestAttributes != nil && len(operation.RequiredManifestAttributes) > 0 {
-				// check if the operation's required manifest attributes are satisfied in the product's manifest
-				manifestBytes := []byte(product.Manifest)
-				manifestJsonBytes, err := yaml.YAMLToJSON(manifestBytes)
-				if err != nil {
-					s.logger.Warnf("getDAGTasksForProductStage: Cannot convert JSON to YAML for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err)
-					continue
-				}
-				var manifestJson map[string]interface{}
-				err = json.Unmarshal(manifestJsonBytes, &manifestJson)
-				if err != nil {
-					s.logger.Warnf("getDAGTasksForProductStage: Cannot parse manifest for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err)
-					continue
-				}
-
-				found := true
-
-				for _, requiredAttributes := range operation.RequiredManifestAttributes {
-					attributeHierarchy := strings.Split(requiredAttributes, ".")
-					var jsonStruct map[string]interface{}
-					jsonStruct = manifestJson
-					for _, key := range attributeHierarchy {
-						if jsonStruct == nil || jsonStruct[key] == nil {
-							s.logger.Warnf("getDAGTasksForProductStage: Skipping operation %s for product %s in the session %s in activity %s", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef)
-							found = false
-							break
-						} else if reflect.TypeOf(jsonStruct[key]).String() == "map[string]interface {}" {
-							jsonStruct = jsonStruct[key].(map[string]interface{})
-						} else {
-							jsonStruct = nil
-						}
-					}
-				}
-
-				if !found {
-					continue
-				}
-			}
 
 			opName := utils.GenerateName(productKey + "-" + operation.Name)
 
 			task := v1alpha1.DAGTask{
 				Name: opName,
 			}
+
+			hasEchoTemplate := false
+
+			// do some validations before we are sure to run the operation.
+			if prevStepsCompleted[productKey][operation.Name] != "" {
+				s.setEchoTemplate(false, &task, fmt.Sprintf("Operation %s is being skipped for product %s because it was previously completed successfully in workflow %s", operation.Name, productKey, prevStepsCompleted[productKey][operation.Name]))
+				hasEchoTemplate = true
+			} else if !templateMap[operation.Name] {
+				// this is a backend error so we don't use a template to inform the user here.
+				s.logger.Errorf("getDAGTasksForProductStage: The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+				continue
+			} else {
+				manifestBytes := []byte(product.Manifest)
+				manifestJsonBytes, err := yaml.YAMLToJSON(manifestBytes)
+				if err != nil {
+					s.setEchoTemplate(true, &task, fmt.Sprintf("Cannot convert JSON to YAML for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
+					hasEchoTemplate = true
+				} else {
+					var manifestJson map[string]interface{}
+					err = json.Unmarshal(manifestJsonBytes, &manifestJson)
+					if err != nil {
+						s.setEchoTemplate(true, &task, fmt.Sprintf("Cannot parse manifest for product %s while creating a task for operation %s during session %s in activity %s. YAML Manifest: %s. Error: %v", s.getProductVersionKey(product), operation.Name, session.Name, session.ActivityRef, product.Manifest, err))
+						hasEchoTemplate = true
+					} else if operation.RequiredManifestAttributes != nil && len(operation.RequiredManifestAttributes) > 0 {
+						// check if the operation's required manifest attributes are satisfied in the product's manifest
+						found := true
+
+						for _, requiredAttributes := range operation.RequiredManifestAttributes {
+							attributeHierarchy := strings.Split(requiredAttributes, ".")
+							var jsonStruct map[string]interface{}
+							jsonStruct = manifestJson
+							for _, key := range attributeHierarchy {
+								if jsonStruct == nil || jsonStruct[key] == nil {
+									found = false
+									break
+								} else if reflect.TypeOf(jsonStruct[key]).String() == "map[string]interface {}" {
+									jsonStruct = jsonStruct[key].(map[string]interface{})
+								} else {
+									jsonStruct = nil
+								}
+							}
+						}
+
+						if !found {
+							s.setEchoTemplate(false, &task, fmt.Sprintf("Skipping operation %s for product %s in the session %s in activity %s because the content for it is not defined in the product's manifest (need at least one of [%s]).", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef, strings.Join(operation.RequiredManifestAttributes, ",")))
+							hasEchoTemplate = true
+						}
+					}
+				}
+			}
+
+			if !hasEchoTemplate {
+				task.Arguments = v1alpha1.Arguments{
+					Parameters: []v1alpha1.Parameter{
+						{
+							Name:  "auth_token",
+							Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
+						},
+						{
+							Name:  "global_params",
+							Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
+						},
+					},
+				}
+				task.TemplateRef = &v1alpha1.TemplateRef{
+					Name:     operation.Name,
+					Template: "main",
+				}
+			}
+
 			// dep with a stage
 			if lastOpDependency != "" {
 				task.Dependencies = []string{
@@ -475,22 +528,6 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 			lastOpDependency = opName
 
-			task.Arguments = v1alpha1.Arguments{
-				Parameters: []v1alpha1.Parameter{
-					{
-						Name:  "auth_token",
-						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
-					},
-					{
-						Name:  "global_params",
-						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
-					},
-				},
-			}
-			task.TemplateRef = &v1alpha1.TemplateRef{
-				Name:     operation.Name,
-				Template: "main",
-			}
 			resPtrs = append(resPtrs, &task)
 		}
 
@@ -512,6 +549,30 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 	}
 
 	return res
+}
+
+func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, message string) {
+	errorVal := "false"
+	if isError {
+		errorVal = "true"
+	}
+
+	task.Arguments = v1alpha1.Arguments{
+		Parameters: []v1alpha1.Parameter{
+			{
+				Name:  "message",
+				Value: v1alpha1.AnyStringPtr(message),
+			},
+			{
+				Name:  "isError",
+				Value: v1alpha1.AnyStringPtr(errorVal),
+			},
+		},
+	}
+	task.TemplateRef = &v1alpha1.TemplateRef{
+		Name:     "echo-template",
+		Template: "echo-message",
+	}
 }
 
 // Gets the DAG tasks for a global stage
