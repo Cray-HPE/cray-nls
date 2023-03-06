@@ -566,8 +566,16 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	outputStep := outputOperation[stepName].(map[string]interface{})
 
 	for _, param := range nodeStatus.Outputs.Parameters {
-		outputStep[param.Name] = param.Value
-		changed = true
+		// we skip all output parameters that are marked as "skipped"
+		if param.Value != nil && *(param.Value) != "skipped" {
+			outputStep[param.Name] = param.Value
+			changed = true
+		}
+	}
+
+	if !changed {
+		// fail fast
+		return false, nil
 	}
 
 	outputOperation[stepName] = outputStep
