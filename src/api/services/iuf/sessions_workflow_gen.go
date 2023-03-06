@@ -432,6 +432,9 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 	var resPtrs []*v1alpha1.DAGTask
 
+	// this map is to deal with the stageInfo.ProcessProductVariantsSequentially (see docs for that attribute)
+	lastOpNamePerProductName := map[string]string{}
+
 	for _, product := range session.Products {
 		// the initial dependency is the name of the hook script for that product, if any.
 		productKey := s.getProductVersionKey(product)
@@ -441,6 +444,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 			lastOpDependency = preStageHook.Name
 			resPtrs = append(resPtrs, &preStageHook)
 		}
+
+		isFirstOp := true
 
 		for _, operation := range stageInfo.Operations {
 
@@ -519,12 +524,18 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				}
 			}
 
+			task.Dependencies = []string{}
+
 			// dep with a stage
 			if lastOpDependency != "" {
-				task.Dependencies = []string{
-					lastOpDependency,
-				}
+				task.Dependencies = append(task.Dependencies, lastOpDependency)
 			}
+
+			if isFirstOp && stageInfo.ProcessProductVariantsSequentially && lastOpNamePerProductName[product.Name] != "" {
+				task.Dependencies = append(task.Dependencies, lastOpNamePerProductName[product.Name])
+			}
+
+			isFirstOp = false
 
 			lastOpDependency = opName
 
@@ -540,7 +551,12 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 				}
 			}
 
+			lastOpDependency = postStageHook.Name
 			resPtrs = append(resPtrs, &postStageHook)
+		}
+
+		if lastOpDependency != "" {
+			lastOpNamePerProductName[product.Name] = lastOpDependency
 		}
 	}
 
