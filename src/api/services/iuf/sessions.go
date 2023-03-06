@@ -761,7 +761,7 @@ func (s iufService) RestartCurrentStage(session *iuf.Session, comment string) er
 	return nil
 }
 
-func (s iufService) AbortSession(session *iuf.Session, comment string, force bool) error {
+func (s iufService) AbortSession(session *iuf.Session, comment string, force bool, workflowList *v1alpha1.WorkflowList) error {
 	// first, set session and activity to aborted state
 	session.CurrentState = iuf.SessionStateAborted
 
@@ -774,16 +774,16 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
 	var errors []error
 	var workflowIDsToCheck []string
-	for _, workflowRef := range session.Workflows {
+	for _, workflowObj := range workflowList.Items {
 		_, err := s.workflowClient.TerminateWorkflow(context.TODO(), &workflow.WorkflowTerminateRequest{
-			Name:      workflowRef.Id,
+			Name:      workflowObj.Name,
 			Namespace: "argo",
 		})
 
 		if err != nil {
 			// delete the workflow right away.
 			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
-				Name:      workflowRef.Id,
+				Name:      workflowObj.Name,
 				Namespace: "argo",
 			})
 
@@ -791,7 +791,7 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 				errors = append(errors, err)
 			}
 		} else {
-			workflowIDsToCheck = append(workflowIDsToCheck, workflowRef.Id)
+			workflowIDsToCheck = append(workflowIDsToCheck, workflowObj.Name)
 		}
 	}
 
@@ -834,7 +834,7 @@ func (s iufService) SyncWorkflowsToSession(session *iuf.Session) error {
 	workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
-			LabelSelector: fmt.Sprintf("session=%s", session.Name),
+			LabelSelector: fmt.Sprintf("session=%s,iuf=true", session.Name),
 		},
 		Fields: "-items.spec,-items.status",
 	})

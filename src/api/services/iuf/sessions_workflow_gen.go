@@ -298,7 +298,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 			Namespace: "argo",
 			ListOptions: &v1.ListOptions{
-				LabelSelector: fmt.Sprintf("activity=%s,stage=%s", session.ActivityRef, stage),
+				LabelSelector: fmt.Sprintf("activity=%s,stage=%s,iuf=true", session.ActivityRef, stage),
 			},
 			Fields: "-items.status.nodes,-items.spec",
 		})

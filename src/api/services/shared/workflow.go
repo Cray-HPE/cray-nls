@@ -330,6 +330,8 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 		return nil, err
 	}
 
+	myWorkflow.ObjectMeta.Labels = req.Labels
+
 	res, err := s.workflowClient.CreateWorkflow(s.ctx, &workflow.WorkflowCreateRequest{
 		Namespace: "argo",
 		Workflow:  &myWorkflow,
