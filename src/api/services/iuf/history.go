@@ -184,14 +184,20 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 		// if this session still has workflows running, then this is a good session for abort irrespective of its
 		//  current state (i.e. even if it was aborted in the past).
 
-		if s.isSessionAbortable(session) {
+		abortable, workflows, err := s.isSessionAbortable(session)
+
+		if err != nil {
+			return iuf.Session{}, err
+		}
+
+		if abortable {
 			// add a history entry for aborted sessions
 			comment := req.Comment
 			if comment == "" {
 				comment = fmt.Sprintf("Aborted at stage %s", session.CurrentStage)
 			}
 
-			err := s.AbortSession(&session, comment, req.Force)
+			err := s.AbortSession(&session, comment, req.Force, workflows)
 			if err != nil {
 				errors = append(errors, err)
 			}
@@ -210,20 +216,34 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 	}
 }
 
-func (s iufService) isSessionAbortable(session iuf.Session) bool {
+// Check whether the workflows associated with the session / activity is abortable. Returns all the workflows related to
+//  the session/activity irrespective.
+func (s iufService) isSessionAbortable(session iuf.Session) (bool, *v1alpha1.WorkflowList, error) {
 	isAbortable := session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted
 
-	for _, workflowId := range session.Workflows {
-		workflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
-			Name:      workflowId.Id,
-			Namespace: "argo",
-		})
-		if err == nil && (workflowObj.Status.Phase == v1alpha1.WorkflowRunning || workflowObj.Status.Phase == v1alpha1.WorkflowPending) {
+	workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
+		Namespace: "argo",
+		ListOptions: &v1.ListOptions{
+			// note that we do not use iuf=true label selector here because we also want to include the IUF node worker
+			//  rebuild workflows as well.
+			// Also note that we don't have session=%s specified here because abort is really called on an activity not
+			//  a session. It would be difficult for CLI to terminate workflows across sessions.
+			LabelSelector: fmt.Sprintf("activity=%s", session.ActivityRef),
+		},
+		Fields: "-items.status.nodes,-items.spec",
+	})
+
+	if err != nil {
+		return false, nil, err
+	}
+
+	for _, workflowObj := range workflows.Items {
+		if workflowObj.Status.Phase == v1alpha1.WorkflowRunning || workflowObj.Status.Phase == v1alpha1.WorkflowPending {
 			isAbortable = true
 			break
 		}
 	}
-	return isAbortable
+	return isAbortable, workflows, nil
 }
 
 func (s iufService) HistoryPausedAction(activityName string, req iuf.HistoryActionRequest) (iuf.Session, error) {
@@ -322,9 +342,15 @@ func (s iufService) HistoryRestartAction(activityName string, req iuf.HistoryRes
 
 	session := sessions[len(sessions)-1]
 
-	if s.isSessionAbortable(session) {
+	abortable, workflows, err := s.isSessionAbortable(session)
+
+	if err != nil {
+		return iuf.Session{}, err
+	}
+
+	if abortable {
 		// first abort this session
-		err := s.AbortSession(&session, "Aborting before restart", true)
+		err := s.AbortSession(&session, "Aborting before restart", true, workflows)
 		if err != nil {
 			// just print the warning. We don't care if it doesn't abort
 			s.logger.Warnf("HistoryRestartAction.2: There was an error aborting the current session before restarting. Session name %s in activity %s. Error: %v", session.Name, session.ActivityRef, err)

@@ -566,8 +566,16 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	outputStep := outputOperation[stepName].(map[string]interface{})
 
 	for _, param := range nodeStatus.Outputs.Parameters {
-		outputStep[param.Name] = param.Value
-		changed = true
+		// we skip all output parameters that are marked as "skipped"
+		if param.Value != nil && *(param.Value) != "skipped" {
+			outputStep[param.Name] = param.Value
+			changed = true
+		}
+	}
+
+	if !changed {
+		// fail fast
+		return false, nil
 	}
 
 	outputOperation[stepName] = outputStep
@@ -761,7 +769,7 @@ func (s iufService) RestartCurrentStage(session *iuf.Session, comment string) er
 	return nil
 }
 
-func (s iufService) AbortSession(session *iuf.Session, comment string, force bool) error {
+func (s iufService) AbortSession(session *iuf.Session, comment string, force bool, workflowList *v1alpha1.WorkflowList) error {
 	// first, set session and activity to aborted state
 	session.CurrentState = iuf.SessionStateAborted
 
@@ -771,19 +779,24 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 		return err
 	}
 
+	// only do the next part if force=true. If force=false, we want the stage to finish whatever it was doing first.
+	if !force {
+		return nil
+	}
+
 	// now terminate the workflows, so any callbacks right after is correctly ignored because of session aborted state
 	var errors []error
 	var workflowIDsToCheck []string
-	for _, workflowRef := range session.Workflows {
+	for _, workflowObj := range workflowList.Items {
 		_, err := s.workflowClient.TerminateWorkflow(context.TODO(), &workflow.WorkflowTerminateRequest{
-			Name:      workflowRef.Id,
+			Name:      workflowObj.Name,
 			Namespace: "argo",
 		})
 
 		if err != nil {
 			// delete the workflow right away.
 			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
-				Name:      workflowRef.Id,
+				Name:      workflowObj.Name,
 				Namespace: "argo",
 			})
 
@@ -791,31 +804,47 @@ func (s iufService) AbortSession(session *iuf.Session, comment string, force boo
 				errors = append(errors, err)
 			}
 		} else {
-			workflowIDsToCheck = append(workflowIDsToCheck, workflowRef.Id)
+			workflowIDsToCheck = append(workflowIDsToCheck, workflowObj.Name)
 		}
 	}
 
-	if force {
-		// wait 10 seconds before checking that all workflows have in fact been terminated.
-		time.Sleep(10 * time.Second)
+	// do a check again before going for a more aggressive delete workflow option.
+	terminatedAll := true
+	for _, workflowToCheckId := range workflowIDsToCheck {
+		workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      workflowToCheckId,
+			Namespace: "argo",
+			Fields:    "status.phase",
+		})
 
-		for _, workflowToCheckId := range workflowIDsToCheck {
-			workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+		if err == nil && (workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning) {
+			terminatedAll = false
+		}
+	}
+
+	if terminatedAll {
+		return nil
+	}
+
+	// wait 30 seconds before checking that all workflows have in fact been terminated.
+	time.Sleep(30 * time.Second)
+
+	for _, workflowToCheckId := range workflowIDsToCheck {
+		workflowToCheck, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      workflowToCheckId,
+			Namespace: "argo",
+			Fields:    "status.phase",
+		})
+
+		if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
+			// good candidate to nuke the workflow.
+			_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
 				Name:      workflowToCheckId,
 				Namespace: "argo",
-				Fields:    "status.phase",
 			})
 
-			if err != nil || workflowToCheck.Status.Phase == v1alpha1.WorkflowPending || workflowToCheck.Status.Phase == v1alpha1.WorkflowRunning {
-				// good candidate to nuke the workflow.
-				_, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
-					Name:      workflowToCheckId,
-					Namespace: "argo",
-				})
-
-				if err != nil {
-					errors = append(errors, err)
-				}
+			if err != nil {
+				errors = append(errors, err)
 			}
 		}
 	}
@@ -834,7 +863,7 @@ func (s iufService) SyncWorkflowsToSession(session *iuf.Session) error {
 	workflows, err := s.workflowClient.ListWorkflows(context.TODO(), &workflow.WorkflowListRequest{
 		Namespace: "argo",
 		ListOptions: &v1.ListOptions{
-			LabelSelector: fmt.Sprintf("session=%s", session.Name),
+			LabelSelector: fmt.Sprintf("session=%s,iuf=true", session.Name),
 		},
 		Fields: "-items.spec,-items.status",
 	})

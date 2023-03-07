@@ -27,10 +27,11 @@ package iuf
 
 // Stage
 type Stage struct {
-	Name       string       `yaml:"name" json:"name" binding:"required"`             // Name of the stage
-	Type       string       `yaml:"type" json:"type" binding:"required"`             // Type of the stage
-	Operations []Operations `yaml:"operations" json:"operations" binding:"required"` // operations
-	NoHooks    bool         `yaml:"no-hooks" json:"no-hooks"`                        // no-hook indicates that there are no hooks that should be run for this stage
+	Name                               string       `yaml:"name" json:"name" binding:"required"`                                                // Name of the stage
+	Type                               string       `yaml:"type" json:"type" binding:"required"`                                                // Type of the stage
+	Operations                         []Operations `yaml:"operations" json:"operations" binding:"required"`                                    // operations
+	NoHooks                            bool         `yaml:"no-hooks" json:"no-hooks"`                                                           // no-hook indicates that there are no hooks that should be run for this stage
+	ProcessProductVariantsSequentially bool         `yaml:"process-product-variants-sequentially" json:"process-product-variants-sequentially"` // this stage wants to make sure all products with the same name (but different versions) are processed sequentially, not in parallel, to avoid operational race conditions
 } //	@name	Stage
 
 type Stages struct {
