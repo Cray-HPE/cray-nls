@@ -112,6 +112,7 @@ spec:
                 token: ${token}
           EOF
             export KUBECONFIG=mykubeconfig/admin.conf
+            chmod 600 mykubeconfig/admin.conf
 
             # TODO: This is required to build images in IMS with sat bootprep. Find a way to pass
             # an IMS public key id into the argo workflow. Perhaps from the IUF CLI.
