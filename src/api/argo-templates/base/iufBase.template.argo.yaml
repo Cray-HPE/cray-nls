@@ -100,6 +100,7 @@ spec:
               token: ${token}
           EOF
           export KUBECONFIG=mykubeconfig/admin.conf
+          chmod 600 mykubeconfig/admin.conf
 
           export TOKEN=$(curl -k -s -S -d grant_type=client_credentials \
             -d client_id=admin-client \
