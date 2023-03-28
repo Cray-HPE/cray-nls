@@ -64,7 +64,7 @@ spec:
             valueFrom:
               path: "{{inputs.parameters.script_stdout_file}}"
       script:
-        image: artifactory.algol60.net/sat-docker/stable/cray-sat:3.21.2
+        image: artifactory.algol60.net/sat-docker/stable/cray-sat:csm-latest
         command: [sh]
         source: |
           #!/bin/sh
