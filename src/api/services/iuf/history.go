@@ -146,10 +146,23 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 		return iuf.Session{}, err
 	}
 
+	inputParamsForPatch := iuf.InputParametersPatch{}
+	jsonInputParams, err := json.Marshal(req.InputParameters)
+	if err != nil {
+		s.logger.Errorf("HistoryRunAction.4: for activity %s, error while parsing input parameters: %#v", activityName, req.InputParameters)
+		return iuf.Session{}, err
+	}
+	err = json.Unmarshal(jsonInputParams, &inputParamsForPatch)
+	if err != nil {
+		s.logger.Errorf("HistoryRunAction.5: for activity %s, error while parsing input parameters: %#v", activityName, req.InputParameters)
+		return iuf.Session{}, err
+	}
+
 	activity, err = s.PatchActivity(activity, iuf.PatchActivityRequest{
-		InputParameters: req.InputParameters,
+		InputParameters: inputParamsForPatch,
 		SiteParameters:  req.SiteParameters,
 	})
+
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Session{}, err

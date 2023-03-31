@@ -984,6 +984,9 @@ const docTemplateIUF = `{
                 "static-parameters"
             ],
             "properties": {
+                "include-default-product-in-site-params": {
+                    "type": "boolean"
+                },
                 "name": {
                     "description": "Name of the operation",
                     "type": "string"
@@ -1158,6 +1161,10 @@ const docTemplateIUF = `{
                     "items": {
                         "$ref": "#/definitions/iuf.Operations"
                     }
+                },
+                "process-product-variants-sequentially": {
+                    "description": "this stage wants to make sure all products with the same name (but different versions) are processed sequentially, not in parallel, to avoid operational race conditions",
+                    "type": "boolean"
                 },
                 "type": {
                     "description": "Type of the stage",

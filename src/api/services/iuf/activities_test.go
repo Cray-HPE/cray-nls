@@ -176,20 +176,23 @@ func TestPatchActivity(t *testing.T) {
 				Name: "test",
 				InputParameters: iuf.InputParameters{
 					MediaDir:                 "/a/b/c",
-					BootprepConfigManagement: "BootprepConfigManagement",
 					SiteParameters:           "deprecated_field",
+					LimitManagementNodes:     []string{"Management_Master"},
+					BootprepConfigManagement: "BootprepConfigManagement",
 				},
 			},
 			expectActivity: iuf.Activity{
 				Name: "test",
 				InputParameters: iuf.InputParameters{
 					MediaDir:                 "/a/b/c",
+					SiteParameters:           "deprecated_field",
+					LimitManagementNodes:     []string{"Management_Worker"},
 					BootprepConfigManagement: "BootprepConfigManagement",
 					BootprepConfigManaged:    "BootprepConfigManaged",
 					Force:                    true,
 				},
 			},
-			req:     toPatchRequest(`{"input_parameters": {"media_dir": "/a/b/c", "force": true, "bootprep_config_management": "BootprepConfigManagement", "bootprep_config_managed": "BootprepConfigManaged"}}`),
+			req:     toPatchRequest(`{"input_parameters": {"limit_management_nodes": ["Management_Worker"], "force": true, "bootprep_config_managed": "BootprepConfigManaged"}}`),
 			wantErr: false,
 		},
 		{

@@ -67,6 +67,10 @@ definitions:
         type: array
       imageId:
         type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       switchPassword:
         type: string
       workflowType:

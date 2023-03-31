@@ -420,6 +420,12 @@ const docTemplateNLS = `{
                 "imageId": {
                     "type": "string"
                 },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "switchPassword": {
                     "type": "string"
                 },
