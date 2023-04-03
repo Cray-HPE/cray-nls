@@ -41,9 +41,9 @@ type CreateActivityRequest struct {
 } //	@name	Activity.CreateActivityRequest
 
 type PatchActivityRequest struct {
-	InputParameters InputParameters `json:"input_parameters"`
-	SiteParameters  SiteParameters  `json:"site_parameters"`
-	ActivityState   ActivityState   `json:"activity_state" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
+	InputParameters InputParametersPatch `json:"input_parameters"`
+	SiteParameters  SiteParameters       `json:"site_parameters"`
+	ActivityState   ActivityState        `json:"activity_state" enums:"paused,in_progress,debug,blocked,wait_for_admin"` // State of activity
 } //	@name	Activity.PatchActivityRequest
 
 type ActivityState string

@@ -136,14 +136,49 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {
 	s.logger.Infof("Called: PatchActivity(activity: %v, patchParams: %v)", activity, patchParams)
 
-	if patchParams.InputParameters.MediaDir != "" {
-		// input parameters exists
-		activity.InputParameters = patchParams.InputParameters
+	if patchParams.InputParameters.MediaDir != nil {
+		activity.InputParameters.MediaDir = *(patchParams.InputParameters.MediaDir)
+	}
+	if patchParams.InputParameters.SiteParameters != nil {
+		activity.InputParameters.SiteParameters = *(patchParams.InputParameters.SiteParameters)
+	}
+	if patchParams.InputParameters.LimitManagementNodes != nil {
+		activity.InputParameters.LimitManagementNodes = *(patchParams.InputParameters.LimitManagementNodes)
+	}
+	if patchParams.InputParameters.LimitManagedNodes != nil {
+		activity.InputParameters.LimitManagedNodes = *(patchParams.InputParameters.LimitManagedNodes)
+	}
+	if patchParams.InputParameters.ManagedRolloutStrategy != nil {
+		activity.InputParameters.ManagedRolloutStrategy = *(patchParams.InputParameters.ManagedRolloutStrategy)
+	}
+	if patchParams.InputParameters.ConcurrentManagementRolloutPercentage != nil {
+		activity.InputParameters.ConcurrentManagementRolloutPercentage = *(patchParams.InputParameters.ConcurrentManagementRolloutPercentage)
+	}
+	if patchParams.InputParameters.MediaHost != nil {
+		activity.InputParameters.MediaHost = *(patchParams.InputParameters.MediaHost)
+	}
+	if patchParams.InputParameters.Concurrency != nil {
+		activity.InputParameters.Concurrency = *(patchParams.InputParameters.Concurrency)
+	}
+	if patchParams.InputParameters.BootprepConfigManaged != nil {
+		activity.InputParameters.BootprepConfigManaged = *(patchParams.InputParameters.BootprepConfigManaged)
+	}
+	if patchParams.InputParameters.BootprepConfigManagement != nil {
+		activity.InputParameters.BootprepConfigManagement = *(patchParams.InputParameters.BootprepConfigManagement)
+	}
+	if patchParams.InputParameters.Stages != nil {
+		activity.InputParameters.Stages = *(patchParams.InputParameters.Stages)
+	}
+	if patchParams.InputParameters.Force != nil {
+		activity.InputParameters.Force = *(patchParams.InputParameters.Force)
 	}
 
-	// patch site parameters
-	if len(patchParams.SiteParameters.Products) > 0 || len(patchParams.SiteParameters.Global) > 0 {
-		activity.SiteParameters = patchParams.SiteParameters
+	// patch site parameters...all or nothing for Products and Global attributes
+	if len(patchParams.SiteParameters.Products) > 0 {
+		activity.SiteParameters.Products = patchParams.SiteParameters.Products
+	}
+	if len(patchParams.SiteParameters.Global) > 0 {
+		activity.SiteParameters.Global = patchParams.SiteParameters.Global
 	}
 
 	// only allow patching activity state in a limited way.
