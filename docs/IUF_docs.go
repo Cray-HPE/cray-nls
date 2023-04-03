@@ -931,14 +931,14 @@ const docTemplateIUF = `{
                     "type": "boolean"
                 },
                 "limit_managed_nodes": {
-                    "description": "Each item is the xname of a managed node",
+                    "description": "Anything accepted by BOS v2 as the value to a session's limit parameter.",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "limit_management_nodes": {
-                    "description": "Each item is the xname of a management node",
+                    "description": "Must in the form \u003crole\u003e_\u003csubrole\u003e. E.g. Management_Master, Management_Worker, Management_Storage",
                     "type": "array",
                     "items": {
                         "type": "string"

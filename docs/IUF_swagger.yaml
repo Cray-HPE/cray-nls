@@ -183,12 +183,14 @@ definitions:
         description: Force re-execution of stage operations
         type: boolean
       limit_managed_nodes:
-        description: Each item is the xname of a managed node
+        description: Anything accepted by BOS v2 as the value to a session's limit
+          parameter.
         items:
           type: string
         type: array
       limit_management_nodes:
-        description: Each item is the xname of a management node
+        description: Must in the form <role>_<subrole>. E.g. Management_Master, Management_Worker,
+          Management_Storage
         items:
           type: string
         type: array
