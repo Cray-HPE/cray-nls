@@ -1,9 +1,10 @@
 package tests
 
 import (
-	iuf "cray-nls/src/api/models/iuf"
-	mdv "cray-nls/src/api/models/iuf/manifestDataValidation"
 	"testing"
+
+	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
+	mdv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
 
 	"sigs.k8s.io/yaml"
 )

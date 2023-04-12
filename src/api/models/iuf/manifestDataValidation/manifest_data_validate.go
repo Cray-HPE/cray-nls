@@ -2,10 +2,11 @@ package manifestDataValidation
 
 import (
 	"bytes"
-	mutils "cray-nls/src/api/models/iuf/mutils"
 	"errors"
 	"fmt"
 	"io"
+
+	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
 
 	//v2yaml "gopkg.in/yaml.v2"
 	goyaml "github.com/go-yaml/yaml"
