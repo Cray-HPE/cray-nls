@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 package iuf
 
 import (
+	mdv "cray-nls/src/api/models/iuf/manifestDataValidation"
 	"embed"
 	"fmt"
 	"os"
@@ -84,5 +85,9 @@ func Validate(file_contents []byte) error {
 		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
 	}
 
+	err = mdv.Validate(manifest)
+	if err != nil {
+		return fmt.Errorf("failed to validate IUF Product Manifest data: %#v", err)
+	}
 	return nil
 }
