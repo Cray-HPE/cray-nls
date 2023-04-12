@@ -26,10 +26,11 @@
 package iuf
 
 import (
-	mdv "cray-nls/src/api/models/iuf/manifestDataValidation"
 	"embed"
 	"fmt"
 	"os"
+
+	mdv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"sigs.k8s.io/yaml"
