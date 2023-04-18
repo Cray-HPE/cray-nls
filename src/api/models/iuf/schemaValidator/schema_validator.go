@@ -23,55 +23,42 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package iuf
+package schemaValidator
 
 import (
+	"embed"
 	"fmt"
-	"os"
 
-	mdv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
-	sv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/schemaValidator"
-
+	"github.com/santhosh-tekuri/jsonschema/v5"
 	"sigs.k8s.io/yaml"
 )
 
-const iuf_manifest_schema_file string = "schemas/iuf-manifest-schema.yaml"
+//go:embed schemas/*
+var schemas embed.FS
 
-func ValidateFile(file_path string) error {
-	fmt.Printf("Validating file %v against IUF Product Manifest Schema.\n", file_path)
+// Validates schema of a yaml file
+// Provide the yaml data as object and schema file to process
+func Validate(yamlObject interface{}, schemaFile string) error {
 
-	file_contents, err := os.ReadFile(file_path)
+	schema_file_contents, err := schemas.ReadFile(schemaFile)
 	if err != nil {
-		return fmt.Errorf("failed to open IUF Product Manifest file: %v", err)
+		return fmt.Errorf("failed to load schema file: %s, error: %v", schemaFile, err)
 	}
 
-	err = Validate(file_contents)
+	schema_json, err := yaml.YAMLToJSON(schema_file_contents)
 	if err != nil {
-		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
+		return fmt.Errorf("failed to convert schema file: %s from YAML to JSON: %v", schemaFile, err)
 	}
 
-	fmt.Printf("File %v is valid against IUF Product Manifest schema.\n", file_path)
-	return nil
-}
-
-func Validate(file_contents []byte) error {
-
-	var manifest interface{}
-	err := yaml.Unmarshal(file_contents, &manifest)
+	schema, err := jsonschema.CompileString(schemaFile, string(schema_json))
 	if err != nil {
-		return fmt.Errorf("failed to parse IUF Product Manifest as YAML: %v", err)
+		return fmt.Errorf("failed to validate schema file: %s JSON Schema: %v", schemaFile, err)
 	}
 
-	// manifest schema validation
-	err = sv.Validate(manifest, iuf_manifest_schema_file)
+	err = schema.Validate(yamlObject)
 	if err != nil {
-		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
+		return fmt.Errorf("failed to validate yaml: %#v", err)
 	}
 
-	// manifest data validation
-	err = mdv.Validate(manifest)
-	if err != nil {
-		return fmt.Errorf("failed to validate IUF Product Manifest data: %#v", err)
-	}
 	return nil
 }
