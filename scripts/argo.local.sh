@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # MIT License
 #
@@ -22,6 +23,34 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 
+FORCE_FLAG=false
+USERNAME=""
+PASSWORD=""
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]
+do
+    arg="$1"
+
+    case $arg in
+        --force)
+        FORCE_FLAG=true
+        shift
+        ;;
+        --username)
+        USERNAME="$2"
+        shift 2
+        ;;
+        --password)
+        PASSWORD="$2"
+        shift 2
+        ;;
+        *)
+        shift
+        ;;
+    esac
+done
+
 if ! command -v k3d &> /dev/null
 then
     wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
@@ -29,11 +58,28 @@ fi
 
 k3d cluster list  | grep "mycluster"
 
-if [[ $? -ne 0 ]]; then
+if [[ $? -ne 0 ]] || $FORCE_FLAG; then
+    if $FORCE_FLAG; then
+        k3d cluster delete mycluster
+    fi
+
+    cat <<EOF > "/tmp/registry.yaml"
+  mirrors:
+    artifactory.algol60.net:
+      endpoint:
+        - "https://artifactory.algol60.net"
+  configs:
+    "artifactory.algol60.net":
+      auth:
+        username: $USERNAME
+        password: $PASSWORD
+EOF
+
     k3d cluster create mycluster \
         -a 3 \
         --agents-memory 1g \
         --servers-memory 1g \
+        -v "/tmp/registry.yaml:/etc/rancher/k3s/registries.yaml" \
         -v "$HOME/iuf:/etc/cray/upgrade/csm" \
         --no-lb \
         --k3s-arg "--node-name=ncn-w001"@agent:0 \
