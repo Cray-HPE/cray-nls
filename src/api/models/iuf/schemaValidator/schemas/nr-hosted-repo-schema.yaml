@@ -47,12 +47,15 @@ required:
 properties:
 
   cleanup:
-    description: >
-      Should the repo be cleaned.
-    type: string
-    default: none
-    examples:
-    - null
+    nullable: true
+    type: object    
+    properties:
+      policyNames:
+        type: array
+        example: weekly-cleanup
+        description: Components that match any of the applied policies will be deleted
+        items:
+          type: string
 
   format:
     description: >
@@ -98,12 +101,12 @@ properties:
           repository format
       writePolicy:
         type: string
-        example: allow_once
+        example: ALLOW_ONCE
         description: Controls if deployments of and updates to assets are allowed
         enum:
-          - allow
-          - allow_once
-          - deny
+          - ALLOW
+          - ALLOW_ONCE
+          - DENY
   
   type:
     description: >

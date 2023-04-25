@@ -1,15 +1,12 @@
 package manifestDataValidation
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 
 	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
-
 	//v2yaml "gopkg.in/yaml.v2"
-	goyaml "github.com/go-yaml/yaml"
+	sv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/schemaValidator"
+	"sigs.k8s.io/yaml"
 )
 
 // const for yaml keys
@@ -36,9 +33,10 @@ var FileReader = mutils.ReadYamFile
 
 // Struct with list of validators
 type validators struct {
-	content           map[string]interface{}
-	nexusRepoFileName string
-	hostedRepoNames   []string
+	content              map[string]interface{}
+	nexusRepoFileName    string
+	hostedRepoNames      []string
+	nexusSchemaFileNames []string
 }
 
 // Method to process s3 content, returns error in case of issues
@@ -83,6 +81,33 @@ func (vs *validators) processNexusRepo() error {
 	return nil
 }
 
+// Method to process nexus repo content, returns repo file path and error(in case of issues),
+func (vs *validators) processNexusRepoSchemaFile(nc interface{}) error {
+
+	// Nexus repo possible schemas
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-hosted-repo-schema.yaml")
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-group-repo-schema.yaml")
+
+	// nexus repo schema validation
+
+	validated := false
+
+	for _, sf := range vs.nexusSchemaFileNames {
+		err := sv.Validate(nc, sf)
+		if err != nil {
+			fmt.Println("failed to validate ", sf, " schema: ", err)
+		} else {
+			validated = true
+			break
+		}
+	}
+
+	if !validated {
+		return fmt.Errorf("failed to validate against all schemas")
+	}
+	return nil
+}
+
 // Method to process nexus repo file and get hosted repo names
 func (vs *validators) processNexusRepoFile() error {
 
@@ -91,29 +116,38 @@ func (vs *validators) processNexusRepoFile() error {
 	}
 
 	nexusFile_contents, err := FileReader(vs.nexusRepoFileName)
+
 	var temp_repo_names []string
 
 	if err != nil {
 		return fmt.Errorf("failed to open Nexus Repository file: %v", err)
 	}
 
-	dec := goyaml.NewDecoder(bytes.NewReader(nexusFile_contents))
+	docs := mutils.SplitMultiYamlFile(nexusFile_contents)
 
 	skipFormats := []string{"docker", "helm"}
 
-	for {
-		var nexusContent map[string]interface{}
+	for _, d := range docs {
 
-		err := dec.Decode(&nexusContent)
-		if errors.Is(err, io.EOF) {
-			break
+		var nc interface{}
+		err = yaml.Unmarshal(d, &nc)
+		if err != nil {
+			return fmt.Errorf("failed to parse Nexus Repositorty as YAML: %v", err)
 		}
+
+		err = vs.processNexusRepoSchemaFile(nc)
+		if err != nil {
+			return fmt.Errorf("failed to validate Nexus Repository yaml file against available schemas: %v", err)
+		}
+
+		nexusContent := nc.(map[string]interface{})
 
 		format := nexusContent[FORMAT].(string)
 
 		isFormatToBeSkipped, _ := mutils.StringFoundInArray(skipFormats, format)
 
 		if isFormatToBeSkipped {
+			fmt.Println("Format skipped")
 			continue //Skip doc which has format that does not require validataion
 		}
 
@@ -123,7 +157,7 @@ func (vs *validators) processNexusRepoFile() error {
 			temp_repo_names = append(temp_repo_names, nexusContent["name"].(string))
 
 		} else if nexusContent[REPO_TYPE] == "group" {
-			group_map := nexusContent["group"].(map[interface{}]interface{})
+			group_map := nexusContent["group"].(map[string]interface{})
 
 			for _, v := range group_map {
 				memNames_array := v.([]interface{})
@@ -136,7 +170,7 @@ func (vs *validators) processNexusRepoFile() error {
 						temp_repo_names, err = mutils.Delete(temp_repo_names, index)
 
 						if err != nil {
-							fmt.Println(err)
+							fmt.Println("Repo defined in host repo is not listed in group repo")
 						}
 
 					} else {
@@ -145,7 +179,9 @@ func (vs *validators) processNexusRepoFile() error {
 				}
 			}
 		}
+
 	}
+
 	if len(temp_repo_names) > 0 {
 		return fmt.Errorf("Repo defined in host repo is not listed in group repo")
 	}

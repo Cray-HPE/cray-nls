@@ -424,7 +424,9 @@ content:
 
 	nexusCotent := []byte(`
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.97-sle-15sp4
 online: true
@@ -445,7 +447,9 @@ storage:
   strictContentTypeValidation: false
 type: group
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: helm
 name: charts
 online: true
@@ -455,7 +459,9 @@ storage:
   writePolicy: ALLOW_ONCE
 type: hosted
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.97-net-sle-15sp4-shs-2.0
 online: true
@@ -465,7 +471,9 @@ storage:
   writePolicy: ALLOW_ONCE
 type: hosted
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 docker:
   forceBasicAuth: true
   httpPort: 5003
@@ -518,7 +526,9 @@ content:
 
 	nexusCotent := []byte(`
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.98-sle-15sp4
 online: true
@@ -528,7 +538,9 @@ storage:
   writePolicy: ALLOW_ONCE
 type: hosted
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.97-sle-15sp4
 online: true
@@ -577,7 +589,9 @@ content:
 
 	nexusCotent := []byte(`
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.98-sle-15sp4
 online: true
@@ -599,7 +613,9 @@ storage:
   strictContentTypeValidation: false
 type: group
 ---
-cleanup: null
+cleanup: 
+  policyNames:
+  - weekly-cleanup
 format: raw
 name: cos-2.5.97-sle-15sp4
 online: true

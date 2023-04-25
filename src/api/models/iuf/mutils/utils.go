@@ -71,7 +71,7 @@ func ReadYamFile(filePath string) ([]byte, error) {
 func SplitMultiYamlFile(fileData []byte) [][]byte {
 	var yamlDataBytes [][]byte
 	for _, yamlData := range strings.Split(string(fileData), yamlFileDelimiter) {
-		if yamlData == "\n" { // skipping new line characters
+		if yamlData == "\n" || yamlData == "" { // skipping new line characters
 			continue
 		}
 		yamlDataBytes = append(yamlDataBytes, []byte(yamlData))
