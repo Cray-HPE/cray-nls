@@ -14,11 +14,14 @@
 1. Run argo workflow in k3d
 
    ```
-   scripts/argo.local.sh
+   scripts/argo.local.sh --username ARTIFACTORY_USERNAME --password ARTIFACTORY_PASSWORD
    ```
 
    This will start a k3d cluster and deploy minimal Argo Workflow. It also port-forward `2746` to localhost
 
+   > Note: `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` are required to pull the Argo Workflow image from Artifactory
+   > 
+   > https://rndwiki-pro.its.hpecorp.net/display/CSMTemp/Client+Authentication#ClientAuthentication-Docker
 
 1. Modify `cluster-admin` file
 
