@@ -4,7 +4,10 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 )
+
+const yamlFileDelimiter string = "---"
 
 // Function to check a path exist or not
 func IsPathExist(path string) bool {
@@ -62,4 +65,17 @@ func Delete(orig []string, index int) ([]string, error) {
 // File to manage
 func ReadYamFile(filePath string) ([]byte, error) {
 	return os.ReadFile(filePath)
+}
+
+// Function to split multi doc yaml
+func SplitMultiYamlFile(fileData []byte) [][]byte {
+	var yamlDataBytes [][]byte
+	for _, yamlData := range strings.Split(string(fileData), yamlFileDelimiter) {
+		if yamlData == "\n" { // skipping new line characters
+			continue
+		}
+		yamlDataBytes = append(yamlDataBytes, []byte(yamlData))
+	}
+
+	return yamlDataBytes
 }
