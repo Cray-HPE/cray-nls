@@ -68,7 +68,7 @@ func ReadYamFile(filePath string) ([]byte, error) {
 }
 
 // Function to split multi doc yaml
-func SplitMultiYamlFile(fileData []byte) ([][]byte, error) {
+func SplitMultiYamlFile(fileData []byte) [][]byte {
 	var yamlDataBytes [][]byte
 	for _, yamlData := range strings.Split(string(fileData), yamlFileDelimiter) {
 		if yamlData == "\n" { // skipping new line characters
@@ -77,5 +77,5 @@ func SplitMultiYamlFile(fileData []byte) ([][]byte, error) {
 		yamlDataBytes = append(yamlDataBytes, []byte(yamlData))
 	}
 
-	return yamlDataBytes, nil
+	return yamlDataBytes
 }

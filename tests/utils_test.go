@@ -22,11 +22,7 @@ iuf_version: ^0.5.0
 iuf_version: ^0.5.1
 `)}
 
-	response, err := mutils.SplitMultiYamlFile(data)
-
-	if err != nil {
-		t.Fatal("Issue in parsing multidoc yaml")
-	}
+	response := mutils.SplitMultiYamlFile(data)
 
 	for i, b := range expected {
 
@@ -44,11 +40,7 @@ func TestMultiSchemaYamlDocEmptyYaml(t *testing.T) {
 
 	expected := [][]byte{}
 
-	response, err := mutils.SplitMultiYamlFile(data)
-
-	if err != nil {
-		t.Fatal("Issue in parsing multidoc yaml")
-	}
+	response := mutils.SplitMultiYamlFile(data)
 
 	for i, b := range expected {
 
@@ -65,11 +57,7 @@ func TestMultiSchemaYamlDocEmptyDoc(t *testing.T) {
 
 	expected := [][]byte{}
 
-	response, err := mutils.SplitMultiYamlFile(data)
-
-	if err != nil {
-		t.Fatal("Issue in parsing multidoc yaml")
-	}
+	response := mutils.SplitMultiYamlFile(data)
 
 	for i, b := range expected {
 
@@ -89,11 +77,7 @@ iuf_version: ^0.5.0
 iuf_version: ^0.5.0
 `)}
 
-	response, err := mutils.SplitMultiYamlFile(data)
-
-	if err != nil {
-		t.Fatal("Issue in parsing multidoc yaml")
-	}
+	response := mutils.SplitMultiYamlFile(data)
 
 	for i, b := range expected {
 
@@ -114,11 +98,7 @@ iuf_version: ^0.5.0
 iuf_version: ^0.5.0
 `)}
 
-	response, err := mutils.SplitMultiYamlFile(data)
-
-	if err != nil {
-		t.Fatal("Issue in parsing multidoc yaml")
-	}
+	response := mutils.SplitMultiYamlFile(data)
 
 	for i, b := range expected {
 
