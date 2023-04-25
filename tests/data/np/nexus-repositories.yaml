@@ -1,0 +1,84 @@
+---
+cleanup: null
+format: raw
+name: cos-2.5.97-sle-15sp4
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - cos-2.5.97-sle-15sp4
+name: cos-2.5-sle-15sp4
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: cos-2.5.97-net-sle-15sp4-shs-2.0
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - cos-2.5.97-net-sle-15sp4-shs-2.0
+name: cos-2.5-net-sle-15sp4-shs-2.0
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: cos-2.5.97-sle-15sp4-compute
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - cos-2.5.97-sle-15sp4-compute
+name: cos-2.5-sle-15sp4-compute
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: cos-2.5.97-net-sle-15sp4-compute-shs-2.0
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - cos-2.5.97-net-sle-15sp4-compute-shs-2.0
+name: cos-2.5-net-sle-15sp4-compute-shs-2.0
+online: true
+storage:
+  blobStoreName: cos
+  strictContentTypeValidation: false
+type: group
