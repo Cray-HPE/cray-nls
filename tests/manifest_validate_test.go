@@ -11,7 +11,7 @@ import (
 
 // Unit testcase for Basic sanity of manifest validate
 func TestValidateManifestSaninty(t *testing.T) {
-	file := "data/manifests/iuf-product-manifest.yaml"
+	file := "data/iuf-product-manifest.yaml"
 	err := iuf.ValidateFile(file)
 	if err != nil {
 		t.Fatal("Issue seen in manifest file:", file, "error:", err)
@@ -26,7 +26,7 @@ content:
   docker:
   - path: docker	
   s3:
-  - path: data/s3/dummy_upload_1.txt
+  - path: s3/dummy_upload_1.txt
     bucket: dummy-bucket
     key: dummy-key
   - path: not/exists/path/dummy_upload_2.txt
@@ -75,7 +75,7 @@ func TestValidateManifestEmptyVcs(t *testing.T) {
 	data := []byte(`
 content:
   vcs:
-    path: 'data/vcs_empty'
+    path: 'vcs_empty'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -96,7 +96,7 @@ func TestValidateManifestInvalidVcs(t *testing.T) {
 	data := []byte(`
 content:
   vcs:
-    path: 'data/do/not/exist'
+    path: 'do/not/exist'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -120,21 +120,21 @@ func TestValidateManifestEmptyRpm(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories.yaml'
+    yaml_path: 'np/nexus-repositories.yaml'
   rpms:
-   - path: data/rpms/rpm_dummy_1
+   - path: rpms/rpm_dummy_1
      repository_name: cos-2.5.97-sle-15sp4
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_2
+   - path: rpms/rpm_dummy_2
      repository_name: cos-2.5.97-net-sle-15sp4-shs-2.0
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_3
+   - path: rpms/rpm_dummy_3
      repository_name: cos-2.5.97-sle-15sp4-compute
      repository_type: raw
 
-   - path: data/rpms/empty_rpm
+   - path: rpms/empty_rpm
      repository_name: cos-2.5.97-sle-15sp4-compute
      repository_type: raw
 `)
@@ -157,21 +157,21 @@ func TestValidateManifestInvalidRpm(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories.yaml'
+    yaml_path: 'np/nexus-repositories.yaml'
   rpms:
-   - path: data/rpms/rpm_dummy_1
+   - path: rpms/rpm_dummy_1
      repository_name: cos-2.5.97-sle-15sp4
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_2
+   - path: rpms/rpm_dummy_2
      repository_name: cos-2.5.97-net-sle-15sp4-shs-2.0
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_3
+   - path: rpms/rpm_dummy_3
      repository_name: cos-2.5.97-sle-15sp4-compute
      repository_type: raw
 
-   - path: data/rpms/wrong/path
+   - path: rpms/wrong/path
      repository_name: cos-2.5.97-sle-15sp4-compute
      repository_type: raw
 `)
@@ -194,17 +194,17 @@ func TestValidateHostedLogic(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories.yaml'
+    yaml_path: 'np/nexus-repositories.yaml'
   rpms:
-   - path: data/rpms/rpm_dummy_1
+   - path: rpms/rpm_dummy_1
      repository_name: cos-2.5.97-sle-15sp4
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_2
+   - path: rpms/rpm_dummy_2
      repository_name: repo_non_existent
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_3
+   - path: rpms/rpm_dummy_3
      repository_name: cos-2.5.97-sle-15sp4-compute
      repository_type: raw
 `)
@@ -227,17 +227,17 @@ func TestValidateGroupRpmExpectionLogic(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories.yaml'
+    yaml_path: 'np/nexus-repositories.yaml'
   rpms:
-   - path: data/rpms/rpm_dummy_1
+   - path: rpms/rpm_dummy_1
      repository_name: cos-2.5.97-sle-15sp4
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_2
+   - path: rpms/rpm_dummy_2
      repository_name: cos-2.5.97-net-sle-15sp4-shs-2.0
      repository_type: raw
 
-   - path: data/rpms/rpm_dummy_3
+   - path: rpms/rpm_dummy_3
      repository_name: cos-2.5-net-sle-15sp4-shs-2.0
      repository_type: raw
 `) // last path is a group repo, defined in nexus-repositories.yaml
@@ -264,7 +264,7 @@ func TestValidateManifestInvalidNexusRepo(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/dummy/filenotpresent.yaml'
+    yaml_path: 'np/dummy/filenotpresent.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -285,7 +285,7 @@ func TestValidateNexusRepoMissingHosted(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories-dummy.yaml'
+    yaml_path: 'np/nexus-repositories-dummy.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -344,7 +344,7 @@ func TestValidateNexusRepoMisplacedHosted(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories-dummy.yaml'
+    yaml_path: 'np/nexus-repositories-dummy.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -415,7 +415,7 @@ func TestValidateNexusRepoSkipFormat(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories-dummy.yaml'
+    yaml_path: 'np/nexus-repositories-dummy.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -509,7 +509,7 @@ func TestValidateNexusRepoMultiMemberPos(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories-dummy.yaml'
+    yaml_path: 'np/nexus-repositories-dummy.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)
@@ -568,7 +568,7 @@ func TestValidateNexusRepoMultiMemberNeg(t *testing.T) {
 	data := []byte(`
 content:
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories-dummy.yaml'
+    yaml_path: 'np/nexus-repositories-dummy.yaml'
 `)
 	var dataObject map[string]interface{}
 	inputErr := yaml.Unmarshal(data, &dataObject)

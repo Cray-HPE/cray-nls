@@ -18,11 +18,11 @@ content:
   - path: docker
 
   s3:
-  - path: data/s3/dummy_upload_1.txt
+  - path: s3/dummy_upload_1.txt
     bucket: dummy-bucket
     key: dummy-key
 
-  - path: data/s3/dummy_upload_2.txt
+  - path: s3/dummy_upload_2.txt
     bucket: dummy-bucket
     key: dummy-key
 
@@ -35,26 +35,26 @@ content:
     deploy: true
 
   nexus_blob_stores:
-    yaml_path: 'data/nexus-blobstores.yaml'
+    yaml_path: 'nexus-blobstores.yaml'
 
   nexus_repositories:
-    yaml_path: 'data/np/nexus-repositories.yaml'
+    yaml_path: 'np/nexus-repositories.yaml'
 
   rpms:
-  - path: data/rpms/rpm_dummy_1
+  - path: rpms/rpm_dummy_1
     repository_name: cos-2.5.97-sle-15sp4
     repository_type: raw
 
-  - path: data/rpms/rpm_dummy_2
+  - path: rpms/rpm_dummy_2
     repository_name: cos-2.5.97-net-sle-15sp4-shs-2.0
     repository_type: raw
 
-  - path: data/rpms/rpm_dummy_3
+  - path: rpms/rpm_dummy_3
     repository_name: cos-2.5.97-sle-15sp4-compute
     repository_type: raw
 
   vcs:
-    path: data/vcs
+    path: vcs
 
   ims:
     content_dirs:

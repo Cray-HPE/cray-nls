@@ -30,6 +30,8 @@ import (
 
 	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
 
+	"path/filepath"
+
 	"sigs.k8s.io/yaml"
 )
 
@@ -60,6 +62,7 @@ type validators struct {
 	content           map[string]interface{}
 	nexusRepoFileName string
 	hostedRepoNames   []string
+	rootDir           string
 }
 
 // Method to process s3 content, returns error in case of issues
@@ -74,7 +77,7 @@ func (vs *validators) validateS3FilePath() error {
 	s3_array := s3.([]interface{}) // assuming array, is it validated in schema??
 	for _, s3 := range s3_array {
 		s3_element := s3.(map[string]interface{})
-		file_path := s3_element[S3_PATH_KEY].(string)
+		file_path := filepath.Join(vs.rootDir, s3_element[S3_PATH_KEY].(string))
 
 		exist := mutils.IsPathExist(file_path) // do we need error details??
 		if !exist {                            // if path is invalid
@@ -93,7 +96,7 @@ func (vs *validators) validateNexusRepoFilePath() error {
 	}
 
 	nr_map := nr.(map[string]interface{}) // assuming map, is it validated in schema??
-	file_path := nr_map[NEXUS_REPO_PATH_KEY].(string)
+	file_path := filepath.Join(vs.rootDir, nr_map[NEXUS_REPO_PATH_KEY].(string))
 	vs.nexusRepoFileName = file_path
 
 	exist := mutils.IsPathExist(file_path) // do we need error details??
@@ -192,7 +195,7 @@ func (vs *validators) validateNexusBlobFilePath() error {
 	}
 
 	nb_map := nb.(map[string]interface{}) // assuming map, is it validated in schema??
-	file_path := nb_map[NEXUS_BLOB_PATH_KEY].(string)
+	file_path := filepath.Join(vs.rootDir, nb_map[NEXUS_BLOB_PATH_KEY].(string))
 
 	exist := mutils.IsPathExist(file_path) // do we need error details??
 	if !exist {                            // if path is invalid
@@ -211,7 +214,7 @@ func (vs *validators) validateVcsFilePath() error {
 	}
 	vcs_map := vcs.(map[string]interface{})
 
-	dir_path := vcs_map[VCS_PATH_KEY].(string)
+	dir_path := filepath.Join(vs.rootDir, vcs_map[VCS_PATH_KEY].(string))
 	empty := mutils.IsEmptyDirectory(dir_path) // do we need error details??
 	if empty {                                 // if path is invalid
 		return fmt.Errorf("error in processing vcs directory %v", dir_path)
@@ -225,7 +228,7 @@ func (vs *validators) validateAllRpmsHosted(repoName string) error {
 
 	found, _ = mutils.StringFoundInArray(vs.hostedRepoNames, repoName)
 	if !found {
-		return fmt.Errorf("Repo referenced in  rpms section is not a hosted repo")
+		return fmt.Errorf("Repo %v referenced in rpms section is not a hosted repo", repoName)
 	}
 
 	return nil
@@ -245,7 +248,7 @@ func (vs *validators) validateRpmFilePath() error {
 	for _, rpm := range rpm_array {
 		rpm_map := rpm.(map[string]interface{})
 
-		dir_path := rpm_map[RPM_PATH_KEY].(string)
+		dir_path := filepath.Join(vs.rootDir, rpm_map[RPM_PATH_KEY].(string))
 		empty := mutils.IsEmptyDirectory(dir_path) // do we need error details??
 		if empty {                                 // if path is invalid
 			return fmt.Errorf("error in processing rpm directory %v", dir_path)
@@ -269,14 +272,17 @@ func getManifestContentMap(manifest interface{}) map[string]interface{} {
 	return content_map
 }
 
+var root_dir string
+
+func SetRootDir(file_path string) {
+	root_dir = filepath.Dir(file_path)
+}
+
 // Function to validate manifest data post schema validation
 func Validate(manifest interface{}) error {
-
 	var pipeline *validators = &validators{}
+	pipeline.rootDir = root_dir
 	pipeline.content = getManifestContentMap(manifest)
-
-	// var hosted_repo_names []string
-	// content := getManifestContentMap(manifest)
 
 	// content.s3 checks
 	if err := pipeline.validateS3FilePath(); err != nil {

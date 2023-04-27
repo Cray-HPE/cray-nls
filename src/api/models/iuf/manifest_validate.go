@@ -39,6 +39,8 @@ const iuf_manifest_schema_file string = "schemas/iuf-manifest-schema.yaml"
 func ValidateFile(file_path string) error {
 	fmt.Printf("Validating file %v against IUF Product Manifest Schema.\n", file_path)
 
+	mdv.SetRootDir(file_path)
+
 	file_contents, err := os.ReadFile(file_path)
 
 	if err != nil {
