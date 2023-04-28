@@ -95,7 +95,7 @@ kubectl get nodes
 kubectl taint nodes ncn-m001 node-role.kubernetes.io/master=:NoSchedule
 
 # create folders for local dev
-docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh;mkdir -p /etc/kubernetes;mkdir -p /usr/bin"
+docker ps | awk '/mycluster/ {print $1}' | xargs -I '{}' docker exec '{}' sh -c "mkdir -p /root/.ssh;mkdir -p /etc/kubernetes;mkdir -p /usr/bin;mkdir -p /var/lib/ca-certificates"
 
 kubectl create ns argo
 
