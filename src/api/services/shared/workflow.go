@@ -67,7 +67,7 @@ type workflowService struct {
 	ctx                    context.Context
 	workflowClient         workflow.WorkflowServiceClient
 	workflowTemplateClient workflowtemplate.WorkflowTemplateServiceClient
-	k8sRestClientSet       *kubernetes.Clientset
+	k8sRestClientSet       kubernetes.Interface
 	env                    utils.Env
 }
 
