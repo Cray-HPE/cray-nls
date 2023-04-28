@@ -28,18 +28,26 @@ package iuf
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	mdv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
+	manifestDataValidator "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
 	sv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/schemaValidator"
 	"sigs.k8s.io/yaml"
 )
 
 const iuf_manifest_schema_file string = "schemas/iuf-manifest-schema.yaml"
 
+var manifestRootPath string
+
+func extractDirPath(filePath string, storageVariable *string) {
+	*storageVariable = filepath.Dir(filePath)
+}
+
 func ValidateFile(file_path string) error {
 	fmt.Printf("Validating file %v against IUF Product Manifest Schema.\n", file_path)
 
-	mdv.SetRootDir(file_path)
+	// Extracting root dir of manifest
+	extractDirPath(file_path, &manifestRootPath)
 
 	file_contents, err := os.ReadFile(file_path)
 
@@ -71,7 +79,8 @@ func Validate(file_contents []byte) error {
 	}
 
 	// manifest data validation
-	err = mdv.Validate(manifest)
+	manifestDataValidator.SetManifestRootDir(manifestRootPath)
+	err = manifestDataValidator.Validate(manifest)
 	if err != nil {
 		return fmt.Errorf("failed to validate IUF Product Manifest data: %#v", err)
 	}

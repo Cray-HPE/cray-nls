@@ -27,11 +27,9 @@ package manifestDataValidation
 
 import (
 	"fmt"
-
-	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
-
 	"path/filepath"
 
+	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -54,6 +52,9 @@ const (
 	FORMAT              string = "format"
 )
 
+// List of formats, will be skipped for nexus repo
+var skipFormatsForNexusRepo = []string{"docker", "helm"}
+
 // Getting the file reader
 var FileReader = mutils.ReadYamFile
 
@@ -62,7 +63,7 @@ type validators struct {
 	content           map[string]interface{}
 	nexusRepoFileName string
 	hostedRepoNames   []string
-	rootDir           string
+	manifestRootDir   string
 }
 
 // Method to process s3 content, returns error in case of issues
@@ -77,7 +78,7 @@ func (vs *validators) validateS3FilePath() error {
 	s3_array := s3.([]interface{}) // assuming array, is it validated in schema??
 	for _, s3 := range s3_array {
 		s3_element := s3.(map[string]interface{})
-		file_path := filepath.Join(vs.rootDir, s3_element[S3_PATH_KEY].(string))
+		file_path := filepath.Join(vs.manifestRootDir, s3_element[S3_PATH_KEY].(string))
 
 		exist := mutils.IsPathExist(file_path) // do we need error details??
 		if !exist {                            // if path is invalid
@@ -96,12 +97,12 @@ func (vs *validators) validateNexusRepoFilePath() error {
 	}
 
 	nr_map := nr.(map[string]interface{}) // assuming map, is it validated in schema??
-	file_path := filepath.Join(vs.rootDir, nr_map[NEXUS_REPO_PATH_KEY].(string))
+	file_path := filepath.Join(vs.manifestRootDir, nr_map[NEXUS_REPO_PATH_KEY].(string))
 	vs.nexusRepoFileName = file_path
 
 	exist := mutils.IsPathExist(file_path) // do we need error details??
 	if !exist {                            // if path is invalid
-		return fmt.Errorf("error in processing nexus repo file %v", file_path)
+		return fmt.Errorf("error in processing file %v as it does not exist", file_path)
 	}
 
 	return nil
@@ -126,8 +127,6 @@ func (vs *validators) validateNexusRepoFileContent() error {
 
 	docs := mutils.SplitMultiYamlFile(nexusFile_contents)
 
-	skipFormats := []string{"docker", "helm"}
-
 	for _, doc := range docs {
 
 		var nexusContentRaw interface{}
@@ -140,7 +139,7 @@ func (vs *validators) validateNexusRepoFileContent() error {
 
 		format := nexusContent[FORMAT].(string)
 
-		isFormatToBeSkipped, _ := mutils.StringFoundInArray(skipFormats, format)
+		isFormatToBeSkipped, _ := mutils.StringFoundInArray(skipFormatsForNexusRepo, format)
 
 		if isFormatToBeSkipped {
 			//logger.Infof("validateNexusRepoFileContent: Format %s skipped", format) // this line leading to panic
@@ -167,11 +166,11 @@ func (vs *validators) validateNexusRepoFileContent() error {
 						temp_repo_names, err = mutils.Delete(temp_repo_names, index)
 
 						if err != nil {
-							fmt.Println("Repo defined in host repo is not listed in group repo")
+							fmt.Println("repo defined in host repo is not listed in group repo")
 						}
 
 					} else {
-						return fmt.Errorf("Repo referenced in group does not match hosted repo or Hosted Repos are not listed before group repos")
+						return fmt.Errorf("repo referenced in group does not match hosted repo or Hosted Repos are not listed before group repos")
 					}
 				}
 			}
@@ -180,7 +179,7 @@ func (vs *validators) validateNexusRepoFileContent() error {
 	}
 
 	if len(temp_repo_names) > 0 {
-		return fmt.Errorf("Repo defined in host repo is not listed in group repo")
+		return fmt.Errorf("repo defined in host repo is not listed in group repo")
 	}
 
 	return nil
@@ -195,11 +194,11 @@ func (vs *validators) validateNexusBlobFilePath() error {
 	}
 
 	nb_map := nb.(map[string]interface{}) // assuming map, is it validated in schema??
-	file_path := filepath.Join(vs.rootDir, nb_map[NEXUS_BLOB_PATH_KEY].(string))
+	file_path := filepath.Join(vs.manifestRootDir, nb_map[NEXUS_BLOB_PATH_KEY].(string))
 
 	exist := mutils.IsPathExist(file_path) // do we need error details??
 	if !exist {                            // if path is invalid
-		return fmt.Errorf("error in processing nexus repo file %v", file_path)
+		return fmt.Errorf("error in processing file %v as it does not exist", file_path)
 	}
 	return nil
 }
@@ -214,7 +213,7 @@ func (vs *validators) validateVcsFilePath() error {
 	}
 	vcs_map := vcs.(map[string]interface{})
 
-	dir_path := filepath.Join(vs.rootDir, vcs_map[VCS_PATH_KEY].(string))
+	dir_path := filepath.Join(vs.manifestRootDir, vcs_map[VCS_PATH_KEY].(string))
 	empty := mutils.IsEmptyDirectory(dir_path) // do we need error details??
 	if empty {                                 // if path is invalid
 		return fmt.Errorf("error in processing vcs directory %v", dir_path)
@@ -222,20 +221,25 @@ func (vs *validators) validateVcsFilePath() error {
 	return nil
 }
 
-func (vs *validators) validateAllRpmsHosted(repoName string) error {
+func isRpmHosted(hostedRepoNames []string, repoName string) error {
 
 	found := false
 
-	found, _ = mutils.StringFoundInArray(vs.hostedRepoNames, repoName)
+	found, _ = mutils.StringFoundInArray(hostedRepoNames, repoName)
 	if !found {
-		return fmt.Errorf("Repo %v referenced in rpms section is not a hosted repo", repoName)
+		return fmt.Errorf("repo %v referenced in rpms section is not a hosted repo", repoName)
 	}
 
 	return nil
 }
 
+func isRpmExist(rootDir string, rpmName string) bool {
+	dirPath := filepath.Join(rootDir, rpmName)
+	return mutils.IsEmptyDirectory(dirPath)
+}
+
 // Method to process rpm content, return error in case of issues
-func (vs *validators) validateRpmFilePath() error {
+func (vs *validators) validateRpmFiles() error {
 
 	rpm, rpm_present := vs.content[RPM_KEY] // extracting rpm key
 
@@ -246,16 +250,15 @@ func (vs *validators) validateRpmFilePath() error {
 	rpm_array := rpm.([]interface{})
 
 	for _, rpm := range rpm_array {
+
 		rpm_map := rpm.(map[string]interface{})
-
-		dir_path := filepath.Join(vs.rootDir, rpm_map[RPM_PATH_KEY].(string))
-		empty := mutils.IsEmptyDirectory(dir_path) // do we need error details??
-		if empty {                                 // if path is invalid
-			return fmt.Errorf("error in processing rpm directory %v", dir_path)
+		rpmFile := rpm_map[RPM_PATH_KEY].(string)
+		if isRpmExist(vs.manifestRootDir, rpmFile) { // if path is invalid
+			return fmt.Errorf("error in processing rpm file %v in directory %v", rpmFile, vs.manifestRootDir)
 		}
-		repoName := rpm_map[REPO_NAME].(string)
 
-		err := vs.validateAllRpmsHosted(repoName)
+		repoName := rpm_map[REPO_NAME].(string)
+		err := isRpmHosted(vs.hostedRepoNames, repoName) // Checking for hosted repo
 
 		if err != nil {
 			return fmt.Errorf("%#v", err)
@@ -274,14 +277,15 @@ func getManifestContentMap(manifest interface{}) map[string]interface{} {
 
 var root_dir string
 
-func SetRootDir(file_path string) {
-	root_dir = filepath.Dir(file_path)
+// Function of set manifest root path
+func SetManifestRootDir(root_path string) {
+	root_dir = root_path
 }
 
 // Function to validate manifest data post schema validation
 func Validate(manifest interface{}) error {
 	var pipeline *validators = &validators{}
-	pipeline.rootDir = root_dir
+	pipeline.manifestRootDir = root_dir
 	pipeline.content = getManifestContentMap(manifest)
 
 	// content.s3 checks
@@ -291,27 +295,27 @@ func Validate(manifest interface{}) error {
 
 	// content.nexus_repositories checks
 	if err := pipeline.validateNexusRepoFilePath(); err != nil {
-		return fmt.Errorf("issue in processing nexus repo file content, details %v", err)
+		return fmt.Errorf("issue in validating nexus repo file path, details %v", err)
 	}
 
 	// Validate content of nexus_repositories.yaml
 	if err := pipeline.validateNexusRepoFileContent(); err != nil {
-		return fmt.Errorf("issue in processing nexus repo file content, details %v", err)
+		return fmt.Errorf("issue in validating nexus repo file content, details %v", err)
 	}
 
 	// content.nexus_blob_stores checks
 	if err := pipeline.validateNexusBlobFilePath(); err != nil {
-		return fmt.Errorf("issue in processing nexus repo file content, details %v", err)
+		return fmt.Errorf("issue in validating nexus blob file path, details %v", err)
 	}
 
 	// contents.vcs checks
 	if err := pipeline.validateVcsFilePath(); err != nil {
-		return fmt.Errorf("issue in processing vcs directory content, details %v", err)
+		return fmt.Errorf("issue in validating vcs directory content, details %v", err)
 	}
 
 	// contents.rpms checks
-	if err := pipeline.validateRpmFilePath(); err != nil {
-		return fmt.Errorf("issue in processing rpm directory content, details %v", err)
+	if err := pipeline.validateRpmFiles(); err != nil {
+		return fmt.Errorf("issue in validating rpm directory content, details %v", err)
 	}
 
 	return nil
