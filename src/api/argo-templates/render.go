@@ -37,18 +37,15 @@ import (
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/Masterminds/sprig/v3"
-	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"gopkg.in/yaml.v2"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-//go:embed base/*
+//go:embed **/*.yaml
 var argoWorkflowTemplateFS embed.FS
 
 var validator utils.Validator = utils.NewValidator()
 
 func GetWorkflowTemplate() ([][]byte, error) {
-	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
+	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +67,7 @@ func GetWorkflowTemplate() ([][]byte, error) {
 	return res, nil
 }
 
-func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
+func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
 	if err != nil {
 		return nil, err
@@ -78,7 +75,7 @@ func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkfl
 
 	tmpl := template.New("worker.rebuild.yaml")
 
-	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest, rebuildHooks)
+	return GetRebuildWorkflow(tmpl, workerRebuildWorkflowFS, createRebuildWorkflowRequest)
 }
 
 func GetIufInstallWorkflow(iufInstallWorkflowFS fs.FS, req models_iuf.Session, stageIndex int) ([]byte, error) {
@@ -95,7 +92,7 @@ func GetStorageRebuildWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 
 	tmpl := template.New("storage.rebuild.yaml")
 
-	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models_nls.RebuildHooks{})
+	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
 }
 
 func GetStorageUpgradeWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
@@ -106,96 +103,24 @@ func GetStorageUpgradeWorkflow(storageRebuildWorkflowFS fs.FS, createRebuildWork
 
 	tmpl := template.New("storage.upgrade.yaml")
 
-	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest, models_nls.RebuildHooks{})
+	return GetRebuildWorkflow(tmpl, storageRebuildWorkflowFS, createRebuildWorkflowRequest)
 }
 
-func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
-	// add useful helm templating func: include
-	var funcMap template.FuncMap = map[string]interface{}{}
-	funcMap["include"] = func(name string, data interface{}) (string, error) {
-		buf := bytes.NewBuffer(nil)
-		if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
-			return "", err
-		}
-		return buf.String(), nil
-	}
-
-	// add templating func: getHooks
-	funcMap["getHooks"] = func(name string, data interface{}) (string, error) {
-		dag := v1alpha1.DAGTemplate{}
-		var unstructuredHooks []unstructured.Unstructured
-		switch name {
-		case "before-all":
-			unstructuredHooks = rebuildHooks.BeforeAll
-		case "before-each":
-			unstructuredHooks = rebuildHooks.BeforeEach
-		case "after-each":
-			unstructuredHooks = rebuildHooks.AfterEach
-		case "after-all":
-			unstructuredHooks = rebuildHooks.AfterAll
-		}
-
-		for _, unstrunstructuredHook := range unstructuredHooks {
-			dag.Tasks = append(dag.Tasks, v1alpha1.DAGTask{
-				Name: unstrunstructuredHook.GetName(),
-				TemplateRef: &v1alpha1.TemplateRef{
-					Name:     fmt.Sprintf("%v", unstrunstructuredHook.Object["spec"].(map[string]interface{})["templateRefName"]),
-					Template: "shell-script",
-				},
-				Arguments: v1alpha1.Arguments{
-					Parameters: []v1alpha1.Parameter{
-						{
-							Name:  "scriptContent",
-							Value: v1alpha1.AnyStringPtr(fmt.Sprintf("%v", unstrunstructuredHook.Object["spec"].(map[string]interface{})["scriptContent"])),
-						},
-						{
-							Name:  "dryRun",
-							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
-						},
-					},
-				},
-			})
-		}
-
-		if len(dag.Tasks) == 0 {
-			dag.Tasks = append(dag.Tasks, v1alpha1.DAGTask{
-				Name: "dummy-hook",
-				TemplateRef: &v1alpha1.TemplateRef{
-					Name:     "ssh-template",
-					Template: "shell-script",
-				},
-				Arguments: v1alpha1.Arguments{
-					Parameters: []v1alpha1.Parameter{
-						{
-							Name:  "scriptContent",
-							Value: v1alpha1.AnyStringPtr("echo hello"),
-						},
-						{
-							Name:  "dryRun",
-							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
-						},
-					},
-				},
-			})
-		}
-		res, _ := yaml.Marshal(dag.Tasks)
-		return string(res), nil
-	}
-
+func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest) ([]byte, error) {
 	// add sprig templating func
-	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "**/*.yaml")
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).ParseFS(workflowFS, "**/*.yaml")
 	if err != nil {
 		return nil, err
 	}
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns":     	createRebuildWorkflowRequest.Hosts,
-		"DryRun":         	createRebuildWorkflowRequest.DryRun,
-		"SwitchPassword": 	createRebuildWorkflowRequest.SwitchPassword,
-		"ZapOsds":        	createRebuildWorkflowRequest.ZapOsds,
-		"WorkflowType":   	createRebuildWorkflowRequest.WorkflowType,
-		"ImageId":   	  	createRebuildWorkflowRequest.ImageId,
+		"TargetNcns":       createRebuildWorkflowRequest.Hosts,
+		"DryRun":           createRebuildWorkflowRequest.DryRun,
+		"SwitchPassword":   createRebuildWorkflowRequest.SwitchPassword,
+		"ZapOsds":          createRebuildWorkflowRequest.ZapOsds,
+		"WorkflowType":     createRebuildWorkflowRequest.WorkflowType,
+		"ImageId":          createRebuildWorkflowRequest.ImageId,
 		"DesiredCfsConfig": createRebuildWorkflowRequest.DesiredCfsConfig,
 	})
 	if err != nil {
@@ -205,18 +130,8 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 }
 
 func GetIufWorkflow(tmpl *template.Template, workflowFS fs.FS, req models_iuf.Session, stageIndex int) ([]byte, error) {
-	// add useful helm templating func: include
-	var funcMap template.FuncMap = map[string]interface{}{}
-	funcMap["include"] = func(name string, data interface{}) (string, error) {
-		buf := bytes.NewBuffer(nil)
-		if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
-			return "", err
-		}
-		return buf.String(), nil
-	}
-
 	// add sprig templating func
-	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).Funcs(funcMap).ParseFS(workflowFS, "*.yaml", "stages/*.yaml")
+	tmpl, err := tmpl.Funcs(sprig.TxtFuncMap()).ParseFS(workflowFS, "*.yaml", "stages/*.yaml")
 	if err != nil {
 		return nil, err
 	}

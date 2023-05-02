@@ -254,6 +254,14 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		Value: v1alpha1.AnyStringPtr(globalParamsStr),
 	})
 
+	// set dryRun parameter for management-nodes-rollout stage
+	if stageMetadata.Name == "management-nodes-rollout" {
+		specArgumentsParameters = append(specArgumentsParameters, v1alpha1.Parameter{
+			Name:  "dry_run",
+			Value: v1alpha1.AnyStringPtr(session.InputParameters.DruRun),
+		})
+	}
+
 	res.Spec.Arguments = v1alpha1.Arguments{
 		Parameters: specArgumentsParameters,
 	}
@@ -633,11 +641,38 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 				},
 			},
 		}
-		task.TemplateRef = &v1alpha1.TemplateRef{
-			Name:     operation.Name,
-			Template: "main",
+		if stageInfo.Name == "management-nodes-rollout" {
+			task.Arguments.Parameters = append(task.Arguments.Parameters, v1alpha1.Parameter{
+				Name:  "dry_run",
+				Value: v1alpha1.AnyStringPtr(session.InputParameters.DruRun),
+			})
 		}
-		res = append(res, task)
+		switch operation.Name {
+		case "management-worker-nodes-rollout":
+			task.Name = "start-operation"
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     "workflow-template-record-time-template",
+				Template: "record-time-template",
+			}
+			lastOpDependencies = []string{task.Name}
+			res = append(res, task)
+
+			task.Arguments.Parameters = append(task.Arguments.Parameters, v1alpha1.Parameter{
+				Name:  "dryRun",
+				Value: v1alpha1.AnyStringPtr(session.InputParameters.DruRun),
+			})
+			globalParams := s.getGlobalParams(session, iuf.Product{}, stages)
+			tasks, dep := s.genWorkerRebuildTasks(session, task.Arguments, globalParams)
+			lastOpDependencies = dep
+			res = append(res, tasks...)
+		default:
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     operation.Name,
+				Template: "main",
+			}
+			res = append(res, task)
+		}
+
 	}
 
 	// now let's add all the post-stage hooks
@@ -650,4 +685,23 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 		}
 	}
 	return res
+}
+
+func (s iufService) genWorkerRebuildTasks(session iuf.Session, arguments v1alpha1.Arguments, globalParams map[string]interface{}) (tasks []v1alpha1.DAGTask, lastOpDependencies []string) {
+	s.logger.Infof("%v", globalParams)
+	// TODO:
+	// before all
+	task := v1alpha1.DAGTask{
+		Name:         "before-all",
+		Dependencies: lastOpDependencies,
+	}
+	task.Arguments.Parameters = arguments.Parameters
+	task.TemplateRef = &v1alpha1.TemplateRef{
+		Name:     "before-all-hooks",
+		Template: "main",
+	}
+	res := []v1alpha1.DAGTask{task}
+	// TODO: loop for each ncn
+	lastOpDependencies = []string{task.Name}
+	return res, lastOpDependencies
 }

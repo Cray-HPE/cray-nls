@@ -45,7 +45,8 @@ type InputParameters struct {
 	BootprepConfigManaged                 string                  `json:"bootprep_config_managed"`                       // The path to the bootprep config file for managed nodes, relative to the media_dir
 	BootprepConfigManagement              string                  `json:"bootprep_config_management"`                    // The path to the bootprep config file for management nodes, relative to the media_dir
 	Stages                                []string                `json:"stages"`                                        // Stages to execute
-	Force                                 bool                    `json:"force"`                                         // Force re-execution of stage operations
+	Force                                 bool                    `json:"force"`
+	DruRun                                bool                    `json:"dry_run,omitempty"` // Force re-execution of stage operations
 } //	@name	InputParameters
 
 type InputParametersPatch struct {

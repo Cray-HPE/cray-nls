@@ -48,7 +48,6 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -68,7 +67,7 @@ type workflowService struct {
 	ctx                    context.Context
 	workflowClient         workflow.WorkflowServiceClient
 	workflowTemplateClient workflowtemplate.WorkflowTemplateServiceClient
-	k8sRestClientSet       *kubernetes.Clientset
+	k8sRestClientSet       kubernetes.Interface
 	env                    utils.Env
 }
 
@@ -290,14 +289,13 @@ func (s workflowService) CreateRebuildWorkflow(req models_nls.CreateRebuildWorkf
 	var rebuildWorkflow []byte
 	var getWorkflowErr error
 	if workerNodeSet {
-		rebuildHooks, err := s.getRebuildHooks()
 		if err != nil {
 			s.logger.Error(err)
 			return nil, err
 		}
 		// rebuild worker nodes
 		workerRebuildWorkflowFS := os.DirFS(s.env.WorkerRebuildWorkflowFiles)
-		rebuildWorkflow, getWorkflowErr = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req, rebuildHooks)
+		rebuildWorkflow, getWorkflowErr = argo_templates.GetWorkerRebuildWorkflow(workerRebuildWorkflowFS, req)
 	} else {
 		// storage nodes
 		storageRebuildWorkflowFS := os.DirFS(s.env.StorageRebuildWorkflowFiles)
@@ -358,28 +356,35 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	}
 	s.logger.Infof("Initializing workflow template: %s", myWorkflowTemplate.Name)
 	for {
-		workflowTemplateList, err := s.workflowTemplateClient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
+		workflowTemplate, err := s.workflowTemplateClient.GetWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateGetRequest{Namespace: "argo", Name: myWorkflowTemplate.Name})
 		if err != nil {
 			s.logger.Errorf("Failded to get a list of workflow templates: %v", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		for _, workflowTemplate := range workflowTemplateList.Items {
-			if workflowTemplate.Name == myWorkflowTemplate.Name && (myWorkflowTemplate.ObjectMeta.Labels == nil || workflowTemplate.ObjectMeta.Labels == nil ||
-				myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"]) {
-				s.logger.Info("workflow template has already been initialized")
-				s.workflowTemplateClient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+			s.logger.Infof("Creating workflow template: %s", myWorkflowTemplate.Name)
+			_, err = s.workflowTemplateClient.CreateWorkflowTemplate(
+				s.ctx,
+				&workflowtemplate.WorkflowTemplateCreateRequest{
 					Namespace: "argo",
-					Name:      workflowTemplate.Name,
+					Template:  &myWorkflowTemplate,
 				})
-				break
+			if err != nil {
+				st := status.Convert(err)
+				if st != nil && st.Code() == codes.AlreadyExists {
+					err = nil
+					break
+				}
+				// retry
+				s.logger.Warnf("Failded to initialize workflow templates: %v", err)
+				time.Sleep(5 * time.Second)
+				continue
 			}
+			break
 		}
 
-		_, err = s.workflowTemplateClient.CreateWorkflowTemplate(
+		s.logger.Infof("Updating workflow template: %s", myWorkflowTemplate.Name)
+		myWorkflowTemplate.ResourceVersion = workflowTemplate.ResourceVersion
+		_, err = s.workflowTemplateClient.UpdateWorkflowTemplate(
 			s.ctx,
-			&workflowtemplate.WorkflowTemplateCreateRequest{
+			&workflowtemplate.WorkflowTemplateUpdateRequest{
 				Namespace: "argo",
 				Template:  &myWorkflowTemplate,
 			})
@@ -420,71 +425,4 @@ func (s workflowService) checkRunningOrFailedWorkflows(rebuildType models_nls.Re
 	}
 
 	return workflows.Items, nil
-}
-
-func (s workflowService) getRebuildHooks() (models_nls.RebuildHooks, error) {
-	var result models_nls.RebuildHooks
-	// get all hooks
-	var beforeAllHooks unstructured.UnstructuredList
-	beforeAllHooks, err := s.getHooksByLabel("before-all=true")
-	if err != nil {
-		s.logger.Error(err)
-		return result, err
-	}
-	s.logger.Infof("Before All Hooks: %d", len(beforeAllHooks.Items))
-	result.BeforeAll = beforeAllHooks.Items
-
-	var beforeEachHooks unstructured.UnstructuredList
-	beforeEachHooks, err = s.getHooksByLabel("before-each=true")
-	if err != nil {
-		s.logger.Error(err)
-		return result, err
-	}
-	s.logger.Infof("Before Each Hooks: %d", len(beforeEachHooks.Items))
-	result.BeforeEach = beforeEachHooks.Items
-
-	var afterEachHooks unstructured.UnstructuredList
-	afterEachHooks, err = s.getHooksByLabel("after-each=true")
-	if err != nil {
-		s.logger.Error(err)
-		return result, err
-	}
-	s.logger.Infof("After Each Hooks: %d", len(afterEachHooks.Items))
-	result.AfterEach = afterEachHooks.Items
-
-	var afterAllHooks unstructured.UnstructuredList
-	afterAllHooks, err = s.getHooksByLabel("after-all=true")
-	if err != nil {
-		s.logger.Error(err)
-		return result, err
-	}
-	s.logger.Infof("After All Hooks: %d", len(afterAllHooks.Items))
-	result.AfterAll = afterAllHooks.Items
-
-	return result, nil
-}
-
-func (s workflowService) getHooksByLabel(label string) (unstructured.UnstructuredList, error) {
-	var myHooks unstructured.UnstructuredList
-	if s.k8sRestClientSet == nil {
-		return myHooks, nil
-	}
-
-	beforeAllHooks, err := s.k8sRestClientSet.
-		RESTClient().Get().
-		AbsPath("/apis/cray-nls.hpe.com/v1").
-		Resource("hooks").
-		Param("labelSelector", label).
-		DoRaw(context.TODO())
-	if err != nil {
-		s.logger.Error(err)
-		return myHooks, err
-	}
-
-	err = json.Unmarshal(beforeAllHooks, &myHooks)
-	if err != nil {
-		s.logger.Error(err)
-		return myHooks, err
-	}
-	return myHooks, nil
 }

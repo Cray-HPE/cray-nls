@@ -30,7 +30,7 @@ import (
 )
 
 type K8sService struct {
-	Client *kubernetes.Clientset
+	Client kubernetes.Interface
 }
 
 func NewK8sService() K8sService {
