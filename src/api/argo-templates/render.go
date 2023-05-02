@@ -39,13 +39,13 @@ import (
 	"github.com/Masterminds/sprig/v3"
 )
 
-//go:embed base/*
+//go:embed **/*.yaml
 var argoWorkflowTemplateFS embed.FS
 
 var validator utils.Validator = utils.NewValidator()
 
 func GetWorkflowTemplate() ([][]byte, error) {
-	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
+	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.yaml")
 	if err != nil {
 		return nil, err
 	}

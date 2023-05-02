@@ -66,7 +66,10 @@ func TestNcnRolloutWorkflowGen(t *testing.T) {
 			CurrentStage: "management-nodes-rollout",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
-				Stages: []string{"management-nodes-rollout"},
+				Stages:                                []string{"management-nodes-rollout"},
+				LimitManagementNodes:                  []string{"Management_Worker"},
+				DruRun:                                true,
+				ConcurrentManagementRolloutPercentage: 100,
 			},
 			ActivityRef: activityName,
 		}
@@ -114,8 +117,11 @@ func ncnRolloutTestSetup(t *testing.T) (string, string, IufService) {
 	keycloakServiceMock := mocks.NewMockKeycloakService(ctrl)
 	keycloakServiceMock.EXPECT().NewKeycloakAccessToken().Return(mockTokenValue, nil).AnyTimes()
 
-	iufSvc := NewIufService(utils.GetLogger(), services_shared.NewArgoService(env), services_shared.K8sService{
-		Client: fakeClient,
-	}, keycloakServiceMock, env)
+	logger := utils.GetLogger()
+	argoSvc := services_shared.NewArgoService(env)
+	k8sSvc := services_shared.K8sService{Client: fakeClient}
+
+	services_shared.NewWorkflowService(logger, argoSvc, k8sSvc, env)
+	iufSvc := NewIufService(logger, argoSvc, k8sSvc, keycloakServiceMock, env)
 	return name, mockTokenValue, iufSvc
 }

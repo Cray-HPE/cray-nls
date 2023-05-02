@@ -356,28 +356,35 @@ func (s workflowService) InitializeWorkflowTemplate(template []byte) error {
 	}
 	s.logger.Infof("Initializing workflow template: %s", myWorkflowTemplate.Name)
 	for {
-		workflowTemplateList, err := s.workflowTemplateClient.ListWorkflowTemplates(s.ctx, &workflowtemplate.WorkflowTemplateListRequest{Namespace: "argo"})
+		workflowTemplate, err := s.workflowTemplateClient.GetWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateGetRequest{Namespace: "argo", Name: myWorkflowTemplate.Name})
 		if err != nil {
 			s.logger.Errorf("Failded to get a list of workflow templates: %v", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		for _, workflowTemplate := range workflowTemplateList.Items {
-			if workflowTemplate.Name == myWorkflowTemplate.Name && (myWorkflowTemplate.ObjectMeta.Labels == nil || workflowTemplate.ObjectMeta.Labels == nil ||
-				myWorkflowTemplate.ObjectMeta.Labels["version"] != workflowTemplate.ObjectMeta.Labels["version"]) {
-				s.logger.Info("workflow template has already been initialized")
-				s.workflowTemplateClient.DeleteWorkflowTemplate(s.ctx, &workflowtemplate.WorkflowTemplateDeleteRequest{
+			s.logger.Infof("Creating workflow template: %s", myWorkflowTemplate.Name)
+			_, err = s.workflowTemplateClient.CreateWorkflowTemplate(
+				s.ctx,
+				&workflowtemplate.WorkflowTemplateCreateRequest{
 					Namespace: "argo",
-					Name:      workflowTemplate.Name,
+					Template:  &myWorkflowTemplate,
 				})
-				break
+			if err != nil {
+				st := status.Convert(err)
+				if st != nil && st.Code() == codes.AlreadyExists {
+					err = nil
+					break
+				}
+				// retry
+				s.logger.Warnf("Failded to initialize workflow templates: %v", err)
+				time.Sleep(5 * time.Second)
+				continue
 			}
+			break
 		}
 
-		_, err = s.workflowTemplateClient.CreateWorkflowTemplate(
+		s.logger.Infof("Updating workflow template: %s", myWorkflowTemplate.Name)
+		myWorkflowTemplate.ResourceVersion = workflowTemplate.ResourceVersion
+		_, err = s.workflowTemplateClient.UpdateWorkflowTemplate(
 			s.ctx,
-			&workflowtemplate.WorkflowTemplateCreateRequest{
+			&workflowtemplate.WorkflowTemplateUpdateRequest{
 				Namespace: "argo",
 				Template:  &myWorkflowTemplate,
 			})

@@ -45,15 +45,15 @@ func TestInitializeWorkflowTemplate(t *testing.T) {
 	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
 	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
 	wftServiceSclientMock.On(
-		"ListWorkflowTemplates",
-		mock.Anything,
-		mock.Anything,
-	).Return(new(v1alpha1.WorkflowTemplateList), nil)
-	wftServiceSclientMock.On(
-		"CreateWorkflowTemplate",
+		"UpdateWorkflowTemplate",
 		mock.Anything,
 		mock.Anything,
 	).Return(nil, nil)
+	wftServiceSclientMock.On(
+		"GetWorkflowTemplate",
+		mock.Anything,
+		mock.Anything,
+	).Return(new(v1alpha1.WorkflowTemplate), nil)
 
 	workflowSvc := workflowService{
 		logger:                 utils.GetLogger(),
