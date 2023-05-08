@@ -92,12 +92,12 @@ func (vs *validators) validateNexusRepoFilePath() error {
 		return nil // nexus repo key missing
 	}
 
-	nr_map := nr.(map[string]interface{}) // assuming map, is it validated in schema??
+	nr_map := nr.(map[string]interface{})
 	file_path := nr_map[NEXUS_REPO_PATH_KEY].(string)
 	vs.nexusRepoFileName = file_path
 
-	exist := mutils.IsPathExist(file_path) // do we need error details??
-	if !exist {                            // if path is invalid
+	exist := mutils.IsPathExist(file_path)
+	if !exist {
 		return fmt.Errorf("error in processing nexus repo file %v", file_path)
 	}
 
@@ -174,10 +174,6 @@ func (vs *validators) validateNexusRepoFileContent() error {
 			}
 		}
 
-	}
-
-	if len(temp_repo_names) > 0 {
-		return fmt.Errorf("Repo defined in host repo is not listed in group repo")
 	}
 
 	return nil
