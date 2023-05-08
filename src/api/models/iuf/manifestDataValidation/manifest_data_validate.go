@@ -98,7 +98,7 @@ func (vs *validators) validateNexusRepoFilePath() error {
 
 	exist := mutils.IsPathExist(file_path)
 	if !exist {
-		return fmt.Errorf("error in processing nexus repo file %v", file_path)
+		return fmt.Errorf("error in processing nexus repo file %v as it does not exist", file_path)
 	}
 
 	return nil
@@ -192,7 +192,7 @@ func (vs *validators) validateNexusBlobFilePath() error {
 
 	exist := mutils.IsPathExist(file_path) // do we need error details??
 	if !exist {                            // if path is invalid
-		return fmt.Errorf("error in processing nexus repo file %v", file_path)
+		return fmt.Errorf("error in processing nexus blob file %v", file_path)
 	}
 	return nil
 }
@@ -281,7 +281,7 @@ func Validate(manifest interface{}) error {
 
 	// content.nexus_repositories checks
 	if err := pipeline.validateNexusRepoFilePath(); err != nil {
-		return fmt.Errorf("issue in processing nexus repo file content, details %v", err)
+		return fmt.Errorf("issue in validating nexus repo file path, details %v", err)
 	}
 
 	// Validate content of nexus_repositories.yaml
@@ -291,7 +291,7 @@ func Validate(manifest interface{}) error {
 
 	// content.nexus_blob_stores checks
 	if err := pipeline.validateNexusBlobFilePath(); err != nil {
-		return fmt.Errorf("issue in processing nexus repo file content, details %v", err)
+		return fmt.Errorf("issue in processing nexus blob file path, details %v", err)
 	}
 
 	// contents.vcs checks
