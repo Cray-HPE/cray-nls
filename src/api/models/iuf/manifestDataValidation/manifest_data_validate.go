@@ -178,10 +178,6 @@ func (vs *validators) validateNexusRepoFileContent() error {
 
 	}
 
-	if len(temp_repo_names) > 0 {
-		return fmt.Errorf("repo defined in host repo is not listed in group repo")
-	}
-
 	return nil
 }
 
