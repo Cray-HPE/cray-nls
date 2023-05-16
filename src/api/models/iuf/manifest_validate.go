@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022-2023 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -26,33 +26,41 @@
 package iuf
 
 import (
-	"embed"
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	manifestDataValidator "github.com/Cray-HPE/cray-nls/src/api/models/iuf/manifestDataValidation"
+	sv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/schemaValidator"
 	"sigs.k8s.io/yaml"
 )
 
-//go:embed iuf-manifest-schema.yaml
-var rebuildWorkflowFS embed.FS
+const iuf_manifest_schema_file string = "schemas/iuf-manifest-schema.yaml"
 
-const iuf_manifest_schema_file string = "iuf-manifest-schema.yaml"
+var manifestRootPath string
+
+func extractDirPath(filePath string, storageVariable *string) {
+	*storageVariable = filepath.Dir(filePath)
+}
 
 func ValidateFile(file_path string) error {
 	fmt.Printf("Validating file %v against IUF Product Manifest Schema.\n", file_path)
 
+	// Extracting root dir of manifest
+	extractDirPath(file_path, &manifestRootPath)
+
 	file_contents, err := os.ReadFile(file_path)
+
 	if err != nil {
 		return fmt.Errorf("failed to open IUF Product Manifest file: %v", err)
 	}
 
 	err = Validate(file_contents)
 	if err != nil {
-		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
+		return fmt.Errorf("failed to validate IUF Product Manifest: %#v", err)
 	}
 
-	fmt.Printf("File %v is valid against IUF Product Manifest schema.\n", file_path)
+	fmt.Printf("File %v is valid against IUF Product Manifest schema and data.\n", file_path)
 	return nil
 }
 
@@ -64,25 +72,17 @@ func Validate(file_contents []byte) error {
 		return fmt.Errorf("failed to parse IUF Product Manifest as YAML: %v", err)
 	}
 
-	schema_file_contents, err := rebuildWorkflowFS.ReadFile(iuf_manifest_schema_file)
-	if err != nil {
-		return fmt.Errorf("failed to load IUF Product Manifest schema: %v", err)
-	}
-
-	schema_json, err := yaml.YAMLToJSON(schema_file_contents)
-	if err != nil {
-		return fmt.Errorf("failed to convert IUF Product Manifest from YAML to JSON: %v", err)
-	}
-
-	schema, err := jsonschema.CompileString(iuf_manifest_schema_file, string(schema_json))
-	if err != nil {
-		return fmt.Errorf("failed to validate IUF Product Manifest JSON Schema: %v", err)
-	}
-
-	err = schema.Validate(manifest)
+	// manifest schema validation
+	err = sv.Validate(manifest, iuf_manifest_schema_file)
 	if err != nil {
 		return fmt.Errorf("failed to validate IUF Product Manifest schema: %#v", err)
 	}
 
+	// manifest data validation
+	manifestDataValidator.SetManifestRootDir(manifestRootPath)
+	err = manifestDataValidator.Validate(manifest)
+	if err != nil {
+		return fmt.Errorf("failed to validate IUF Product Manifest data: %#v", err)
+	}
 	return nil
 }

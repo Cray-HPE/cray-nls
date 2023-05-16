@@ -1,0 +1,151 @@
+---
+cleanup: null
+docker:
+  forceBasicAuth: true
+  httpPort: 5003
+  httpsPort: null
+  v1Enabled: false
+format: docker
+name: registry
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW
+type: hosted
+---
+cleanup: null
+format: helm
+name: charts
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp2
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp2
+name: csm-sle-15sp2
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp2-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp2-compute
+name: csm-sle-15sp2-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp3
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp3
+name: csm-sle-15sp3
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp3-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp3-compute
+name: csm-sle-15sp3-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp4
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp4
+name: csm-sle-15sp4
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
+---
+cleanup: null
+format: raw
+name: csm-1.4.0-beta.43-sle-15sp4-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+format: raw
+group:
+  memberNames:
+  - csm-1.4.0-beta.43-sle-15sp4-compute
+name: csm-sle-15sp4-compute
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+type: group
