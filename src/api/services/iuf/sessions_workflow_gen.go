@@ -636,13 +636,12 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 		if operation.Name == "management-nodes-rollout" {
 			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
 			if err != nil {
-				errMsg := utils.GenericError{Message: fmt.Sprintf("Could not get Management Nodes Rollout suboperation: %v", err)}
-				s.logger.Error(errMsg)
-				return res, err
-			}
-			task.TemplateRef = &v1alpha1.TemplateRef{
-				Name:     managementRolloutSubOperation,
-				Template: "main",
+				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s .", err))
+			} else {
+				task.TemplateRef = &v1alpha1.TemplateRef{
+					Name:     managementRolloutSubOperation,
+					Template: "main",
+				}
 			}
 		} else {
 			task.TemplateRef = &v1alpha1.TemplateRef{
