@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -633,9 +634,17 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 				},
 			},
 		}
-		task.TemplateRef = &v1alpha1.TemplateRef{
-			Name:     operation.Name,
-			Template: "main",
+		if operation.Name == "management-nodes-rollout" {
+			managementRolloutSubOperation, err := getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     managementRolloutSubOperation,
+				Template: "main",
+			}
+		} else {
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     operation.Name,
+				Template: "main",
+			}
 		}
 		res = append(res, task)
 	}
@@ -650,4 +659,18 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 		}
 	}
 	return res
+}
+
+// Get the master, worker, or storage workflow for management nodes rollout operation
+func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
+	workFlowType, err = utils.ValidateLimitManagementNodesInput(limitManagementNodes)
+	if err != nil {
+		return nil, err
+	}
+	workflowNames = map[string]string{
+		"worker":	"management-worker-nodes-rollout",
+		"storage":	"management-storage-nodes-rollout",
+		"master":	"management-two-master-nodes-rollout",
+	}
+	return workflowNames[workFlowType], nil
 }
