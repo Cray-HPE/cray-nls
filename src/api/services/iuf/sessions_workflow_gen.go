@@ -30,7 +30,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -635,7 +634,12 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			},
 		}
 		if operation.Name == "management-nodes-rollout" {
-			managementRolloutSubOperation, err := getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
+			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
+			if err != nil {
+				errMsg := utils.GenericError{Message: fmt.Sprintf("Could not get Management Nodes Rollout suboperation: %v", err)}
+				s.logger.Error(errMsg)
+				// SHOULD EXIT, HOW??
+			}
 			task.TemplateRef = &v1alpha1.TemplateRef{
 				Name:     managementRolloutSubOperation,
 				Template: "main",
@@ -663,11 +667,12 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 
 // Get the master, worker, or storage workflow for management nodes rollout operation
 func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
-	workFlowType, err = utils.ValidateLimitManagementNodesInput(limitManagementNodes)
+	validator := utils.NewValidator()
+	workFlowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	workflowNames = map[string]string{
+	workflowNames := map[string]string{
 		"worker":	"management-worker-nodes-rollout",
 		"storage":	"management-storage-nodes-rollout",
 		"master":	"management-two-master-nodes-rollout",

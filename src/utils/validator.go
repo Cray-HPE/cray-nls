@@ -60,7 +60,7 @@ func (validator Validator) ValidateHostnames(hostnames []string) error {
 	if isMaster {
 		return validator.ValidateMasterHostnames(hostnames)
 	}
-	return fmt.Errorf("invalid worker, storage, or master hostname: %s", firstHostname)
+	return fmt.Errorf("Invalid worker, storage, or master hostname: %s", firstHostname)
 }
 
 func (validator Validator) ValidateWorkerHostnames(hostnames []string) error {
