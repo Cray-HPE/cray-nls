@@ -488,6 +488,51 @@ func TestGetDagTasks(t *testing.T) {
 		assert.Equal(t, 2, len(dagTasks))
 		assert.Equal(t, "management-storage-nodes-rollout", dagTasks[1].TemplateRef.Name)
 	})
+	t.Run("It should get correct template for Management-nodes-rollout if worker hostname is provided", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: activityName,
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "global",
+			Operations: []iuf.Operations{
+				{Name: "this-is-an-operation-1"},
+				{Name: "management-nodes-rollout"},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, dagTasks)
+		assert.Equal(t, 2, len(dagTasks))
+		assert.Equal(t, "this-is-an-operation-1", dagTasks[0].TemplateRef.Name)
+		assert.Equal(t, "management-worker-nodes-rollout", dagTasks[1].TemplateRef.Name)
+	})
+	t.Run("It should get an error if --limit-management-rollout has an invalid input", func(t *testing.T) {
+		session := iuf.Session{
+			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef: activityName,
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-bad"}},
+		}
+		stageInfo := iuf.Stage{
+			Name: "this_is_a_stage_name",
+			Type: "global",
+			Operations: []iuf.Operations{
+				{Name: "this-is-an-operation-1"},
+				{Name: "management-nodes-rollout"},
+			},
+		}
+		stages := iuf.Stages{
+			Stages: []iuf.Stage{stageInfo},
+		}
+		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		assert.Error(t, err)
+		assert.NotEmpty(t, dagTasks)
+	})
 	t.Run("It should skip operations which do not have the appropriate required attributes in the manifest.", func(t *testing.T) {
 		session := iuf.Session{
 			Products: []iuf.Product{

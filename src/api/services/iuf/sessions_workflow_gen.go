@@ -416,7 +416,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	if stageInfo.Type == "product" {
 		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
 	} else {
-		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
+		 return s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
 	}
 
 	return res, nil
@@ -595,7 +595,7 @@ func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, messag
 func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	existingArgoUploadedTemplateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
+	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) ([]v1alpha1.DAGTask, error) {
 
 	var lastOpDependencies []string
 
@@ -638,7 +638,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			if err != nil {
 				errMsg := utils.GenericError{Message: fmt.Sprintf("Could not get Management Nodes Rollout suboperation: %v", err)}
 				s.logger.Error(errMsg)
-				// SHOULD EXIT, HOW??
+				return res, err
 			}
 			task.TemplateRef = &v1alpha1.TemplateRef{
 				Name:     managementRolloutSubOperation,
@@ -662,7 +662,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			res = append(res, postStageHook)
 		}
 	}
-	return res
+	return res, nil
 }
 
 // Get the master, worker, or storage workflow for management nodes rollout operation
