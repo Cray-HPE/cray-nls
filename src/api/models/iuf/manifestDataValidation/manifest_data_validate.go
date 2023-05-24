@@ -30,6 +30,8 @@ import (
 	"path/filepath"
 
 	mutils "github.com/Cray-HPE/cray-nls/src/api/models/iuf/mutils"
+	sv "github.com/Cray-HPE/cray-nls/src/api/models/iuf/schemaValidator"
+	utils "github.com/Cray-HPE/cray-nls/src/utils"
 	"sigs.k8s.io/yaml"
 )
 
@@ -60,10 +62,11 @@ var FileReader = mutils.ReadYamFile
 
 // Struct with list of validators
 type validators struct {
-	content           map[string]interface{}
-	nexusRepoFileName string
-	hostedRepoNames   []string
-	manifestRootDir   string
+	content              map[string]interface{}
+	nexusRepoFileName    string
+	hostedRepoNames      []string
+	manifestRootDir      string
+	nexusSchemaFileNames []string
 }
 
 // Method to process s3 content, returns error in case of issues
@@ -108,6 +111,38 @@ func (vs *validators) validateNexusRepoFilePath() error {
 	return nil
 }
 
+// Method to process nexus repo content, returns repo file path and error(in case of issues),
+func (vs *validators) processNexusRepoSchemaFile(nexusContentRaw interface{}) error {
+
+	logger := utils.GetLogger()
+
+	// Nexus repo possible schemas
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-hosted-repo-schema.yaml")
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-group-repo-schema.yaml")
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-docker-hosted-repo-schema.yaml")
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-docker-group-repo-schema.yaml")
+	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-yum-hosted-repo-schema.yaml")
+
+	// nexus repo schema validation
+
+	validated := false
+
+	for _, sf := range vs.nexusSchemaFileNames {
+		err := sv.Validate(nexusContentRaw, sf)
+		if err != nil {
+			logger.Info("failed to validate ", sf, " schema: ", err)
+		} else {
+			validated = true
+			break
+		}
+	}
+
+	if !validated {
+		return fmt.Errorf("failed to validate against all schemas")
+	}
+	return nil
+}
+
 // Method to process nexus repo file and get hosted repo names
 func (vs *validators) validateNexusRepoFileContent() error {
 
@@ -133,6 +168,11 @@ func (vs *validators) validateNexusRepoFileContent() error {
 		err = yaml.Unmarshal(doc, &nexusContentRaw)
 		if err != nil {
 			return fmt.Errorf("failed to parse Nexus Repositorty as YAML: %v", err)
+		}
+
+		err = vs.processNexusRepoSchemaFile(nexusContentRaw)
+		if err != nil {
+			return fmt.Errorf("failed to validate Nexus Repository yaml file against available schemas: %v", err)
 		}
 
 		nexusContent := nexusContentRaw.(map[string]interface{})
