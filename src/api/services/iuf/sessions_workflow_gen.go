@@ -569,7 +569,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, message string) {
 	errorVal := "false"
-	if isError || isError == "true" {
+	if isError {
 		errorVal = "true"
 	}
 
