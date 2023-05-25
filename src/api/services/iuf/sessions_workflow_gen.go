@@ -569,7 +569,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, message string) {
 	errorVal := "false"
-	if isError {
+	if isError || isError == "true" {
 		errorVal = "true"
 	}
 
@@ -636,7 +636,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 		if operation.Name == "management-nodes-rollout" {
 			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
 			if err != nil {
-				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s .", err))
+				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
 				task.TemplateRef = &v1alpha1.TemplateRef{
 					Name:     managementRolloutSubOperation,

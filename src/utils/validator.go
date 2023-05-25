@@ -131,7 +131,7 @@ func (validator Validator) ValidateMasterHostnames(hostnames []string) error {
 			if isWorker || isStorage {
 				return fmt.Errorf("Cannot have both master hostnames and worker or storage hostnames. All hostnames must belong to exactly one management node type.")
 			} else {
-				return fmt.Errorf("Invalid storage hostname: %s", hostname)
+				return fmt.Errorf("Invalid master hostname: %s", hostname)
 			}
 		}
 	}
