@@ -91,12 +91,12 @@ func TestHostnamesValidator(t *testing.T) {
 		hostnames []string
 		wantErr   bool
 	}{
-		{[]string{"ncn-m001"}, true},
+		{[]string{"ncn-m001"}, false},
 		{[]string{"ncn-w001"}, false},
 		{[]string{"ncn-w001", "ncn-m002"}, true},
 		{[]string{"ncn-w001", "ncn-w002"}, false},
 		{[]string{"ncn-s001"}, false},
-		{[]string{"ncn-m011"}, true},
+		{[]string{"ncn-m011"}, false},
 		{[]string{"ncn-w001", "ncn-s002"}, true},
 		{[]string{"ncn-s001", "ncn-s002"}, false},
 		{[]string{"ncn-x001"}, true},
@@ -110,6 +110,45 @@ func TestHostnamesValidator(t *testing.T) {
 			err := validator.ValidateHostnames(tt.hostnames)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}
+
+func TestLimitManagementNodesInputValidator(t *testing.T) {
+	var tests = []struct {
+		LimitManagedNodes []string
+		wantErr   bool
+		expectedWorkflow string
+	}{
+		{[]string{"ncn-m001"}, false, "master"},
+		{[]string{"ncn-m001", "ncn-m002"}, false, "master"},
+		{[]string{"ncn-m001", "ncn-s001"}, true, ""},
+		{[]string{"ncn-w001"}, false, "worker"},
+		{[]string{"ncn-w001", "ncn-w002", "ncn-w003"}, false, "worker"},
+		{[]string{"ncn-w001", "ncn-s002", "ncn-w003"}, true, ""},
+		{[]string{"ncn-s001"}, false, "storage"},
+		{[]string{"ncn-s001", "ncn-s004"}, false, "storage"},
+		{[]string{"ncn-s001", "ncn-m004", "ncn-w003"}, true, ""},
+		{[]string{"Management_Storage"}, false, "storage"},
+		{[]string{"Management_Worker"}, false, "worker"},
+		{[]string{"Management_Master"}, false, "master"},
+		{[]string{"Management_Storage", "Management_Master"}, true, ""},
+		{[]string{"Management_Storage", "ncn-s001"}, true, ""},
+		{[]string{"Management_BADNAME"}, true, ""},
+		{[]string{"ncn-bad"}, true, ""},
+	}
+	validator := NewValidator()
+	for _, tt := range tests {
+		t.Run(tt.LimitManagedNodes[0], func(t *testing.T) {
+			workFlowType, err := validator.ValidateLimitManagementNodesInput(tt.LimitManagedNodes)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("got %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if workFlowType != tt.expectedWorkflow {
+				t.Errorf("got %v, wantType %v", workFlowType, tt.expectedWorkflow)
 				return
 			}
 		})

@@ -416,7 +416,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	if stageInfo.Type == "product" {
 		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
 	} else {
-		res = s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
+		 return s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
 	}
 
 	return res, nil
@@ -595,7 +595,7 @@ func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, messag
 func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	existingArgoUploadedTemplateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
+	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) ([]v1alpha1.DAGTask, error) {
 
 	var lastOpDependencies []string
 
@@ -633,9 +633,21 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 				},
 			},
 		}
-		task.TemplateRef = &v1alpha1.TemplateRef{
-			Name:     operation.Name,
-			Template: "main",
+		if operation.Name == "management-nodes-rollout" {
+			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
+			if err != nil {
+				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
+			} else {
+				task.TemplateRef = &v1alpha1.TemplateRef{
+					Name:     managementRolloutSubOperation,
+					Template: "main",
+				}
+			}
+		} else {
+			task.TemplateRef = &v1alpha1.TemplateRef{
+				Name:     operation.Name,
+				Template: "main",
+			}
 		}
 		res = append(res, task)
 	}
@@ -649,5 +661,20 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			res = append(res, postStageHook)
 		}
 	}
-	return res
+	return res, nil
+}
+
+// Get the master, worker, or storage workflow for management nodes rollout operation
+func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
+	validator := utils.NewValidator()
+	workFlowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
+	if err != nil {
+		return "", err
+	}
+	workflowNames := map[string]string{
+		"worker":	"management-worker-nodes-rollout",
+		"storage":	"management-storage-nodes-rollout",
+		"master":	"management-two-master-nodes-rollout",
+	}
+	return workflowNames[workFlowType], nil
 }
