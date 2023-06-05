@@ -459,7 +459,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 
 			// do some validations before we are sure to run the operation.
 			if prevStepsCompleted[productKey][operation.Name] != "" {
-				s.setEchoTemplate(false, &task, fmt.Sprintf("Operation %s is being skipped for product %s because it was previously completed successfully in workflow %s", operation.Name, productKey, prevStepsCompleted[productKey][operation.Name]))
+				s.setEchoTemplate(false, &task, fmt.Sprintf("No action needed in %s for product %s because it was previously completed successfully in workflow %s, skipping", operation.Name, productKey, prevStepsCompleted[productKey][operation.Name]))
 				hasEchoTemplate = true
 			} else if !templateMap[operation.Name] {
 				// this is a backend error so we don't use a template to inform the user here.
@@ -498,7 +498,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 						}
 
 						if !found {
-							s.setEchoTemplate(false, &task, fmt.Sprintf("Skipping operation %s for product %s in the session %s in activity %s because the content for it is not defined in the product's manifest (need at least one of [%s]).", operation.Name, s.getProductVersionKey(product), session.Name, session.ActivityRef, strings.Join(operation.RequiredManifestAttributes, ",")))
+							s.setEchoTemplate(false, &task, fmt.Sprintf("No action needed in operation %s for product %s, skipping", operation.Name, s.getProductVersionKey(product)))
 							hasEchoTemplate = true
 						}
 					}
