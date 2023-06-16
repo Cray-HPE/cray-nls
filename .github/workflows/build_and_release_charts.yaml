@@ -6,7 +6,7 @@ jobs:
     uses: Cray-HPE/hms-build-chart-workflows/.github/workflows/build_and_release_charts.yaml@v2
     with:
       artifactory-component: cray-nls
-      target-branch: master
+      target-branch: release/1.5.x
     secrets:
       ARTIFACTORY_ALGOL60_JFROG_CLI_CONFIGURATION: ${{ secrets.ARTIFACTORY_ALGOL60_JFROG_CLI_CONFIGURATION }}
       ARTIFACTORY_ALGOL60_READONLY_USERNAME: ${{ secrets.ARTIFACTORY_ALGOL60_READONLY_USERNAME }}
