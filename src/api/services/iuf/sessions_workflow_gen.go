@@ -128,7 +128,7 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	//	},
 	//}
 
-	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
+	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnWorkflowSuccess}
 
 	// TODO: commenting this out because adding this seems to make it harder to debug
 	//var secondsAfterSuccess int32 = 60
