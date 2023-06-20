@@ -26,7 +26,7 @@ kind: WorkflowTemplate
 metadata:
   name: iuf-base-template
   labels:
-    version: "0.11.0-debug7"
+    version: "0.11.0-debug8"
 spec:
   entrypoint: shell-script
   templates:
@@ -133,6 +133,12 @@ spec:
             touch {{inputs.parameters.script_output_file}}
           else
             bash -e /tmp/${ts}.sh
+          fi
+
+          # make sure the output file is not empty otherwise Argo barfs
+
+          if [ ! -s {{inputs.parameters.script_output_file}} ]; then
+            echo "{}" | tee {{inputs.parameters.script_output_file}}
           fi
         env:
           - name: SCRIPT_OUTPUT_FILE
