@@ -79,7 +79,23 @@
    ```
    > Note: This script will try to update `docs/swagger.md` if nodejs is installed. Otherwise, it will only update `docs/swagger.yaml`
 
+# Versioning
 
+The `.version` file needs to be updated every time you update this repository, in the following way:
+
+1. If you are updating this repo to be used by the next version of CSM (major or minor update to CSM, but not patch), then
+   increment the major version in the `.version` file as well.
+2. Use the version you defined in `.version` and update the [cray-nls-charts](https://github.com/Cray-HPE/cray-nls-charts) as well.
+
+The version numbers to be used must follow the format given in the table below. Note that the format is different for
+CSM 1.4.x releases because this convention is decided after the CSM 1.4.0 release but before the 1.5.0 release, so it was
+not possible to change the convention for a previously released product.
+
+| CSM Version | .version file in this repo | Helm chart version in cray-nls-charts |
+|-------------|----------------------------|---------------------------------------|
+| 1.4.x       | 0.(10+x).y                 | 2.(10+x).y                            |
+| 1.5.x       | 3.(1+x).y                  | 3.(1+x).y                             |
+| 1.6.x       | 4.x.y                      | 4.x.y                                 |
 
 # Reference
 
