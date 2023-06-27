@@ -27,7 +27,7 @@ metadata:
   name: update-product-catalog-template
   namespace: argo
   labels:
-    version: "4.0.0"
+    version: "4.0.1"
 spec:
   entrypoint: catalog-update
   templates:

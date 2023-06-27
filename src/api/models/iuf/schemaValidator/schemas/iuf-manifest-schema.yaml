@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.7.0
+version: 0.7.1
 type: object
 required:
 - iuf_version
@@ -396,6 +396,18 @@ properties:
                     type: string
                 md5sum:
                   $ref: "#/$defs/MD5Sum"
+                arch:
+                  description: Target architecture for the recipe.
+                  example: aarch64
+                  default: x86_64
+                  enum:
+                    - aarch64
+                    - x86_64
+                  type: string
+                require_dkms:
+                  description: Whether to enable DKMS for the job
+                  type: boolean
+                  example: false
 
           images:
             type: array
@@ -441,6 +453,15 @@ properties:
                   description: >
                     The initrd file for the image.
                   $ref: '#/$defs/IMSArtifact'
+                arch:
+                  description: Target architecture for the image.
+                  default: x86_64
+                  example: aarch64
+                  enum:
+                    - aarch64
+                    - x86_64
+                  type: string
+
 
           content_dirs:
             description: >
