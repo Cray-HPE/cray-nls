@@ -85,13 +85,6 @@ func NewWorkflowService(logger utils.Logger, argoService ArgoService, k8sSvc K8s
 		k8sRestClientSet:       k8sSvc.Client,
 		env:                    env,
 	}
-	workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
-	for _, workflowTemplate := range workflowTemplates {
-		err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
-		if err != nil {
-			return nil
-		}
-	}
 	return workflowSvc
 }
 
