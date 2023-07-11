@@ -29,7 +29,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	argo_templates "github.com/Cray-HPE/cray-nls/src/api/argo-templates"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/alecthomas/assert"
@@ -39,38 +38,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 )
-
-func TestInitializeWorkflowTemplate(t *testing.T) {
-	// setup mocks
-	wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
-	wftServiceSclientMock := &wftemplatemocks.WorkflowTemplateServiceClient{}
-	wftServiceSclientMock.On(
-		"ListWorkflowTemplates",
-		mock.Anything,
-		mock.Anything,
-	).Return(new(v1alpha1.WorkflowTemplateList), nil)
-	wftServiceSclientMock.On(
-		"CreateWorkflowTemplate",
-		mock.Anything,
-		mock.Anything,
-	).Return(nil, nil)
-
-	workflowSvc := workflowService{
-		logger:                 utils.GetLogger(),
-		ctx:                    context.Background(),
-		workflowClient:         wfServiceClientMock,
-		workflowTemplateClient: wftServiceSclientMock,
-		env:                    utils.Env{},
-	}
-	t.Run("It should initialize workflow template", func(t *testing.T) {
-		workflowTemplates, _ := argo_templates.GetWorkflowTemplate()
-		for _, workflowTemplate := range workflowTemplates {
-			err := workflowSvc.InitializeWorkflowTemplate(workflowTemplate)
-			assert.Nil(t, err)
-		}
-		wftServiceSclientMock.AssertExpectations(t)
-	})
-}
 
 func TestCreateRebuildWorkflow(t *testing.T) {
 

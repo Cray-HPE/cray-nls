@@ -27,7 +27,6 @@ package argo_templates
 
 import (
 	"bytes"
-	"embed"
 	_ "embed"
 	"fmt"
 	"io/fs"
@@ -42,33 +41,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-//go:embed base/*
-var argoWorkflowTemplateFS embed.FS
-
 var validator utils.Validator = utils.NewValidator()
-
-func GetWorkflowTemplate() ([][]byte, error) {
-	list, err := fs.Glob(argoWorkflowTemplateFS, "**/*.template.argo.yaml")
-	if err != nil {
-		return nil, err
-	}
-	if len(list) == 0 {
-		return nil, fmt.Errorf("template: pattern matches no files")
-	}
-	var filenames []string
-	filenames = append(filenames, list...)
-
-	var res [][]byte
-	for _, filename := range filenames {
-		tmpRes, err := fs.ReadFile(argoWorkflowTemplateFS, filename)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, tmpRes)
-	}
-
-	return res, nil
-}
 
 func GetWorkerRebuildWorkflow(workerRebuildWorkflowFS fs.FS, createRebuildWorkflowRequest models_nls.CreateRebuildWorkflowRequest, rebuildHooks models_nls.RebuildHooks) ([]byte, error) {
 	err := validator.ValidateWorkerHostnames(createRebuildWorkflowRequest.Hosts)
@@ -152,9 +125,18 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 							Name:  "dryRun",
 							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
 						},
+						{
+							Name:  "bootTimeoutInSeconds",
+							Value: v1alpha1.AnyStringPtr(fmt.Sprintf("%v", unstrunstructuredHook.Object["spec"].(map[string]interface{})["bootTimeoutInSeconds"])),
+						},
 					},
 				},
 			})
+		}
+
+		// set minimum timeout if not specified
+		if createRebuildWorkflowRequest.BootTimeoutInSeconds == 0 {
+			createRebuildWorkflowRequest.BootTimeoutInSeconds = 600
 		}
 
 		if len(dag.Tasks) == 0 {
@@ -174,6 +156,10 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 							Name:  "dryRun",
 							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.DryRun),
 						},
+						{
+							Name:  "bootTimeoutInSeconds",
+							Value: v1alpha1.AnyStringPtr(createRebuildWorkflowRequest.BootTimeoutInSeconds),
+						},
 					},
 				},
 			})
@@ -190,13 +176,14 @@ func GetRebuildWorkflow(tmpl *template.Template, workflowFS fs.FS, createRebuild
 
 	var tmpRes bytes.Buffer
 	err = tmpl.Execute(&tmpRes, map[string]interface{}{
-		"TargetNcns":     	createRebuildWorkflowRequest.Hosts,
-		"DryRun":         	createRebuildWorkflowRequest.DryRun,
-		"SwitchPassword": 	createRebuildWorkflowRequest.SwitchPassword,
-		"ZapOsds":        	createRebuildWorkflowRequest.ZapOsds,
-		"WorkflowType":   	createRebuildWorkflowRequest.WorkflowType,
-		"ImageId":   	  	createRebuildWorkflowRequest.ImageId,
-		"DesiredCfsConfig": createRebuildWorkflowRequest.DesiredCfsConfig,
+		"TargetNcns":           createRebuildWorkflowRequest.Hosts,
+		"DryRun":               createRebuildWorkflowRequest.DryRun,
+		"SwitchPassword":       createRebuildWorkflowRequest.SwitchPassword,
+		"ZapOsds":              createRebuildWorkflowRequest.ZapOsds,
+		"WorkflowType":         createRebuildWorkflowRequest.WorkflowType,
+		"ImageId":              createRebuildWorkflowRequest.ImageId,
+		"DesiredCfsConfig":     createRebuildWorkflowRequest.DesiredCfsConfig,
+		"BootTimeoutInSeconds": createRebuildWorkflowRequest.BootTimeoutInSeconds,
 	})
 	if err != nil {
 		return nil, err
