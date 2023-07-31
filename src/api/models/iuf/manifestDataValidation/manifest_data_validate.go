@@ -116,15 +116,13 @@ func (vs *validators) processNexusRepoSchemaFile(nexusContentRaw interface{}) er
 
 	logger := utils.GetLogger()
 
-	// Nexus repo possible schemas
-	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-hosted-repo-schema.yaml")
-	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-group-repo-schema.yaml")
-	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-docker-hosted-repo-schema.yaml")
-	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-docker-group-repo-schema.yaml")
-	vs.nexusSchemaFileNames = append(vs.nexusSchemaFileNames, "schemas/nr-yum-hosted-repo-schema.yaml")
+	vs.nexusSchemaFileNames = sv.ReadSchemaFiles()
+
+	if vs.nexusSchemaFileNames == nil {
+		return fmt.Errorf("failed to read schema files")
+	}
 
 	// nexus repo schema validation
-
 	validated := false
 
 	for _, sf := range vs.nexusSchemaFileNames {
