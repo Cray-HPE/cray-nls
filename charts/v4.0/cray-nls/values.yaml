@@ -103,8 +103,8 @@ cray-service:
           mountPath: /etc/cray/upgrade/csm
       name: "cray-nls"
       image:
-        repository: artifactory.algol60.net/csm-docker/stable/cray-nls
-        tag: 4.0.2
+        repository: artifactory.algol60.net/csm-docker/unstable/cray-nls
+        tag: 4.0.4-20230823154008+d7d5c6a
       resources:
         limits:
           cpu: 1
