@@ -640,7 +640,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
 				if !existingArgoUploadedTemplateMap[managementRolloutSubOperation] {
-					s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
+					s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", managementRolloutSubOperation)
 					break
 				}
 				task.TemplateRef = &v1alpha1.TemplateRef{
