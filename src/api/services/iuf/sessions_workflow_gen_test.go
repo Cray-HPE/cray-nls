@@ -650,7 +650,9 @@ func setup(t *testing.T) (string, string, iufService) {
 		"vcs-upload", "ims-upload",
 		"management-m001-rollout",
 		"master-host-hook-script", "worker-host-hook-script",
-		"management-nodes-rollout",
+		"management-worker-nodes-rollout",
+		"management-storage-nodes-rollout",
+		"management-two-master-nodes-rollout",
 	}
 	var availableTemplates v1alpha1.WorkflowTemplates
 
