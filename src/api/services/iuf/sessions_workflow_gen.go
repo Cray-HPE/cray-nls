@@ -609,7 +609,8 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 	}
 
 	for _, operation := range stageInfo.Operations {
-		if !existingArgoUploadedTemplateMap[operation.Name] {
+
+		if !existingArgoUploadedTemplateMap[operation.Name] && operation.Name != "management-nodes-rollout" {
 			s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", operation.Name)
 			continue
 		}
@@ -638,6 +639,10 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			if err != nil {
 				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
+				if !existingArgoUploadedTemplateMap[managementRolloutSubOperation] {
+					s.logger.Warnf("The template %v cannot be found in Argo. Make sure you have run upload-rebuild-templates.sh from docs-csm", managementRolloutSubOperation)
+					break
+				}
 				task.TemplateRef = &v1alpha1.TemplateRef{
 					Name:     managementRolloutSubOperation,
 					Template: "main",
