@@ -166,8 +166,8 @@ func (validator Validator) ValidateManagementRole(managementRole []string) error
 }
 
 func (validator Validator) ValidateLimitManagementNodesInput(limitManagementNodes []string) (string, error) {
-	firstEntry := limitManagementNodes[0]
-	if len(firstEntry) > 0 {
+	if len(limitManagementNodes) > 0 && len(limitManagementNodes[0]) > 0 {
+		firstEntry := limitManagementNodes[0]
 		matched_Management, err := regexp.MatchString(`Management.`, firstEntry)
 		if err != nil {
 			return "", err
@@ -190,11 +190,11 @@ func (validator Validator) ValidateLimitManagementNodesInput(limitManagementNode
 				}
 				return validator.getNCNWorkflowType(firstEntry)
 			} else {
-				return "", fmt.Errorf("getManagementNodesRolloutSubOperation: found input '--limit-management-nodes' did not have valid HSM Role_Subrole or hostname(s).")
+				return "", fmt.Errorf("getManagementNodesRolloutSubOperation: found input '--limit-management-rollout' did not have valid HSM Role_Subrole or hostname(s).")
 			}
 		}
 	} else {
-		return "", fmt.Errorf("getManagementNodesRolloutSubOperation: found input '--limit-management-nodes' had length 0. Management-nodes-rollout requires HSM Role_Subrole or hostnames to be specified.")
+		return "", fmt.Errorf("getManagementNodesRolloutSubOperation: found input '--limit-management-rollout' had length 0. Management-nodes-rollout requires HSM Role_Subrole or hostnames to be specified.")
 	}
 }
 
