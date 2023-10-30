@@ -679,7 +679,15 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 	workflowNames := map[string]string{
 		"worker":	"management-worker-nodes-rollout",
 		"storage":	"management-storage-nodes-rollout",
-		"master":	"management-two-master-nodes-rollout",
+		"master1":	"management-m001-rollout",
+		"masterOther":	"management-two-master-nodes-rollout",
+	}
+	if workFlowType == "master" {
+		if limitManagementNode[0] == "ncn-m001" {
+			workflowType = "master1"
+		} else {
+			workflowType = "masterOther"
+		}
 	}
 	return workflowNames[workFlowType], nil
 }
