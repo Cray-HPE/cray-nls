@@ -673,7 +673,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
 	validator := utils.NewValidator()
 	var workflowType string
-	workFlowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
+	workflowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
 	if err != nil {
 		return "", err
 	}
@@ -683,12 +683,12 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 		"master1":	"management-m001-rollout",
 		"masterOther":	"management-two-master-nodes-rollout",
 	}
-	if workFlowType == "master" {
+	if workflowType == "master" {
 		if LimitManagementNodes[0] == "ncn-m001" {
 			workflowType = "master1"
 		} else {
 			workflowType = "masterOther"
 		}
 	}
-	return workflowNames[workFlowType], nil
+	return workflowNames[workflowType], nil
 }
