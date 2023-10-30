@@ -672,6 +672,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 // Get the master, worker, or storage workflow for management nodes rollout operation
 func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
 	validator := utils.NewValidator()
+	var workflowType string
 	workFlowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
 	if err != nil {
 		return "", err
