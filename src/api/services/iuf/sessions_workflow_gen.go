@@ -683,7 +683,7 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 		"masterOther":	"management-two-master-nodes-rollout",
 	}
 	if workFlowType == "master" {
-		if limitManagementNode[0] == "ncn-m001" {
+		if LimitManagementNodes[0] == "ncn-m001" {
 			workflowType = "master1"
 		} else {
 			workflowType = "masterOther"
