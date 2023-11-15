@@ -241,7 +241,7 @@ func (s iufService) UpdateActivityStateFromSessionState(session iuf.Session, com
 	return err
 }
 
-func (s iufService) CreateIufWorkflow(session iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool) {
+func (s iufService) CreateIufWorkflow(session *iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool) {
 	myWorkflow, err, skipStage := s.workflowGen(session)
 	if err != nil {
 		s.logger.Error(err)
@@ -260,6 +260,31 @@ func (s iufService) CreateIufWorkflow(session iuf.Session) (retWorkflow *v1alpha
 		return nil, err, false
 	}
 	return res, nil, false
+}
+
+// RunNextPartialWorkflow Runs another workflow for the same stage with the remaining set of products.
+func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool) {
+	// need to figure out what products are remaining
+	remainingProducts := s.getRemainingProducts(session)
+
+	if len(remainingProducts) == 0 {
+		return s.RunNextStage(session)
+	}
+
+	// the run stage will automatically pick up the remaining products.
+	return s.RunStage(session, session.CurrentStage)
+}
+
+// getRemainingProducts gets the products that have not been processed yet for the current stage.
+func (s iufService) getRemainingProducts(session *iuf.Session) []iuf.Product {
+	var remainingProducts []iuf.Product
+	processedProducts := session.ProcessedProductsByStage[session.CurrentStage]
+	for _, product := range session.Products {
+		if !processedProducts[s.getProductVersionKey(product)] {
+			remainingProducts = append(remainingProducts, product)
+		}
+	}
+	return remainingProducts
 }
 
 // RunNextStage Runs the next stage in the list of stages to execute.
@@ -328,7 +353,7 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 	session.CurrentStage = stageToRun
 	session.CurrentState = iuf.SessionStateInProgress
 
-	workflow, err, skipStage := s.CreateIufWorkflow(*session)
+	workflow, err, skipStage := s.CreateIufWorkflow(session)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.SyncResponse{}, err, skipStage

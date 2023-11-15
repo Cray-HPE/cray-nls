@@ -66,7 +66,7 @@ func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Ca
 }
 
 // CreateIufWorkflow mocks base method.
-func (m *MockIufService) CreateIufWorkflow(req iuf.Session) (*v1alpha1.Workflow, error, bool) {
+func (m *MockIufService) CreateIufWorkflow(req *iuf.Session) (*v1alpha1.Workflow, error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIufWorkflow", req)
 	ret0, _ := ret[0].(*v1alpha1.Workflow)
@@ -346,6 +346,22 @@ func (m *MockIufService) RestartCurrentStage(session *iuf.Session, comment strin
 func (mr *MockIufServiceMockRecorder) RestartCurrentStage(session, comment interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestartCurrentStage", reflect.TypeOf((*MockIufService)(nil).RestartCurrentStage), session, comment)
+}
+
+// RunNextPartialWorkflow mocks base method.
+func (m *MockIufService) RunNextPartialWorkflow(session *iuf.Session) (iuf.SyncResponse, error, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RunNextPartialWorkflow", session)
+	ret0, _ := ret[0].(iuf.SyncResponse)
+	ret1, _ := ret[1].(error)
+	ret2, _ := ret[2].(bool)
+	return ret0, ret1, ret2
+}
+
+// RunNextPartialWorkflow indicates an expected call of RunNextPartialWorkflow.
+func (mr *MockIufServiceMockRecorder) RunNextPartialWorkflow(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunNextPartialWorkflow", reflect.TypeOf((*MockIufService)(nil).RunNextPartialWorkflow), session)
 }
 
 // RunNextStage mocks base method.

@@ -1068,6 +1068,16 @@ const docTemplateIUF = `{
                 "name": {
                     "type": "string"
                 },
+                "processed_products_by_stage": {
+                    "description": "When product stage workflow is too large for Argo, we split that stage into multiple workflows. This map tracks that state of what's already processed.\n Note that this map is only used for when there are multiple workflows for the same stage.\n The first index is the stage name, and the second index is the product_name-product_version. The value is always true",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "boolean"
+                        }
+                    }
+                },
                 "products": {
                     "type": "array",
                     "items": {

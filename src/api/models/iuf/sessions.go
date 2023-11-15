@@ -38,8 +38,14 @@ type Session struct {
 	CurrentStage    string            `json:"stage"`
 	Workflows       []SessionWorkflow `json:"workflows"`
 	Products        []Product         `json:"products" validate:"required"`
-	Name            string            `json:"name"`
-	ActivityRef     string            `json:"activityRef" swaggerignore:"true"`
+
+	// When product stage workflow is too large for Argo, we split that stage into multiple workflows. This map tracks that state of what's already processed.
+	//  Note that this map is only used for when there are multiple workflows for the same stage.
+	//  The first index is the stage name, and the second index is the product_name-product_version. The value is always true
+	ProcessedProductsByStage map[string]map[string]bool `json:"processed_products_by_stage"`
+
+	Name        string `json:"name"`
+	ActivityRef string `json:"activityRef" swaggerignore:"true"`
 } //	@name	Session
 
 type SessionState string
