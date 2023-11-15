@@ -76,7 +76,8 @@ type IufService interface {
 	UpdateActivityStateFromSessionState(session iuf.Session, comment string) error
 	UpdateSession(session iuf.Session) error
 	UpdateSessionAndActivity(session iuf.Session, comment string) error
-	CreateIufWorkflow(req iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool)
+	CreateIufWorkflow(req *iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool)
+	RunNextPartialWorkflow(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
 	RunNextStage(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
 	ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workflow) error
 	GetStages() (iuf.Stages, error)

@@ -28,6 +28,7 @@ package iuf
 import (
 	"encoding/json"
 	"fmt"
+	services_iuf "github.com/Cray-HPE/cray-nls/src/api/services/iuf"
 	"net/http"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
@@ -39,6 +40,7 @@ import (
 const RESYNC_TIME_IN_SECONDS = 5
 
 // ListSessions
+//
 //	@Summary	List sessions of an IUF activity
 //	@Param		activity_name	path	string	true	"activity name"
 //	@Tags		Sessions
@@ -62,6 +64,7 @@ func (u IufController) ListSessions(c *gin.Context) {
 }
 
 // GetSession
+//
 //	@Summary	Get a session of an IUF activity
 //	@Param		activity_name	path	string	true	"activity name"
 //	@Param		session_name	path	string	true	"session name"
@@ -179,13 +182,27 @@ func (u IufController) Sync(context *gin.Context) {
 
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage
-			response, err, _ := u.iufService.RunNextStage(&session)
-			if err != nil {
-				u.logger.Errorf("Sync: Unable to go to next stage. Current stage: %s, workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", currentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
-				//  This is the downside of using a non-transactional storage such as CRDs.
-				context.JSON(500, utils.ResponseError{Message: err.Error()})
-				return
+			var response iuf.SyncResponse
+
+			if activeWorkflow.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
+				u.logger.Infof("Sync: Stage: %s has a partial workflow that succeeded, moving on to the remaining products in the next workflow. Workflow completed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
+				response, err, _ = u.iufService.RunNextPartialWorkflow(&session)
+				if err != nil {
+					u.logger.Errorf("Sync: Unable to run the next set of products for the current stage or go to next stage. Current stage: %s, workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", currentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+					// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
+					//  This is the downside of using a non-transactional storage such as CRDs.
+					context.JSON(500, utils.ResponseError{Message: err.Error()})
+					return
+				}
+			} else {
+				response, err, _ = u.iufService.RunNextStage(&session)
+				if err != nil {
+					u.logger.Errorf("Sync: Unable to go to next stage. Current stage: %s, workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", currentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+					// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
+					//  This is the downside of using a non-transactional storage such as CRDs.
+					context.JSON(500, utils.ResponseError{Message: err.Error()})
+					return
+				}
 			}
 
 			context.JSON(200, response)
@@ -240,7 +257,7 @@ func (u IufController) restartCurrentStageFromSyncCall(context *gin.Context, ses
 	context.JSON(200, response)
 }
 
-//WorkflowSync **experimental** Instead of a webhook on Session, we should have defined a webhook on Argo workflows instead
+// WorkflowSync **experimental** Instead of a webhook on Session, we should have defined a webhook on Argo workflows instead
 func (u IufController) WorkflowSync(context *gin.Context) {
 	var requestBody iuf.WorkflowSyncRequest
 	u.logger.Infof("WorkflowSync: received request with params %#v", context.Request.Form)
