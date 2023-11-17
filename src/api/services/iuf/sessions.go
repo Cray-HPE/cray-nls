@@ -30,7 +30,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	iuf2 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"sort"
@@ -291,7 +290,7 @@ func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.S
 		err = s.UpdateSessionAndActivity(*session, fmt.Sprintf("At least one partial workflow failed %s", workflows[0].Name))
 		if err != nil {
 			response = iuf.SyncResponse{
-				ResyncAfterSeconds: iuf2.RESYNC_TIME_IN_SECONDS,
+				ResyncAfterSeconds: 30,
 			}
 		} else {
 			response = iuf.SyncResponse{}
