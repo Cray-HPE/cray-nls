@@ -156,16 +156,31 @@ func (u IufController) Sync(context *gin.Context) {
 				return
 			}
 
-			session.CurrentState = iuf.SessionStateDebug
-			err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Failed workflow %s", activeWorkflow.Name))
 			var response iuf.SyncResponse
-			if err != nil {
-				response = iuf.SyncResponse{
-					ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
+
+			// if this was a partial workflow, let the processing for partial workflow do the work
+			if activeWorkflow.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
+				u.logger.Infof("Sync: Stage: %s has a partial workflow that failed, moving on to the remaining products in the next workflow. Workflow failed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
+				response, err, _ = u.iufService.RunNextPartialWorkflow(&session)
+				if err != nil {
+					u.logger.Errorf("Sync: Unable to run the next set of products for the current stage or go to next stage. Current stage: %s, workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+					// note: do NOT automatically retry -- we don't know whether CurrentStage has already been updated
+					//  This is the downside of using a non-transactional storage such as CRDs.
+					context.JSON(500, utils.ResponseError{Message: err.Error()})
+					return
 				}
 			} else {
-				response = iuf.SyncResponse{}
+				session.CurrentState = iuf.SessionStateDebug
+				err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Failed workflow %s", activeWorkflow.Name))
+				if err != nil {
+					response = iuf.SyncResponse{
+						ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
+					}
+				} else {
+					response = iuf.SyncResponse{}
+				}
 			}
+
 			context.JSON(200, response)
 			return
 		} else if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
@@ -179,6 +194,10 @@ func (u IufController) Sync(context *gin.Context) {
 				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
 				// do not return error, just continue because process output should not re-attempt stage.
 			}
+
+			// reset the state as we are done processing the output
+			session.CurrentState = iuf.SessionStateInProgress
+			u.iufService.UpdateSession(session)
 
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage

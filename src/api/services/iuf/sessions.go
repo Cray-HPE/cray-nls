@@ -30,6 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	iuf2 "github.com/Cray-HPE/cray-nls/src/api/controllers/v1/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"sort"
@@ -268,7 +269,35 @@ func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.S
 	remainingProducts := s.getRemainingProducts(session)
 
 	if len(remainingProducts) == 0 {
-		return s.RunNextStage(session)
+		// if we don't have any products that are remaining, we have a decision to make. Either proceed to the next stage,
+		//  or put the session into DEBUG state. We will only proceed to the next stage if all partial workflows have been
+		//  successful. And we will put the session into DEBUG state if any of the workflows had failed or had errors.
+
+		workflows := s.FindAllPartialWorkflowForCurrentStage(session)
+		allWorkflowsSuccessful := true
+		for _, workflow := range workflows {
+			if workflow.Status.Phase != v1alpha1.WorkflowSucceeded {
+				allWorkflowsSuccessful = false
+				break
+			}
+		}
+
+		if allWorkflowsSuccessful {
+			return s.RunNextStage(session)
+		}
+
+		// other workflow(s) have been unsuccessful, so we'll have to mark this as being DEBUG state
+		session.CurrentState = iuf.SessionStateDebug
+		err = s.UpdateSessionAndActivity(*session, fmt.Sprintf("At least one partial workflow failed %s", workflows[0].Name))
+		if err != nil {
+			response = iuf.SyncResponse{
+				ResyncAfterSeconds: iuf2.RESYNC_TIME_IN_SECONDS,
+			}
+		} else {
+			response = iuf.SyncResponse{}
+		}
+
+		return response, nil, true
 	}
 
 	// the run stage will automatically pick up the remaining products.
@@ -348,6 +377,20 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 		s.logger.Infof("No stage specified to run. Last stage was %s and list of all stages are %v",
 			session.CurrentStage, session.InputParameters.Stages)
 		return iuf.SyncResponse{}, nil, false
+	}
+
+	// workflow generation may take a long time, such that we may get called again because of metacontroller timeout.
+	//  To protect against that, let's use the transitioning state as a cheap mutex
+	if session.CurrentState == iuf.SessionStateTransitioning {
+		// we are already transitioning. Let's wait and try again in case the other pod/thread has died.
+		response := iuf.SyncResponse{
+			ResyncAfterSeconds: 60,
+		}
+		return response, nil, false
+	} else {
+		session.CurrentState = iuf.SessionStateTransitioning
+		s.UpdateSession(*session)
+		// fall below...the next thing we will do is set this in progress and only save it once we have created the workflow
 	}
 
 	session.CurrentStage = stageToRun
@@ -499,6 +542,10 @@ func (s iufService) processOutputOfProcessMedia(activity *iuf.Activity, workflow
 	activity.Products = []iuf.Product{}
 	for _, nodeStatus := range nodesWithOutputs {
 		var manifest map[string]interface{}
+		if nodeStatus.Outputs == nil || len(nodeStatus.Outputs.Parameters) == 0 || nodeStatus.Outputs.Parameters[0].Value == nil {
+			continue
+		}
+
 		err := yaml.Unmarshal([]byte(nodeStatus.Outputs.Parameters[0].Value.String()), &manifest)
 		if err != nil {
 			s.logger.Error(err)
@@ -660,53 +707,65 @@ func (s iufService) ResumeSession(session *iuf.Session, comment string) error {
 		return s.RestartCurrentStage(session, comment)
 	}
 
-	// if there are some workflows, then let's attempt the last failed or error workflow that belongs to the current stage
-	lastWorkflow := s.FindLastWorkflowForCurrentStage(session)
+	workflows := s.FindAllPartialWorkflowForCurrentStage(session)
+	if len(workflows) == 0 {
+		lastWorkflow := s.FindLastWorkflowForCurrentStage(session)
+		if lastWorkflow != nil {
+			workflows = append(workflows, lastWorkflow)
+		}
+	}
 
-	if lastWorkflow == nil {
-		// didn't find the workflow? Retry the current stage.
+	if len(workflows) == 0 {
+		err = utils.GenericError{Message: fmt.Sprintf("ResumeSession.2: There are no workflows to resume for session %s in activity %s: %v", session.Name, session.ActivityRef, err)}
+		s.logger.Warn(err)
+
 		return s.RestartCurrentStage(session, comment)
-	} else if lastWorkflow.Status.Successful() {
-		// err...the last workflow was actually successful. We need to go to the next stage instead.
-		return s.GotoNextStage(session, comment)
-	} else if lastWorkflow.Status.Phase == v1alpha1.WorkflowFailed ||
-		lastWorkflow.Status.Phase == v1alpha1.WorkflowError {
-		// not successful? retry that error workflow
-		_, err = s.workflowClient.RetryWorkflow(context.TODO(), &workflow.WorkflowRetryRequest{
-			Name:              lastWorkflow.Name,
-			Namespace:         "argo",
-			RestartSuccessful: false,
-		})
+	}
 
-		// if there was an error with retrying, then let's resubmit
-		if err != nil {
-			s.logger.Errorf("ResumeSession.2: An error occurred while retrying workflow %s in session %s in activity %s: %v. Going to try resubmit instead", lastWorkflow.Name, session.Name, session.ActivityRef, err)
+	allSuccessful := true
+	restartCurrentStage := false
 
-			newWorkflow, err := s.workflowClient.ResubmitWorkflow(context.TODO(), &workflow.WorkflowResubmitRequest{
+	// if there are some workflows, then let's attempt the last failed or error workflow that belongs to the current stage
+	for _, lastWorkflow := range workflows {
+		if lastWorkflow.Status.Phase == v1alpha1.WorkflowFailed ||
+			lastWorkflow.Status.Phase == v1alpha1.WorkflowError {
+			allSuccessful = false
+
+			// not successful? retry that error workflow
+			_, err = s.workflowClient.RetryWorkflow(context.TODO(), &workflow.WorkflowRetryRequest{
+				Name:              lastWorkflow.Name,
+				Namespace:         "argo",
+				RestartSuccessful: false,
+			})
+
+			// if there was an error with retrying, then let's resubmit
+			if err != nil {
+				s.logger.Errorf("ResumeSession.2: An error occurred while retrying workflow %s in session %s in activity %s: %v. Going to try resubmit instead", lastWorkflow.Name, session.Name, session.ActivityRef, err)
+				restartCurrentStage = true
+				break
+
+				//  Note: we used to have more code that would try to resubmit the workflow. This would create a new workflow.
+				//  However, with the introduction of partial workflows to split up large number of products,
+				//  this resubmitting workflows will mess up the determination if the stage has been successful or not,
+				//  since that relies upon aggregate status of all the workflows belonging to a stage.
+			}
+		} else if lastWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
+			// try resuming the workflow...if there is an error, that's ok, let it complete on its own
+			s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
 				Name:      lastWorkflow.Name,
 				Namespace: "argo",
 			})
+		} // other states are Pending, both for which we do nothing except update session and activity as below
+	}
 
-			if err != nil {
-				s.logger.Errorf("ResumeSession.3: An error occurred while resubmitting workflow %s in session %s in activity %s: %v. Going to try resubmit instead", lastWorkflow.Name, session.Name, session.ActivityRef, err)
+	if allSuccessful {
+		// umm...the last workflows were actually successful. We need to go to the next stage instead.
+		return s.GotoNextStage(session, comment)
+	}
 
-				// couldn't resubmit either. Let's do a restart instead.
-				return s.RestartCurrentStage(session, comment)
-			}
-
-			session.Workflows = append(session.Workflows, iuf.SessionWorkflow{
-				Id: newWorkflow.Name,
-			})
-
-			// fall below to saving the session
-		}
-	} else if lastWorkflow.Status.Phase == v1alpha1.WorkflowRunning {
-		// try resuming the workflow...if there is an error, that's ok, let it complete on its own
-		s.workflowClient.ResumeWorkflow(context.TODO(), &workflow.WorkflowResumeRequest{
-			Name:      lastWorkflow.Name,
-			Namespace: "argo",
-		})
-	} // other states are Pending, both for which we do nothing except update session and activity as below
+	if restartCurrentStage {
+		return s.RestartCurrentStage(session, comment)
+	}
 
 	// set session and activity to in progress state
 	session.CurrentState = iuf.SessionStateInProgress
@@ -740,6 +799,30 @@ func (s iufService) FindLastWorkflowForCurrentStage(session *iuf.Session) *v1alp
 		}
 	}
 	return lastWorkflow
+}
+
+func (s iufService) FindAllPartialWorkflowForCurrentStage(session *iuf.Session) []*v1alpha1.Workflow {
+	if len(session.Workflows) == 0 {
+		return nil
+	}
+
+	var workflows []*v1alpha1.Workflow
+	for i := len(session.Workflows) - 1; i >= 0; i-- {
+		w := session.Workflows[i]
+
+		lastWorkflowObj, err := s.workflowClient.GetWorkflow(context.TODO(), &workflow.WorkflowGetRequest{
+			Name:      w.Id,
+			Namespace: "argo",
+		})
+
+		if err == nil && lastWorkflowObj != nil &&
+			lastWorkflowObj.ObjectMeta.Labels != nil &&
+			lastWorkflowObj.ObjectMeta.Labels["stage"] == session.CurrentStage &&
+			lastWorkflowObj.ObjectMeta.Labels[LABEL_PARTIAL_WORKFLOW] == "true" {
+			workflows = append(workflows, lastWorkflowObj)
+		}
+	}
+	return workflows
 }
 
 func (s iufService) GotoNextStage(session *iuf.Session, comment string) error {

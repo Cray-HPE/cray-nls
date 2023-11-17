@@ -44,7 +44,7 @@ import (
 	"strings"
 )
 
-const ARGO_TASKS_SIZE_LIMIT = 512 * 1024
+const ARGO_TASKS_SIZE_LIMIT = 256 * 1024
 const LABEL_PRODUCT_PREFIX = "product_"
 const LABEL_PARTIAL_WORKFLOW = "partial_workflow"
 
@@ -602,7 +602,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session,
 	//  is constrained to ~1mb. So we have to figure out if the tasks that we are about to submit will go beyond that.
 	//  Unfortunately, this is not as straight-forward as `len(json_serialize(tasks)) > 1mb`, because when these tasks
 	//  are instantiated into a Workflow, they will carry some metadata (e.g. inputs, outputs, schedule metadata). As
-	//  such, we are going to assume that 50% of the resource will be metadata. This is a very conservative assumption.
+	//  such, we are going to assume that a large portion of the resource will be runtime metadata of the workflow.
 	b, err := json.Marshal(res)
 	if err != nil {
 		return nil, nil, err
