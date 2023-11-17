@@ -37,14 +37,13 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"math"
 	"reflect"
 	"sigs.k8s.io/yaml"
 	"sort"
 	"strings"
 )
 
-const ARGO_TASKS_SIZE_LIMIT = 256 * 1024
+const ARGO_TASKS_SIZE_LIMIT = 150
 const LABEL_PRODUCT_PREFIX = "product_"
 const LABEL_PARTIAL_WORKFLOW = "partial_workflow"
 
@@ -469,7 +468,20 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session,
 	// this map is to deal with the stageInfo.ProcessProductVariantsSequentially (see docs for that attribute)
 	lastOpNamePerProductName := map[string]string{}
 
-	for _, product := range products {
+	// Here we handle the etcd size limit on resources. Recall that an Argo template is really an etcd resource, and
+	//  is constrained to ~1mb. So we have to figure out if the tasks that we are about to submit will go beyond that.
+	//  Unfortunately, this is not as straight-forward as `len(json_serialize(tasks)) > 1mb`, because when these tasks
+	//  are instantiated into a Workflow, they will carry some metadata (e.g. inputs, outputs, schedule metadata). As
+	//  such, we will start with empirically what does work safely (15 products * 10 operations)
+	maxProducts := len(products)
+	if maxProducts*len(stageInfo.Operations) > ARGO_TASKS_SIZE_LIMIT {
+		s.logger.Infof("Received %s products, but limiting to %s products", len(products), maxProducts)
+		maxProducts = int(ARGO_TASKS_SIZE_LIMIT / len(stageInfo.Operations))
+	}
+
+	for i := 0; i < maxProducts; i++ {
+		product := products[i]
+		retProducts = append(retProducts, product)
 		// the initial dependency is the name of the hook script for that product, if any.
 		productKey := s.getProductVersionKey(product)
 		preStageHook, exists := preSteps[productKey]
@@ -598,32 +610,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session,
 		res = append(res, *step)
 	}
 
-	// Here we handle the etcd size limit on resources. Recall that an Argo template is really an etcd resource, and
-	//  is constrained to ~1mb. So we have to figure out if the tasks that we are about to submit will go beyond that.
-	//  Unfortunately, this is not as straight-forward as `len(json_serialize(tasks)) > 1mb`, because when these tasks
-	//  are instantiated into a Workflow, they will carry some metadata (e.g. inputs, outputs, schedule metadata). As
-	//  such, we are going to assume that a large portion of the resource will be runtime metadata of the workflow.
-	b, err := json.Marshal(res)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	overflow := len(b) - ARGO_TASKS_SIZE_LIMIT
-	if overflow > 0 {
-		if len(products) == 1 {
-			// a single product having so many tasks that it overflows? Scenario not supported...let's submit and see what happens
-			return res, products, nil
-		}
-
-		// what percentage of products should we try? Roughly based on how much we have overflown. Guesstimate
-		//  and recurse until we get this right.
-		estimatedProducts := math.Max(float64(ARGO_TASKS_SIZE_LIMIT)/float64(len(b))*float64(len(products)), 1)
-		offsetBy1orAtleast1 := math.Max(float64(len(products)-1), 1)
-		desiredNumProducts := int(math.Min(estimatedProducts, offsetBy1orAtleast1))
-		return s.getDAGTasksForProductStage(session, products[0:desiredNumProducts], stageInfo, prevStepsCompleted, templateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
-	} else {
-		return res, products, nil
-	}
+	return res, retProducts, nil
 }
 
 func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, message string) {
