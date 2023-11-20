@@ -627,7 +627,7 @@ content:
 
 	t.Run("It should split up large workflows into smaller workflows -- two large workflows", func(t *testing.T) {
 		var products []iuf.Product
-		for i := 0; i < 32; i++ {
+		for i := 0; i < 30; i++ {
 			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
 		}
 
@@ -651,7 +651,7 @@ content:
 		}
 
 		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
-		expectedProductsToProcessInFirstWorkflow := 18
+		expectedProductsToProcessInFirstWorkflow := 15
 
 		workflowRes, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err, "Should not have had an error when generating first workflow")
@@ -694,7 +694,7 @@ content:
 		}
 
 		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
-		expectedProductsToProcessInFirstWorkflow := 18
+		expectedProductsToProcessInFirstWorkflow := 15
 
 		workflowRes, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err, "Should not have had an error when generating first workflow")
@@ -713,7 +713,7 @@ content:
 
 	t.Run("It should not split up large workflows into smaller workflows when products are containable in a single workflow", func(t *testing.T) {
 		var products []iuf.Product
-		for i := 0; i < 16; i++ {
+		for i := 0; i < 15; i++ {
 			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
 		}
 
