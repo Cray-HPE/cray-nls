@@ -43,7 +43,7 @@ import (
 	"strings"
 )
 
-const ARGO_TASKS_SIZE_LIMIT = 120
+const ARGO_TASKS_SIZE_LIMIT = 15 // for debug purposes
 const LABEL_PRODUCT_PREFIX = "product_"
 const LABEL_PARTIAL_WORKFLOW = "partial_workflow"
 
