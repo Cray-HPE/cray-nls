@@ -264,10 +264,14 @@ func (s iufService) CreateIufWorkflow(session *iuf.Session) (retWorkflow *v1alph
 
 // RunNextPartialWorkflow Runs another workflow for the same stage with the remaining set of products.
 func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool) {
+	s.logger.Infof("RunNextPartialWorkflow.1: About to run the next partial workflow for session %s in activity %s", session.Name, session.ActivityRef)
+
 	// need to figure out what products are remaining
 	remainingProducts := s.getRemainingProducts(session)
 
 	if len(remainingProducts) == 0 {
+		s.logger.Infof("RunNextPartialWorkflow.2: Could not find any remaining products for session %s in activity %s, hence will try to proceed to next stage", session.Name, session.ActivityRef)
+
 		// if we don't have any products that are remaining, we have a decision to make. Either proceed to the next stage,
 		//  or put the session into DEBUG state. We will only proceed to the next stage if all partial workflows have been
 		//  successful. And we will put the session into DEBUG state if any of the workflows had failed or had errors.
@@ -282,8 +286,11 @@ func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.S
 		}
 
 		if allWorkflowsSuccessful {
+			s.logger.Infof("RunNextPartialWorkflow.3: After no remaining products were found, since all partial workflows for this session %s in activity %s have completed successfully, going to next stage if possible.", session.Name, session.ActivityRef)
 			return s.RunNextStage(session)
 		}
+
+		s.logger.Infof("RunNextPartialWorkflow.4: After no remaining products were found, since some partial workflow(s) for this session %s in activity %s were not completed successfully, putting session into DEBUG.", session.Name, session.ActivityRef)
 
 		// other workflow(s) have been unsuccessful, so we'll have to mark this as being DEBUG state
 		session.CurrentState = iuf.SessionStateDebug
@@ -298,6 +305,8 @@ func (s iufService) RunNextPartialWorkflow(session *iuf.Session) (response iuf.S
 
 		return response, nil, true
 	}
+
+	s.logger.Infof("RunNextPartialWorkflow.5: Found %#v remaining products for session %s in activity %s, hence will try to run the next partial workflow", len(remainingProducts), session.Name, session.ActivityRef)
 
 	// the run stage will automatically pick up the remaining products.
 	return s.RunStage(session, session.CurrentStage)
@@ -429,7 +438,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		s.logger.Error(err)
 		return err
 	}
-	switch workflow.Labels["stage_type"] {
+	switch workflow.ObjectMeta.Labels["stage_type"] {
 	case "product":
 		// first generate a map of all productKeys to Products
 		productKeyMap := map[string]iuf.Product{}
@@ -472,7 +481,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 		}
 	case "global":
 		// special handling of process media
-		if workflow.Labels["stage"] == "process-media" {
+		if workflow.ObjectMeta.Labels["stage"] == "process-media" {
 			err := s.processOutputOfProcessMedia(&activity, workflow)
 			if err != nil {
 				s.logger.Error(err)
@@ -513,7 +522,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 			}
 		}
 	default:
-		return fmt.Errorf("stage_type: %s is not supported", workflow.Labels["stage_type"])
+		return fmt.Errorf("stage_type: %s is not supported", workflow.ObjectMeta.Labels["stage_type"])
 	}
 
 }
