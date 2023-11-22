@@ -30,6 +30,7 @@ import (
 	"fmt"
 	services_iuf "github.com/Cray-HPE/cray-nls/src/api/services/iuf"
 	"net/http"
+	"time"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -102,6 +103,73 @@ func (u IufController) Sync(context *gin.Context) {
 		context.JSON(500, utils.ResponseError{Message: err.Error()})
 		return
 	}
+
+	// this is a poor-man's distributed lock. Unfortunately, in the absence of proper distributed caching, we are going
+	//  to have to make do with locking using the state of the session. But note that session is stored in etcd, which
+	//  is eventually consistent :\
+	if session.CurrentState == iuf.SessionStateTransitioning {
+		// we are already transitioning. Let's wait and try again in case the other pod/thread has died.
+		response := iuf.SyncResponse{
+			ResyncAfterSeconds: 60,
+		}
+		context.JSON(200, response)
+		return
+	} else if session.CurrentState == iuf.SessionStateInProgress {
+		u.logger.Infof("Sync.2: Setting session %s of activity %s to transitioning to prevent reentrants.", sessionName, session.ActivityRef)
+		session.CurrentState = iuf.SessionStateTransitioning
+		err := u.iufService.UpdateSession(session)
+		if err != nil {
+			u.logger.Infof("Sync.2: Could not set session %s of activity %s to transitioning to prevent reentrants. %#v", sessionName, session.ActivityRef, err)
+
+			// try to reset it and try again
+			session.CurrentState = iuf.SessionStateInProgress
+			u.iufService.UpdateSession(session)
+
+			response := iuf.SyncResponse{
+				ResyncAfterSeconds: 60,
+			}
+			context.JSON(200, response)
+			return
+		}
+
+		// wait until the session is set to transitioning before proceeding further
+		tries := 0
+		for isStateTransitioning := false; isStateTransitioning == false && tries < 5; {
+			time.Sleep(2 * time.Second)
+			tries++
+			session, err = u.iufService.GetSession(sessionName)
+			isStateTransitioning = err == nil && session.CurrentState == iuf.SessionStateTransitioning
+		}
+
+		// if the session is still not set to transitioning, then give up
+		if session.CurrentState != iuf.SessionStateTransitioning {
+			u.logger.Infof("Sync.2: Giving up on trying to set session %s of activity %s to transitioning to prevent reentrants. %#v", sessionName, session.ActivityRef, err)
+			response := iuf.SyncResponse{
+				ResyncAfterSeconds: 60,
+			}
+			context.JSON(200, response)
+			return
+		}
+
+		// reset to anything but transitioning at the end.
+		defer func() {
+			session, err = u.iufService.GetSession(sessionName)
+			if err != nil {
+				u.logger.Errorf("Sync.defer.1: An error occurred getting session %s: %v", sessionName, err)
+				return
+			}
+
+			if session.CurrentState == iuf.SessionStateTransitioning {
+				// if no one changed the session state, then by default we assume in progress because that's what we started with
+				session.CurrentState = iuf.SessionStateInProgress
+				err := u.iufService.UpdateSession(session)
+				if err != nil {
+					u.logger.Infof("Sync.defer.2: Could not set session %s of activity %s to back to in_progress at the end. %#v", sessionName, session.ActivityRef, err)
+				}
+			}
+		}()
+	}
+
 	err = u.iufService.SyncWorkflowsToSession(&session)
 	if err != nil {
 		u.logger.Warnf("Sync.3: State is empty, creating workflow: %s, resource version: %s, session: %s, activity: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
@@ -236,24 +304,11 @@ func (u IufController) Sync(context *gin.Context) {
 func (u IufController) doProcessOutputs(workflow *v1alpha1.Workflow, session *iuf.Session, requestBody iuf.SyncRequest, sessionName string) {
 	u.logger.Infof("doProcessOutputs: About to process outputs for workflow: %s, resource version: %s, session: %s, activity: %s", workflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 
-	u.logger.Infof("doProcessOutputs: Setting session %s of activity %s to transitioning to prevent reentrants.", sessionName, session.ActivityRef)
-
-	// this procedure may take a long time and we may get called again. So in the meantime, let's set the session
-	//  state to transitioning
-	session.CurrentState = iuf.SessionStateTransitioning
-	u.iufService.UpdateSession(*session)
-
 	err := u.iufService.ProcessOutput(session, workflow)
 	if err != nil {
 		u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", workflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
 		// do not return error, just continue because process output should not re-attempt stage.
 	}
-
-	u.logger.Infof("doProcessOutputs: Restoring session %s of activity %s to in progress.", sessionName, session.ActivityRef)
-
-	// reset the state as we are done processing the output
-	session.CurrentState = iuf.SessionStateInProgress
-	u.iufService.UpdateSession(*session)
 }
 
 func (u IufController) restartCurrentStageFromSyncCall(context *gin.Context, session iuf.Session, requestBody iuf.SyncRequest, response iuf.SyncResponse) {
