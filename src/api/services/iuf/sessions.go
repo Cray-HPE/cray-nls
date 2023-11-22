@@ -387,20 +387,6 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 		return iuf.SyncResponse{}, nil, false
 	}
 
-	// workflow generation may take a long time, such that we may get called again because of metacontroller timeout.
-	//  To protect against that, let's use the transitioning state as a cheap mutex
-	if session.CurrentState == iuf.SessionStateTransitioning {
-		// we are already transitioning. Let's wait and try again in case the other pod/thread has died.
-		response := iuf.SyncResponse{
-			ResyncAfterSeconds: 60,
-		}
-		return response, nil, false
-	} else {
-		session.CurrentState = iuf.SessionStateTransitioning
-		s.UpdateSession(*session)
-		// fall below...the next thing we will do is set this in progress and only save it once we have created the workflow
-	}
-
 	session.CurrentStage = stageToRun
 	session.CurrentState = iuf.SessionStateInProgress
 

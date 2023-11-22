@@ -651,7 +651,7 @@ content:
 		}
 
 		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
-		expectedProductsToProcessInFirstWorkflow := 1
+		expectedProductsToProcessInFirstWorkflow := 15
 
 		workflowRes, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err, "Should not have had an error when generating first workflow")
@@ -661,11 +661,11 @@ content:
 		assert.Equal(t, expectedProductsToProcessInFirstWorkflow*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
 
 		// now let's try to get the next set of tasks
-		//workflowRes, err, _ = iufSvc.workflowGen(&session)
-		//assert.NoError(t, err, "Should not have had an error when generating second workflow")
-		//assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
-		//assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
-		//assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
+		workflowRes, err, _ = iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating second workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
+		assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
+		assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
 	})
 
 	t.Run("It should split up large workflows into smaller workflows -- one large workflow and one small", func(t *testing.T) {
@@ -694,7 +694,7 @@ content:
 		}
 
 		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
-		expectedProductsToProcessInFirstWorkflow := 1
+		expectedProductsToProcessInFirstWorkflow := 15
 
 		workflowRes, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err, "Should not have had an error when generating first workflow")
@@ -704,16 +704,16 @@ content:
 		assert.Equal(t, expectedProductsToProcessInFirstWorkflow*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
 
 		// now let's try to get the next set of tasks
-		//workflowRes, err, _ = iufSvc.workflowGen(&session)
-		//assert.NoError(t, err, "Should not have had an error when generating second workflow")
-		//assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
-		//assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
-		//assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
+		workflowRes, err, _ = iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating second workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
+		assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
+		assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
 	})
 
 	t.Run("It should not split up large workflows into smaller workflows when products are containable in a single workflow", func(t *testing.T) {
 		var products []iuf.Product
-		for i := 0; i < 1; i++ {
+		for i := 0; i < 15; i++ {
 			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
 		}
 
