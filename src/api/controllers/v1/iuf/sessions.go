@@ -125,6 +125,8 @@ func (u IufController) Sync(context *gin.Context) {
 			return
 		}
 
+		u.logger.Infof("Sync: Going to sync with the workflow %s for session %s in activity %s. Also, .ObjectMeta.Labels: %#v, .Labels: %#v", activeWorkflow.Name, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
+
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning || activeWorkflow.Status.Phase == v1alpha1.WorkflowPending {
 			u.logger.Infof("Sync: Workflow %s is still running for session %s in activity %s", activeWorkflow.Name, sessionName, session.ActivityRef)
 			response = iuf.SyncResponse{
@@ -147,7 +149,7 @@ func (u IufController) Sync(context *gin.Context) {
 			var response iuf.SyncResponse
 
 			// if this was a partial workflow, let the processing for partial workflow do the work
-			if activeWorkflow.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
+			if activeWorkflow.ObjectMeta.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
 				u.logger.Infof("Sync: Stage: %s has a partial workflow that failed, moving on to the remaining products in the next workflow. Workflow failed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 				response, err, _ = u.iufService.RunNextPartialWorkflow(&session)
 				if err != nil {
@@ -158,6 +160,7 @@ func (u IufController) Sync(context *gin.Context) {
 					return
 				}
 			} else {
+				u.logger.Infof("Sync: Stage: %s a workflow that failed, and since it was not a partial workflow, setting the session state to DEBUG. Workflow failed: %s, resource version: %s, session: %s, activity: %s, .ObjectMeta.Labels: %#v, .Labels: %#v", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
 				session.CurrentState = iuf.SessionStateDebug
 				err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Failed workflow %s", activeWorkflow.Name))
 				if err != nil {
@@ -178,7 +181,7 @@ func (u IufController) Sync(context *gin.Context) {
 			currentStage := session.CurrentStage
 			var response iuf.SyncResponse
 
-			if activeWorkflow.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
+			if activeWorkflow.ObjectMeta.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
 				u.logger.Infof("Sync: Stage: %s has a partial workflow that succeeded, moving on to the remaining products in the next workflow. Workflow completed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 				response, err, _ = u.iufService.RunNextPartialWorkflow(&session)
 				if err != nil {
