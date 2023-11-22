@@ -398,6 +398,11 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 	workflow, err, skipStage := s.CreateIufWorkflow(session)
 	if err != nil {
 		s.logger.Error(err)
+
+		session.CurrentState = iuf.SessionStateDebug
+		s.logger.Infof("Update session: %v", session)
+		err = s.UpdateSessionAndActivity(*session, fmt.Sprintf("Error in creating workflow %s", err))
+
 		return iuf.SyncResponse{}, err, skipStage
 	} else if !skipStage {
 		s.logger.Infof("workflow: %s has been created", workflow.Name)

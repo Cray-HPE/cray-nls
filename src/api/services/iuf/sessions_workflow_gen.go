@@ -43,7 +43,7 @@ import (
 	"strings"
 )
 
-const ARGO_TASKS_SIZE_LIMIT = 15 // for debug purposes
+const ARGO_TASKS_SIZE_LIMIT = 120
 const LABEL_PRODUCT_PREFIX = "product_"
 const LABEL_PARTIAL_WORKFLOW = "partial_workflow"
 
@@ -475,8 +475,8 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session,
 	//  such, we will start with empirically what does work safely (15 products * 10 operations)
 	maxProducts := len(products)
 	if maxProducts*len(stageInfo.Operations) > ARGO_TASKS_SIZE_LIMIT {
-		s.logger.Infof("Received %s products, but limiting to %s products", len(products), maxProducts)
 		maxProducts = int(ARGO_TASKS_SIZE_LIMIT / len(stageInfo.Operations))
+		s.logger.Infof("Received %s products, but limiting to %s products", len(products), maxProducts)
 	}
 
 	for i := 0; i < maxProducts; i++ {

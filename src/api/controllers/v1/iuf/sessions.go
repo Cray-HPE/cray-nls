@@ -136,19 +136,7 @@ func (u IufController) Sync(context *gin.Context) {
 			u.logger.Infof("Sync: Workflow is in failed/error state. Workflow: %s, resource version: %s, session: %s, activity: %s", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 
 			// still extract the outputs from the successful steps so that if we restart we can skip over those steps.
-			err := u.iufService.ProcessOutput(&session, activeWorkflow)
-			if err != nil {
-				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				// do not return error, just continue because process output should not re-attempt stage.
-			}
-
-			// refresh the session just before we take action on this
-			session, err := u.iufService.GetSession(sessionName)
-			if err != nil {
-				u.logger.Errorf("Sync: An error occurred refreshing the session. Workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				context.JSON(500, utils.ResponseError{Message: err.Error()})
-				return
-			}
+			u.doProcessOutputs(activeWorkflow, &session, requestBody, sessionName)
 
 			// don't do anything if session has already been aborted.
 			if session.CurrentState == iuf.SessionStateAborted {
@@ -184,20 +172,7 @@ func (u IufController) Sync(context *gin.Context) {
 			context.JSON(200, response)
 			return
 		} else if activeWorkflow.Status.Phase == v1alpha1.WorkflowSucceeded {
-			// this procedure may take a long time and we may get called again. So in the meantime, let's set the session
-			//  state to transitioning
-			session.CurrentState = iuf.SessionStateTransitioning
-			u.iufService.UpdateSession(session)
-
-			err := u.iufService.ProcessOutput(&session, activeWorkflow)
-			if err != nil {
-				u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
-				// do not return error, just continue because process output should not re-attempt stage.
-			}
-
-			// reset the state as we are done processing the output
-			session.CurrentState = iuf.SessionStateInProgress
-			u.iufService.UpdateSession(session)
+			u.doProcessOutputs(activeWorkflow, &session, requestBody, sessionName)
 
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage
@@ -252,6 +227,30 @@ func (u IufController) Sync(context *gin.Context) {
 	// why did we end up here? Golang really needs better static analysis.
 	context.JSON(500, utils.ResponseError{Message: "Sync: Unknown code path. Shouldn't have landed here."})
 	return
+}
+
+// Processes the outputs of the given workflow.
+func (u IufController) doProcessOutputs(workflow *v1alpha1.Workflow, session *iuf.Session, requestBody iuf.SyncRequest, sessionName string) {
+	u.logger.Infof("doProcessOutputs: About to process outputs for workflow: %s, resource version: %s, session: %s, activity: %s", workflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
+
+	u.logger.Infof("doProcessOutputs: Setting session %s of activity %s to transitioning to prevent reentrants.", sessionName, session.ActivityRef)
+
+	// this procedure may take a long time and we may get called again. So in the meantime, let's set the session
+	//  state to transitioning
+	session.CurrentState = iuf.SessionStateTransitioning
+	u.iufService.UpdateSession(*session)
+
+	err := u.iufService.ProcessOutput(session, workflow)
+	if err != nil {
+		u.logger.Errorf("Sync: An error occurred processing the output for the workflow: %s, resource version: %s, session: %s, activity: %s, error: %v", workflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, err)
+		// do not return error, just continue because process output should not re-attempt stage.
+	}
+
+	u.logger.Infof("doProcessOutputs: Restoring session %s of activity %s to in progress.", sessionName, session.ActivityRef)
+
+	// reset the state as we are done processing the output
+	session.CurrentState = iuf.SessionStateInProgress
+	u.iufService.UpdateSession(*session)
 }
 
 func (u IufController) restartCurrentStageFromSyncCall(context *gin.Context, session iuf.Session, requestBody iuf.SyncRequest, response iuf.SyncResponse) {
