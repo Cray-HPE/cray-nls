@@ -114,10 +114,29 @@ func (u IufController) Sync(context *gin.Context) {
 		}
 		context.JSON(200, response)
 		return
-	} else if session.CurrentState == iuf.SessionStateInProgress {
+	} else if session.CurrentState == iuf.SessionStateInProgress || session.CurrentState == "" {
 		u.logger.Infof("Sync.2: Setting session %s of activity %s to transitioning to prevent reentrants.", sessionName, session.ActivityRef)
 		session.CurrentState = iuf.SessionStateTransitioning
 		err := u.iufService.UpdateSession(session)
+
+		// reset to anything but transitioning at the end.
+		defer func() {
+			session, err := u.iufService.GetSession(sessionName)
+			if err != nil {
+				u.logger.Errorf("Sync.defer.1: An error occurred getting session %s: %v", sessionName, err)
+				return
+			}
+
+			if session.CurrentState == iuf.SessionStateTransitioning {
+				// if no one changed the session state, then by default we assume in progress because that's what we started with
+				session.CurrentState = iuf.SessionStateInProgress
+				err := u.iufService.UpdateSession(session)
+				if err != nil {
+					u.logger.Infof("Sync.defer.2: Could not set session %s of activity %s to back to in_progress at the end. %#v", sessionName, session.ActivityRef, err)
+				}
+			}
+		}()
+
 		if err != nil {
 			u.logger.Infof("Sync.2: Could not set session %s of activity %s to transitioning to prevent reentrants. %#v", sessionName, session.ActivityRef, err)
 
@@ -150,24 +169,6 @@ func (u IufController) Sync(context *gin.Context) {
 			context.JSON(200, response)
 			return
 		}
-
-		// reset to anything but transitioning at the end.
-		defer func() {
-			session, err = u.iufService.GetSession(sessionName)
-			if err != nil {
-				u.logger.Errorf("Sync.defer.1: An error occurred getting session %s: %v", sessionName, err)
-				return
-			}
-
-			if session.CurrentState == iuf.SessionStateTransitioning {
-				// if no one changed the session state, then by default we assume in progress because that's what we started with
-				session.CurrentState = iuf.SessionStateInProgress
-				err := u.iufService.UpdateSession(session)
-				if err != nil {
-					u.logger.Infof("Sync.defer.2: Could not set session %s of activity %s to back to in_progress at the end. %#v", sessionName, session.ActivityRef, err)
-				}
-			}
-		}()
 	}
 
 	err = u.iufService.SyncWorkflowsToSession(&session)
