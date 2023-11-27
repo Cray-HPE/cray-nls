@@ -43,7 +43,11 @@ import (
 	"strings"
 )
 
-func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
+const ARGO_TASKS_SIZE_LIMIT = 120
+const LABEL_PRODUCT_PREFIX = "product_"
+const LABEL_PARTIAL_WORKFLOW = "partial_workflow"
+
+func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflow, err error, skipStage bool) {
 	stageName := session.CurrentStage
 	if stageName == "" {
 		noStageError := utils.GenericError{Message: "No current stage to run."}
@@ -71,13 +75,14 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	//  https://github.com/kubernetes/kubernetes/blob/b0b7a323cc5a4a2019b2e9520c21c7830b7f708e/staging/src/k8s.io/apiserver/pkg/storage/names/generate.go#L50
 	res.GenerateName = session.Name + "-" + stageName + "-"
 
-	res.ObjectMeta.Labels = map[string]string{
+	labels := map[string]string{
 		"session":    session.Name,
 		"activity":   session.ActivityRef,
 		"stage":      stageMetadata.Name,
 		"stage_type": stageMetadata.Type,
 		"iuf":        "true",
 	}
+
 	res.Spec.PodMetadata = &v1alpha1.Metadata{
 		Labels: map[string]string{
 			"iuf":      "true",
@@ -178,7 +183,7 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	res.Spec.Entrypoint = "main"
 
 	// global stages have product-less global parameters.
-	globalParams := s.getGlobalParams(session, iuf.Product{}, stagesMetadata)
+	globalParams := s.getGlobalParams(*session, iuf.Product{}, stagesMetadata)
 	globalParamsContent, err := json.Marshal(globalParams)
 	if err != nil {
 		marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not marshal globalParams %v %v", globalParams, err)}
@@ -193,7 +198,7 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	globalParamsPerProduct := map[string]string{}
 	globalParamsNamesPerProduct := map[string]string{}
 	for _, product := range session.Products {
-		productGlobalParams := s.getGlobalParams(session, product, stagesMetadata)
+		productGlobalParams := s.getGlobalParams(*session, product, stagesMetadata)
 		b, err := json.Marshal(productGlobalParams)
 		if err != nil {
 			marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not marshal globalParams %v %v", productGlobalParams, err)}
@@ -214,7 +219,7 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 	}
 	const authTokenName = "auth_token"
 
-	dagTasks, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName)
+	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName)
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err, false
@@ -222,6 +227,34 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 		s.logger.Infof("No DAG tasks for stage %s in session %s, skipping this stage.", stageName, session.Name)
 		return v1alpha1.Workflow{}, nil, true
 	}
+
+	// Encode products into the labels. This is helpful in tracking what products were composed for each stage.
+	for _, product := range products {
+		key := LABEL_PRODUCT_PREFIX + product.Name
+		value := product.Version
+		labels[key] = value
+	}
+
+	if len(products) != len(session.Products) {
+		labels[LABEL_PARTIAL_WORKFLOW] = "true"
+
+		// update the set of products in the session. Note that the session is a pointer, so this eventually gets saved.
+		if session.ProcessedProductsByStage == nil {
+			session.ProcessedProductsByStage = make(map[string]map[string]bool)
+		}
+
+		processedProducts := session.ProcessedProductsByStage[session.CurrentStage]
+		if processedProducts == nil {
+			processedProducts = make(map[string]bool)
+		}
+
+		for _, product := range products {
+			processedProducts[s.getProductVersionKey(product)] = true
+		}
+		session.ProcessedProductsByStage[session.CurrentStage] = processedProducts
+	}
+
+	res.ObjectMeta.Labels = labels
 
 	failFast := false
 
@@ -262,9 +295,9 @@ func (s iufService) workflowGen(session iuf.Session) (workflow v1alpha1.Workflow
 }
 
 // Gets DAG tasks for the given session and stage
-func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
+func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameGlobalParamsForGlobalStage string,
-	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, error) {
+	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, []iuf.Product, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
 	s.logger.Infof("getDAGTasks: create workflow DAG for stage %s in session %s in activity %s", stage, session.Name, session.ActivityRef)
@@ -275,7 +308,7 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 	}
 	templates, err := s.workflowTemplateClient.ListWorkflowTemplates(context.TODO(), &listTemplates)
 	if err != nil {
-		return res, err
+		return res, nil, err
 	}
 	var existingArgoUploadedTemplateMap = map[string]bool{}
 
@@ -411,31 +444,44 @@ func (s iufService) getDAGTasks(session iuf.Session, stageInfo iuf.Stage, stages
 		s.logger.Infof("getDAGTasks: For session %s in activity %s, when generating a DAG for stage %s, not attempting to skip previously successful operations because force=%v and stage-type=%s", session.Name, session.ActivityRef, stage, session.InputParameters.Force, stageInfo.Type)
 	}
 
-	preSteps, postSteps := s.getProductHookTasks(session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
+	preSteps, postSteps := s.getProductHookTasks(*session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		res = s.getDAGTasksForProductStage(session, stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, res)
+		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 	} else {
-		 return s.getDAGTasksForGlobalStage(session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, res)
+		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken)
+		return res, session.Products, err
 	}
-
-	return res, nil
 }
 
 // Gets the DAG tasks for a product stage
-func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iuf.Stage,
+func (s iufService) getDAGTasksForProductStage(session iuf.Session,
+	products []iuf.Product,
+	stageInfo iuf.Stage,
 	prevStepsCompleted map[string]map[string]string,
 	templateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string,
-	res []v1alpha1.DAGTask) []v1alpha1.DAGTask {
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (res []v1alpha1.DAGTask, retProducts []iuf.Product, err error) {
 
 	var resPtrs []*v1alpha1.DAGTask
 
 	// this map is to deal with the stageInfo.ProcessProductVariantsSequentially (see docs for that attribute)
 	lastOpNamePerProductName := map[string]string{}
 
-	for _, product := range session.Products {
+	// Here we handle the etcd size limit on resources. Recall that an Argo template is really an etcd resource, and
+	//  is constrained to ~1mb. So we have to figure out if the tasks that we are about to submit will go beyond that.
+	//  Unfortunately, this is not as straight-forward as `len(json_serialize(tasks)) > 1mb`, because when these tasks
+	//  are instantiated into a Workflow, they will carry some metadata (e.g. inputs, outputs, schedule metadata). As
+	//  such, we will start with empirically what does work safely (15 products * 10 operations)
+	maxProducts := len(products)
+	if maxProducts*len(stageInfo.Operations) > ARGO_TASKS_SIZE_LIMIT {
+		maxProducts = int(ARGO_TASKS_SIZE_LIMIT / len(stageInfo.Operations))
+		s.logger.Infof("Received %s products, but limiting to %s products", len(products), maxProducts)
+	}
+
+	for i := 0; i < maxProducts; i++ {
+		product := products[i]
+		retProducts = append(retProducts, product)
 		// the initial dependency is the name of the hook script for that product, if any.
 		productKey := s.getProductVersionKey(product)
 		preStageHook, exists := preSteps[productKey]
@@ -564,7 +610,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session, stageInfo iu
 		res = append(res, *step)
 	}
 
-	return res
+	return res, retProducts, nil
 }
 
 func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, message string) {
@@ -595,7 +641,7 @@ func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, messag
 func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	existingArgoUploadedTemplateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, res []v1alpha1.DAGTask) ([]v1alpha1.DAGTask, error) {
+	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string) (res []v1alpha1.DAGTask, err error) {
 
 	var lastOpDependencies []string
 
@@ -677,9 +723,9 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 		return "", err
 	}
 	workflowNames := map[string]string{
-		"worker":	"management-worker-nodes-rollout",
-		"storage":	"management-storage-nodes-rollout",
-		"master":	"management-two-master-nodes-rollout",
+		"worker":  "management-worker-nodes-rollout",
+		"storage": "management-storage-nodes-rollout",
+		"master":  "management-two-master-nodes-rollout",
 	}
 	return workflowNames[workFlowType], nil
 }

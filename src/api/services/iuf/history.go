@@ -230,7 +230,8 @@ func (s iufService) HistoryAbortAction(activityName string, req iuf.HistoryAbort
 }
 
 // Check whether the workflows associated with the session / activity is abortable. Returns all the workflows related to
-//  the session/activity irrespective.
+//
+//	the session/activity irrespective.
 func (s iufService) isSessionAbortable(session iuf.Session) (bool, *v1alpha1.WorkflowList, error) {
 	isAbortable := session.CurrentState != iuf.SessionStateCompleted && session.CurrentState != iuf.SessionStateAborted
 
@@ -325,7 +326,7 @@ func (s iufService) HistoryResumeAction(activityName string, req iuf.HistoryActi
 		err := utils.GenericError{Message: fmt.Sprintf("HistoryResumeAction.3: The session %s in activity %s cannot be resumed because it is either Completed or Aborted. Try restarting or running a new session.", session.Name, activityName)}
 		s.logger.Error(err)
 		return session, err
-	} else if session.CurrentState == iuf.SessionStateTransitioning {
+	} else if s.IsSessionLocked(session) {
 		// do nothing, we don't want to overlap when the session is transitioning to the next stage.
 		return session, err
 	} else {
