@@ -32,6 +32,7 @@ import (
 	"fmt"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	core_v1 "k8s.io/api/core/v1"
 	"sort"
 	"strings"
 	"time"
@@ -136,6 +137,63 @@ func (s iufService) UpdateSessionAndActivity(session iuf.Session, comment string
 	}
 
 	return nil
+}
+
+// IsSessionLocked is the session locked by another worker? See LockSession
+func (s iufService) IsSessionLocked(session iuf.Session) bool {
+	lockName := session.Name + "-lock"
+	_, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Get(context.TODO(), lockName, v1.GetOptions{})
+
+	return err == nil
+}
+
+// LockSession this is a poor-man's distributed lock. Unfortunately, in the absence of proper distributed caching or some
+//
+//	transactional database, we are going to have to make do with locking using configmaps.
+//	But note that the configmap is stored in etcd, which is eventually consistent :\
+func (s iufService) LockSession(session iuf.Session) bool {
+	if s.IsSessionLocked(session) {
+		return false
+	}
+
+	configmap := core_v1.ConfigMap{
+		ObjectMeta: v1.ObjectMeta{
+			Name: session.Name + "-lock",
+			Labels: map[string]string{
+				"type": LABEL_SESSION_LOCK,
+			},
+		},
+		Data: map[string]string{LABEL_SESSION_LOCK: "true"},
+	}
+
+	_, err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Create(context.TODO(), &configmap, v1.CreateOptions{})
+
+	if err != nil {
+		s.logger.Errorf("LockSession.1: error while creating a lock configmap resource %s %s in activity %s: %v", configmap.Name, session.Name, session.ActivityRef, err)
+		return false
+	} else {
+		return true
+	}
+}
+
+// UnlockSession unlocks the session. See LockSession
+func (s iufService) UnlockSession(session iuf.Session) {
+	lockName := session.Name + "-lock"
+	err := s.k8sRestClientSet.
+		CoreV1().
+		ConfigMaps(DEFAULT_NAMESPACE).
+		Delete(context.TODO(), lockName, v1.DeleteOptions{})
+
+	if err != nil {
+		s.logger.Errorf("UnlockSession.1: error while deleting a lock configmap resource %s %s in activity %s: %v", lockName, session.Name, session.ActivityRef, err)
+		return
+	}
 }
 
 func (s iufService) UpdateSession(session iuf.Session) error {

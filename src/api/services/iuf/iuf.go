@@ -47,6 +47,7 @@ const (
 	LABEL_ACTIVITY     = "iuf_activity"
 	LABEL_HISTORY      = "iuf_history"
 	LABEL_SESSION      = "iuf_session"
+	LABEL_SESSION_LOCK = "iuf_session_lock"
 	LABEL_ACTIVITY_REF = "iuf_activity_ref"
 )
 
@@ -76,6 +77,9 @@ type IufService interface {
 	UpdateActivityStateFromSessionState(session iuf.Session, comment string) error
 	UpdateSession(session iuf.Session) error
 	UpdateSessionAndActivity(session iuf.Session, comment string) error
+	IsSessionLocked(session iuf.Session) bool
+	LockSession(session iuf.Session) bool
+	UnlockSession(session iuf.Session)
 	CreateIufWorkflow(req *iuf.Session) (retWorkflow *v1alpha1.Workflow, err error, skipStage bool)
 	RunNextPartialWorkflow(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
 	RunNextStage(session *iuf.Session) (response iuf.SyncResponse, err error, sessionCompleted bool)
