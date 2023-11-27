@@ -106,19 +106,19 @@ func (u IufController) Sync(context *gin.Context) {
 	sessionLocked := u.iufService.LockSession(session)
 
 	if !sessionLocked {
-		// Another working is working on it. Let's wait and try again in case the other pod/thread has died.
-		u.logger.Infof("Sync.lock.1: Session %s of activity %s is already locked to prevent reentrants.", sessionName, session.ActivityRef)
+		// Another worker is working on it. Let's wait and try again in case the other pod/thread has died.
+		u.logger.Debugf("Sync.lock.1: Session %s of activity %s is already locked to prevent reentrants.", sessionName, session.ActivityRef)
 		response := iuf.SyncResponse{
 			ResyncAfterSeconds: 60,
 		}
 		context.JSON(200, response)
 		return
 	} else {
-		u.logger.Infof("Sync.lock.2: Session %s of activity %s is now locked to prevent reentrants.", sessionName, session.ActivityRef)
+		u.logger.Debugf("Sync.lock.2: Session %s of activity %s is now locked to prevent reentrants.", sessionName, session.ActivityRef)
 
 		// reset to anything but transitioning at the end.
 		defer func() {
-			u.logger.Infof("Sync.lock.3: Trying to unlock session %s of activity %s.", sessionName, session.ActivityRef)
+			u.logger.Debugf("Sync.lock.3: Trying to unlock session %s of activity %s.", sessionName, session.ActivityRef)
 			u.iufService.UnlockSession(session)
 		}()
 	}
@@ -146,10 +146,10 @@ func (u IufController) Sync(context *gin.Context) {
 			return
 		}
 
-		u.logger.Infof("Sync: Going to sync with the workflow %s for session %s in activity %s. Also, .ObjectMeta.Labels: %#v, .Labels: %#v", activeWorkflow.Name, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
+		u.logger.Debugf("Sync: Going to sync with the workflow %s for session %s in activity %s. Also, .ObjectMeta.Labels: %#v, .Labels: %#v", activeWorkflow.Name, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
 
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning || activeWorkflow.Status.Phase == v1alpha1.WorkflowPending {
-			u.logger.Infof("Sync: Workflow %s is still running for session %s in activity %s", activeWorkflow.Name, sessionName, session.ActivityRef)
+			u.logger.Debugf("Sync: Workflow %s is still running for session %s in activity %s", activeWorkflow.Name, sessionName, session.ActivityRef)
 			response = iuf.SyncResponse{
 				ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
 			}

@@ -191,8 +191,9 @@ func (s iufService) UnlockSession(session iuf.Session) {
 		Delete(context.TODO(), lockName, v1.DeleteOptions{})
 
 	if err != nil {
-		s.logger.Errorf("UnlockSession.1: error while deleting a lock configmap resource %s %s in activity %s: %v", lockName, session.Name, session.ActivityRef, err)
-		return
+		s.logger.Errorf("UnlockSession.1: error while deleting a lock configmap resource %s for session %s in activity %s: %v", lockName, session.Name, session.ActivityRef, err)
+	} else {
+		s.logger.Debugf("UnlockSession.2: Successfully deleted the lock configmap resource %s for session %s in activity %s: %v", lockName, session.Name, session.ActivityRef, err)
 	}
 }
 
