@@ -121,6 +121,7 @@ func (u IufController) Sync(context *gin.Context) {
 
 		// reset to anything but transitioning at the end.
 		defer func() {
+			u.logger.Infof("Sync.2: Trying to set session %s of activity %s out of transitioning to prevent reentrants.", sessionName, session.ActivityRef)
 			session, err := u.iufService.GetSession(sessionName)
 			if err != nil {
 				u.logger.Errorf("Sync.defer.1: An error occurred getting session %s: %v", sessionName, err)
@@ -128,12 +129,15 @@ func (u IufController) Sync(context *gin.Context) {
 			}
 
 			if session.CurrentState == iuf.SessionStateTransitioning {
+				u.logger.Infof("Sync.3: Session %s of activity %s is in transitioning state. Setting it to in progress to prevent reentrants.", sessionName, session.ActivityRef)
 				// if no one changed the session state, then by default we assume in progress because that's what we started with
 				session.CurrentState = iuf.SessionStateInProgress
 				err := u.iufService.UpdateSession(session)
 				if err != nil {
-					u.logger.Infof("Sync.defer.2: Could not set session %s of activity %s to back to in_progress at the end. %#v", sessionName, session.ActivityRef, err)
+					u.logger.Infof("Sync.defer.3.1: Could not set session %s of activity %s to back to in_progress at the end. %#v", sessionName, session.ActivityRef, err)
 				}
+			} else {
+				u.logger.Infof("Sync.4: Session %s of activity %s is not in transitioning state (%s). Not doing anything. Setting it to in progress to prevent reentrants.", sessionName, session.ActivityRef, session.CurrentState)
 			}
 		}()
 
