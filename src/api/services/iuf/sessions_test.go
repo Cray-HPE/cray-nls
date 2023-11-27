@@ -80,7 +80,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			k8sRestClientSet:       fakeClient,
 			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{
+		_, err, _ := workflowSvc.CreateIufWorkflow(&iuf.Session{
 			CurrentStage: "process-media",
 			InputParameters: iuf.InputParameters{
 				Stages: []string{"process-media"},
@@ -114,7 +114,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			k8sRestClientSet:       fakeClient,
 			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"unsupported_stage"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(&iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"unsupported_stage"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
@@ -143,7 +143,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			k8sRestClientSet:       fakeClient,
 			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./nowhere_to_be_found"},
 		}
-		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process-media"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(&iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"process-media"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package
@@ -171,7 +171,7 @@ func TestCreateIufWorkflow(t *testing.T) {
 			keycloakService:        keycloakServiceMock,
 			env:                    utils.Env{WorkerRebuildWorkflowFiles: "badname", IufInstallWorkflowFiles: "./_test_data_"},
 		}
-		_, err, _ := workflowSvc.CreateIufWorkflow(iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
+		_, err, _ := workflowSvc.CreateIufWorkflow(&iuf.Session{InputParameters: iuf.InputParameters{Stages: []string{"break_it"}}})
 
 		// we don't actually test the template render/upload
 		// this is tested in the render package

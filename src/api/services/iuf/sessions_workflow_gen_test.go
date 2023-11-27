@@ -29,6 +29,7 @@ import (
 	"fmt"
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
 	"github.com/golang/mock/gomock"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -65,7 +66,7 @@ func TestWorkflowGen(t *testing.T) {
 			ActivityRef: activityName,
 		}
 
-		workflow, err, _ := iufSvc.workflowGen(session)
+		workflow, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err)
 		assert.Equal(t, "ncn-m001", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
 	})
@@ -118,7 +119,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
@@ -143,7 +144,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -166,7 +167,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
@@ -192,7 +193,7 @@ func TestGetDagTasks(t *testing.T) {
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -242,7 +243,7 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 7, len(dagTasks))
@@ -361,7 +362,7 @@ func TestGetDagTasks(t *testing.T) {
 			},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
@@ -443,8 +444,8 @@ func TestGetDagTasks(t *testing.T) {
 	})
 	t.Run("It should get correct template for Management-nodes-rollout if worker hostname is provided", func(t *testing.T) {
 		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: activityName,
+			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef:     activityName,
 			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}},
 		}
 		stageInfo := iuf.Stage{
@@ -458,7 +459,7 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -467,8 +468,8 @@ func TestGetDagTasks(t *testing.T) {
 	})
 	t.Run("It should get correct template for Management-nodes-rollout if Storage HSM role_subrole is provided", func(t *testing.T) {
 		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: activityName,
+			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef:     activityName,
 			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"Management_Storage"}},
 		}
 		stageInfo := iuf.Stage{
@@ -482,7 +483,7 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -490,8 +491,8 @@ func TestGetDagTasks(t *testing.T) {
 	})
 	t.Run("It should get correct template for Management-nodes-rollout if worker hostname is provided", func(t *testing.T) {
 		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: activityName,
+			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef:     activityName,
 			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}},
 		}
 		stageInfo := iuf.Stage{
@@ -505,7 +506,7 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -514,8 +515,8 @@ func TestGetDagTasks(t *testing.T) {
 	})
 	t.Run("It should not get an error if --limit-management-rollout has an invalid input. Should still return echoTemplate.", func(t *testing.T) {
 		session := iuf.Session{
-			Products:    []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
-			ActivityRef: activityName,
+			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			ActivityRef:     activityName,
 			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-bad"}},
 		}
 		stageInfo := iuf.Stage{
@@ -529,7 +530,7 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NotEmpty(t, dagTasks)
 		assert.NoError(t, err)
 	})
@@ -595,7 +596,7 @@ content:
 			Stages: []iuf.Stage{stageInfo},
 		}
 
-		dagTasks, err := iufSvc.getDAGTasks(session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
@@ -622,6 +623,124 @@ content:
 		assert.True(t, strings.Contains(dagTasks[5].Name, "this-is-an-operation-2"))
 		assert.True(t, strings.Contains(dagTasks[5].Name, "product-C"))
 		assert.True(t, dagTasks[5].TemplateRef.Name == "this-is-an-operation-2")
+	})
+
+	t.Run("It should split up large workflows into smaller workflows -- two large workflows", func(t *testing.T) {
+		var products []iuf.Product
+		for i := 0; i < 30; i++ {
+			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
+		}
+
+		session := iuf.Session{
+			Products:     products,
+			ActivityRef:  activityName,
+			CurrentStage: "deliver-product",
+			InputParameters: iuf.InputParameters{
+				Force:  true,
+				Stages: []string{"deliver-product"},
+			},
+		}
+
+		numOperations := 2
+		stagesMetadata, err := iufSvc.GetStages()
+		for _, stage := range stagesMetadata.Stages {
+			if stage.Name == "deliver-product" {
+				numOperations = len(stage.Operations)
+				break
+			}
+		}
+
+		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
+		expectedProductsToProcessInFirstWorkflow := 15
+
+		workflowRes, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating first workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for first workflow")
+		assert.Equal(t, workflowRes.Labels[LABEL_PARTIAL_WORKFLOW], "true", "partial workflow expected")
+		assert.Equal(t, expectedProductsToProcessInFirstWorkflow, len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for first workflow")
+		assert.Equal(t, expectedProductsToProcessInFirstWorkflow*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
+
+		// now let's try to get the next set of tasks
+		workflowRes, err, _ = iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating second workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
+		assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
+		assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
+	})
+
+	t.Run("It should split up large workflows into smaller workflows -- one large workflow and one small", func(t *testing.T) {
+		var products []iuf.Product
+		for i := 0; i < 20; i++ {
+			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
+		}
+
+		session := iuf.Session{
+			Products:     products,
+			ActivityRef:  activityName,
+			CurrentStage: "deliver-product",
+			InputParameters: iuf.InputParameters{
+				Force:  true,
+				Stages: []string{"deliver-product"},
+			},
+		}
+
+		numOperations := 2
+		stagesMetadata, err := iufSvc.GetStages()
+		for _, stage := range stagesMetadata.Stages {
+			if stage.Name == "deliver-product" {
+				numOperations = len(stage.Operations)
+				break
+			}
+		}
+
+		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
+		expectedProductsToProcessInFirstWorkflow := 15
+
+		workflowRes, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating first workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for first workflow")
+		assert.Equal(t, workflowRes.Labels[LABEL_PARTIAL_WORKFLOW], "true", "partial workflow expected")
+		assert.Equal(t, expectedProductsToProcessInFirstWorkflow, len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for first workflow")
+		assert.Equal(t, expectedProductsToProcessInFirstWorkflow*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
+
+		// now let's try to get the next set of tasks
+		workflowRes, err, _ = iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating second workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for second workflow")
+		assert.Equal(t, len(products), len(session.ProcessedProductsByStage["deliver-product"]), "Unexpected number of processed products for second workflow")
+		assert.Equal(t, (len(products)-expectedProductsToProcessInFirstWorkflow)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for second workflow")
+	})
+
+	t.Run("It should not split up large workflows into smaller workflows when products are containable in a single workflow", func(t *testing.T) {
+		var products []iuf.Product
+		for i := 0; i < 15; i++ {
+			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
+		}
+
+		session := iuf.Session{
+			Products:     products,
+			ActivityRef:  activityName,
+			CurrentStage: "deliver-product",
+			InputParameters: iuf.InputParameters{
+				Force:  true,
+				Stages: []string{"deliver-product"},
+			},
+		}
+
+		numOperations := 2
+		stagesMetadata, err := iufSvc.GetStages()
+		for _, stage := range stagesMetadata.Stages {
+			if stage.Name == "deliver-product" {
+				numOperations = len(stage.Operations)
+				break
+			}
+		}
+
+		workflowRes, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err, "Should not have had an error when generating first workflow")
+		assert.NotEmpty(t, workflowRes.Spec.Templates[0].DAG.Tasks, "Tasks should not be empty for first workflow")
+		assert.Empty(t, workflowRes.Labels[LABEL_PARTIAL_WORKFLOW], "partial workflow unexpected")
+		assert.Equal(t, len(products)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
 	})
 }
 
