@@ -245,6 +245,20 @@ func (mr *MockIufServiceMockRecorder) HistoryRunAction(activityName, req interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HistoryRunAction", reflect.TypeOf((*MockIufService)(nil).HistoryRunAction), activityName, req)
 }
 
+// IsSessionLocked mocks base method.
+func (m *MockIufService) IsSessionLocked(session iuf.Session) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsSessionLocked", session)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsSessionLocked indicates an expected call of IsSessionLocked.
+func (mr *MockIufServiceMockRecorder) IsSessionLocked(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsSessionLocked", reflect.TypeOf((*MockIufService)(nil).IsSessionLocked), session)
+}
+
 // ListActivities mocks base method.
 func (m *MockIufService) ListActivities() ([]iuf.Activity, error) {
 	m.ctrl.T.Helper()
@@ -288,6 +302,20 @@ func (m *MockIufService) ListSessions(activityName string) ([]iuf.Session, error
 func (mr *MockIufServiceMockRecorder) ListSessions(activityName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSessions", reflect.TypeOf((*MockIufService)(nil).ListSessions), activityName)
+}
+
+// LockSession mocks base method.
+func (m *MockIufService) LockSession(session iuf.Session) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LockSession", session)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// LockSession indicates an expected call of LockSession.
+func (mr *MockIufServiceMockRecorder) LockSession(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockSession", reflect.TypeOf((*MockIufService)(nil).LockSession), session)
 }
 
 // PatchActivity mocks base method.
@@ -392,6 +420,18 @@ func (m *MockIufService) SyncWorkflowsToSession(session *iuf.Session) error {
 func (mr *MockIufServiceMockRecorder) SyncWorkflowsToSession(session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncWorkflowsToSession", reflect.TypeOf((*MockIufService)(nil).SyncWorkflowsToSession), session)
+}
+
+// UnlockSession mocks base method.
+func (m *MockIufService) UnlockSession(session iuf.Session) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "UnlockSession", session)
+}
+
+// UnlockSession indicates an expected call of UnlockSession.
+func (mr *MockIufServiceMockRecorder) UnlockSession(session interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlockSession", reflect.TypeOf((*MockIufService)(nil).UnlockSession), session)
 }
 
 // UpdateActivityStateFromSessionState mocks base method.

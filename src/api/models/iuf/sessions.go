@@ -51,12 +51,11 @@ type Session struct {
 type SessionState string
 
 const (
-	SessionStateInProgress    SessionState = "in_progress"
-	SessionStateTransitioning SessionState = "transitioning"
-	SessionStatePaused        SessionState = "paused"
-	SessionStateDebug         SessionState = "debug"
-	SessionStateCompleted     SessionState = "completed"
-	SessionStateAborted       SessionState = "aborted"
+	SessionStateInProgress SessionState = "in_progress"
+	SessionStatePaused     SessionState = "paused"
+	SessionStateDebug      SessionState = "debug"
+	SessionStateCompleted  SessionState = "completed"
+	SessionStateAborted    SessionState = "aborted"
 )
 
 type SessionWorkflow struct {
