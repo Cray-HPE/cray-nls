@@ -1,0 +1,137 @@
+#
+# MIT License
+#
+# (C) Copyright 2023 Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# Schema definition for the IUF Product Manifest
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Product Nexus Repository for HPE CSM Install-Upgrade Framework (IUF)"
+description: >
+  A manifest that defines the details of the repos that should be 
+  uploaded to nexus repository
+
+  This file must be named nexus-repositories.yaml in the top level
+  of the product release distribution in order for it to be discovered by the
+  IUF.
+# This is the version of the nexus_repository schema itself
+version: 0.0.1
+type: object
+required:
+- docker
+- group
+- name
+- online
+- storage
+# TODO: Generally would like this throughout all objects as it provides more
+# guarantee of backwards compatibility of old manifests with newer schema.
+#
+# Using additionalProperties false helps ensure backwards compatibility of old
+# IUF manifest files with newer schema versions because old manifest files will
+# not be able to use additional properties which are then later added to the IUF
+# manifest schema.
+additionalProperties: false
+properties:
+
+  docker:
+    type: object
+    required:
+    - forceBasicAuth 
+    - v1Enabled
+    description: >
+      Docker information.
+
+    additionalProperties: false
+    properties:
+      forceBasicAuth:
+        description: >
+          Whether to force authentication (Docker Bearer Token Realm required if false)
+        type: boolean
+        default: true
+      httpPort:
+        description: >
+          Create an HTTP connector at specified port
+        type: ineteger
+        examples:
+          - 8082
+      httpsPort:
+        description: >
+          Create an HTTPS connector at specified port
+        type: integer
+        examples:
+          - 8083
+      v1Enabled:
+        description: >
+          Whether to allow clients to use the V1 API to interact with this repository
+        type: boolean
+        default: false
+  
+  name:
+    description: >
+      Repo name that will be uploaded to the catalog.
+    type: string
+    examples:
+    - sma-sle-15sp3
+    - sma-sle-15sp4-compute
+
+  online:
+    description: >
+      Whether this repository accepts incoming requests
+    type: boolean
+    default: true
+  
+  storage:
+    description:
+      Storage Information
+    type: object
+    required:
+    - strictContentTypeValidation
+    additionalProperties: false
+    properties:
+      blobStoreName:
+        description: >
+          Blob store used to store repository contents
+        type: string
+      strictContentTypeValidation:
+        description: >
+          Whether to validate uploaded content's MIME type appropriate for the repository format
+        type: boolean
+  
+  group:
+    type: object
+    required:
+      -memberNames
+    additionalProperties: false
+    properties:
+      memberNames:
+        description: >
+          Member repositories' names
+        type: array
+        items:
+          type: string
+      
+  type:
+    description: >
+      This sepcifies if the repo is hosted or group
+    type: string 
+    examples: 
+    - hosted
+    - group

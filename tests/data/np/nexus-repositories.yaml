@@ -1,5 +1,30 @@
 ---
 cleanup: null
+docker:
+  forceBasicAuth: true
+  httpPort: 5003
+  httpsPort: null
+  v1Enabled: false
+format: docker
+name: registry
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW
+type: hosted
+---
+cleanup: null
+format: helm
+name: charts
+online: true
+storage:
+  blobStoreName: csm
+  strictContentTypeValidation: false
+  writePolicy: ALLOW_ONCE
+type: hosted
+---
+cleanup: null
 format: raw
 name: cos-2.5.97-sle-15sp4
 online: true
