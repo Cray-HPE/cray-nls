@@ -169,8 +169,10 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 		// if we have hooks, then we have to run on ncn-m001. This is a limitation we have for now, because we can only
 		// reference hook scripts on ncn-m001 since the rbd mount only exists on ncn-m001.
 		// Note that administrator can supply a different media host other than ncn-m001
+		s.logger.Infof("MEDIA HOST IS ", session.InputParameters.MediaHost)
 		if session.InputParameters.MediaHost == "" {
 			session.InputParameters.MediaHost = "ncn-m001"
+			s.logger.Infof("SETTING MEDIA HOST to NCN_M001")
 		}
 
 		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": session.InputParameters.MediaHost}
