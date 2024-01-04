@@ -174,8 +174,9 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 			session.InputParameters.MediaHost = "ncn-m001"
 			s.logger.Infof("SETTING MEDIA HOST to NCN_M001")
 		}
-
+		s.logger.Infof("NODE SELECTOR IS (before changed)", res.Spec.NodeSelector)
 		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": session.InputParameters.MediaHost}
+		s.logger.Infof("NODE SELECTOR IS (after changed)", res.Spec.NodeSelector)
 	} else {
 		// if we don't have hooks, run this on ncn-m002
 		// TODO: we need to find a better way to do this. Perhaps allow specifying the node on which the NoHooks stage
