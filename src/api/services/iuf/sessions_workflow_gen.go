@@ -432,9 +432,9 @@ func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stage
 	preSteps, postSteps := s.getProductHookTasks(*session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, &workflow)
+		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, workflow)
 	} else {
-		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, &workflow)
+		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, workflow)
 		return res, session.Products, err
 	}
 }
@@ -666,7 +666,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			},
 		}
 		if operation.Name == "management-nodes-rollout" {
-			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes, &workflow)
+			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes, workflow)
 			if err != nil {
 				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
