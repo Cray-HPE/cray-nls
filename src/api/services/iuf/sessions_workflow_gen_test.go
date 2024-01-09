@@ -49,7 +49,7 @@ import (
 func TestWorkflowGen(t *testing.T) {
 	activityName, _, iufSvc := setup(t)
 
-	t.Run("generated workflow must have NodeSelector set to ncn-m001 when NoHooks=false", func(t *testing.T) {
+	t.Run("generated workflow must have NodeSelector set to ncn-m002 when rebuilding ncn-m001", func(t *testing.T) {
 		session := iuf.Session{
 			Products: []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
 			Workflows: []iuf.SessionWorkflow{
@@ -61,7 +61,8 @@ func TestWorkflowGen(t *testing.T) {
 			CurrentStage: "process-media",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
-				Stages: []string{"process-media", "deliver-product"},
+				Stages: []string{"management-nodes-rollout"},
+				LimitManagementNodes: []string{"ncn-m001"},
 			},
 			ActivityRef: activityName,
 		}
@@ -69,6 +70,29 @@ func TestWorkflowGen(t *testing.T) {
 		workflow, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err)
 		assert.Equal(t, "ncn-m001", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
+	})
+
+	t.Run("generated workflow must have NodeSelector set to ncn-m001 when rebuilding ncn-m002 or ncn-m003", func(t *testing.T) {
+		session := iuf.Session{
+			Products: []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
+			Workflows: []iuf.SessionWorkflow{
+				{
+					Id:  "1",
+					Url: "1",
+				},
+			},
+			CurrentStage: "process-media",
+			CurrentState: iuf.SessionStateInProgress,
+			InputParameters: iuf.InputParameters{
+				Stages: []string{"management-nodes-rollout"},
+				LimitManagementNodes: []string{"ncn-m002"},
+			},
+			ActivityRef: activityName,
+		}
+
+		workflow, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err)
+		assert.Equal(t, "ncn-m003", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
 	})
 
 	t.Skip("TODO generated workflow must not have NodeSelector set to ncn-m001 when NoHooks=true") /*, func(t *testing.T) {
