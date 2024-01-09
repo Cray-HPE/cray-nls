@@ -58,7 +58,7 @@ func TestWorkflowGen(t *testing.T) {
 					Url: "1",
 				},
 			},
-			CurrentStage: "process-media",
+			CurrentStage: "management-nodes-rollout",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
 				Stages: []string{"management-nodes-rollout"},
@@ -69,7 +69,7 @@ func TestWorkflowGen(t *testing.T) {
 
 		workflow, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err)
-		assert.Equal(t, "ncn-m001", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
+		assert.Equal(t, "ncn-m002", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
 	})
 
 	t.Run("generated workflow must have NodeSelector set to ncn-m001 when rebuilding ncn-m002 or ncn-m003", func(t *testing.T) {
@@ -81,7 +81,7 @@ func TestWorkflowGen(t *testing.T) {
 					Url: "1",
 				},
 			},
-			CurrentStage: "process-media",
+			CurrentStage: "management-nodes-rollout",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
 				Stages: []string{"management-nodes-rollout"},
@@ -92,7 +92,7 @@ func TestWorkflowGen(t *testing.T) {
 
 		workflow, err, _ := iufSvc.workflowGen(&session)
 		assert.NoError(t, err)
-		assert.Equal(t, "ncn-m003", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
+		assert.Equal(t, "ncn-m001", workflow.Spec.NodeSelector["kubernetes.io/hostname"])
 	})
 
 	t.Skip("TODO generated workflow must not have NodeSelector set to ncn-m001 when NoHooks=true") /*, func(t *testing.T) {
