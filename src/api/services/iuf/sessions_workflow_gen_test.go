@@ -118,8 +118,9 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
+		workflow := v1alpha1.Workflow{}
 
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
