@@ -144,8 +144,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -167,8 +167,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 4, len(dagTasks))
@@ -193,8 +193,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -243,8 +243,8 @@ func TestGetDagTasks(t *testing.T) {
 				"worker_host": "worker-host-hook-script",
 			},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 7, len(dagTasks))
@@ -362,8 +362,8 @@ func TestGetDagTasks(t *testing.T) {
 				"worker_host": "worker-host-hook-script",
 			},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
@@ -460,7 +460,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -484,7 +485,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -507,7 +509,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 2, len(dagTasks))
@@ -531,7 +534,8 @@ func TestGetDagTasks(t *testing.T) {
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NotEmpty(t, dagTasks)
 		assert.NoError(t, err)
 	})
@@ -596,8 +600,8 @@ content:
 		stages := iuf.Stages{
 			Stages: []iuf.Stage{stageInfo},
 		}
-
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token")
+		workflow := v1alpha1.Workflow{}
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
