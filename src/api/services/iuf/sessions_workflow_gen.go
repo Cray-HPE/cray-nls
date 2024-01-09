@@ -282,7 +282,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 // Gets DAG tasks for the given session and stage
 func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameGlobalParamsForGlobalStage string,
-	workflowParamNameAuthToken string, workflow *v1alpha1.Workflow) ([]v1alpha1.DAGTask, []iuf.Product, error) {
+	workflowParamNameAuthToken string, currentWorkflow *v1alpha1.Workflow) ([]v1alpha1.DAGTask, []iuf.Product, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
 	s.logger.Infof("getDAGTasks: create workflow DAG for stage %s in session %s in activity %s", stage, session.Name, session.ActivityRef)
@@ -432,9 +432,9 @@ func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stage
 	preSteps, postSteps := s.getProductHookTasks(*session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, workflow)
+		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, currentWorkflow)
 	} else {
-		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, workflow)
+		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, currentWorkflow)
 		return res, session.Products, err
 	}
 }
