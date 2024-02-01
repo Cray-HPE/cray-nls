@@ -742,6 +742,37 @@ content:
 		assert.Empty(t, workflowRes.Labels[LABEL_PARTIAL_WORKFLOW], "partial workflow unexpected")
 		assert.Equal(t, len(products)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
 	})
+
+	t.Run("It should create on exit tasks for products with onExit hooks defined", func(t *testing.T) {
+		session := iuf.Session{
+			Products: []iuf.Product{
+				{
+					Name:             "csm",
+					Version:          "1.6.0",
+					OriginalLocation: csmOriginalLocation,
+					Manifest:         csmManifest,
+				},
+			},
+			CurrentStage: "deliver-product",
+			CurrentState: iuf.SessionStateInProgress,
+			InputParameters: iuf.InputParameters{
+				Stages: []string{"deliver-product"},
+			},
+			ActivityRef: activityName,
+		}
+
+		workflow, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "onExitHandlers", workflow.Spec.OnExit)
+		assert.Equal(t, 2, len(workflow.Spec.Templates))
+		assert.Equal(t, "onExitHandlers", workflow.Spec.Templates[1].Name)
+		assert.Equal(t, 1, len(workflow.Spec.Templates[1].Steps))
+		assert.Equal(t, 1, len(workflow.Spec.Templates[1].Steps[0].Steps))
+		assert.Equal(t, 3, len(workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters))
+		assert.Equal(t, "script_path", workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Name)
+		assert.Equal(t, v1alpha1.AnyStringPtr("/etc/cray/upgrade/csm/test-activity/csm-160/on_exit/upgrade_k8s.sh"), workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Value)
+	})
 }
 
 func setup(t *testing.T) (string, string, iufService) {

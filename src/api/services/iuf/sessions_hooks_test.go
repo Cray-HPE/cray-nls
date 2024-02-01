@@ -394,6 +394,18 @@ hooks:
       execution_context: storage_host
 `
 
+const csmOriginalLocation = "/etc/cray/upgrade/csm/test-activity/csm-160"
+const csmManifest = `
+---
+iuf_version: ^0.5.0
+name: csm
+
+onExit:
+  deliver_product:
+      script_path: on_exit/upgrade_k8s.sh
+      execution_context: master_host
+`
+
 const sduOriginalLocation = "/etc/cray/upgrade/csm/test-activity/sdu-345"
 const sduManifest = `
 ---
