@@ -743,6 +743,30 @@ content:
 		assert.Equal(t, len(products)*numOperations, len(workflowRes.Spec.Templates[0].DAG.Tasks), "Unexpected number of total operations for first workflow") // (number of products to process) * (2 ops per product as per above)
 	})
 
+	t.Run("It should not create on exit tasks when there are no products with onExit hooks defined", func(t *testing.T) {
+		session := iuf.Session{
+			Products: []iuf.Product{
+				{
+					Name:             "cos",
+					Version:          "2.5.1",
+					OriginalLocation: cosOriginalLocation,
+					Manifest:         cosManifest,
+				},
+			},
+			CurrentStage: "deliver-product",
+			CurrentState: iuf.SessionStateInProgress,
+			InputParameters: iuf.InputParameters{
+				Stages: []string{"deliver-product"},
+			},
+			ActivityRef: activityName,
+		}
+
+		workflow, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err)
+
+		assert.Empty(t, workflow.Spec.OnExit)
+	})
+
 	t.Run("It should create on exit tasks for products with onExit hooks defined", func(t *testing.T) {
 		session := iuf.Session{
 			Products: []iuf.Product{
@@ -772,6 +796,53 @@ content:
 		assert.Equal(t, 3, len(workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters))
 		assert.Equal(t, "script_path", workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Name)
 		assert.Equal(t, v1alpha1.AnyStringPtr("/etc/cray/upgrade/csm/test-activity/csm-160/on_exit/upgrade_k8s.sh"), workflow.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Value)
+	})
+
+	t.Run("It should create on exit tasks for products with onExit hooks defined only for the last partial workflow and no other partial workflow", func(t *testing.T) {
+		var products []iuf.Product
+
+		products = append(products, iuf.Product{
+			Name:             "csm",
+			Version:          "1.6.0",
+			OriginalLocation: csmOriginalLocation,
+			Manifest:         csmManifest,
+		})
+
+		for i := 0; i < 19; i++ {
+			products = append(products, iuf.Product{Name: "product_" + strconv.Itoa(i)})
+		}
+
+		session := iuf.Session{
+			Products:     products,
+			ActivityRef:  activityName,
+			CurrentStage: "deliver-product",
+			InputParameters: iuf.InputParameters{
+				Force:  true,
+				Stages: []string{"deliver-product"},
+			},
+		}
+
+		// this is a predetermined number from running this test. Remember that the workflow is split as per the size of the JSON serialized form of the workflow.
+		expectedProductsToProcessInFirstWorkflow := 15
+
+		workflowRes, err, _ := iufSvc.workflowGen(&session)
+		assert.NoError(t, err)
+		assert.Equal(t, len(session.ProcessedProductsByStage["deliver-product"]), expectedProductsToProcessInFirstWorkflow)
+		assert.Empty(t, workflowRes.Spec.OnExit)
+
+		// now let's try to get the next set of tasks
+		workflowRes, err, _ = iufSvc.workflowGen(&session)
+		assert.NoError(t, err)
+		assert.Equal(t, len(session.ProcessedProductsByStage["deliver-product"]), len(products))
+
+		assert.Equal(t, "onExitHandlers", workflowRes.Spec.OnExit)
+		assert.Equal(t, 2, len(workflowRes.Spec.Templates))
+		assert.Equal(t, "onExitHandlers", workflowRes.Spec.Templates[1].Name)
+		assert.Equal(t, 1, len(workflowRes.Spec.Templates[1].Steps))
+		assert.Equal(t, 1, len(workflowRes.Spec.Templates[1].Steps[0].Steps))
+		assert.Equal(t, 3, len(workflowRes.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters))
+		assert.Equal(t, "script_path", workflowRes.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Name)
+		assert.Equal(t, v1alpha1.AnyStringPtr("/etc/cray/upgrade/csm/test-activity/csm-160/on_exit/upgrade_k8s.sh"), workflowRes.Spec.Templates[1].Steps[0].Steps[0].Arguments.Parameters[2].Value)
 	})
 }
 

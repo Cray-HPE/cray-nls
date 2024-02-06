@@ -262,6 +262,11 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 
 	exitHandlers := s.getOnExitHandlers(session, stageMetadata, stagesMetadata.Hooks, globalParamsNamesPerProduct, authTokenName)
 
+	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
+	if len(exitHandlers) > 0 && (labels[LABEL_PARTIAL_WORKFLOW] == "" || len(session.ProcessedProductsByStage[session.CurrentStage]) == len(session.Products)) {
+		res.Spec.OnExit = "onExitHandlers"
+	}
+
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
@@ -282,11 +287,6 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 				},
 			},
 		},
-	}
-
-	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
-	if len(exitHandlers) > 0 {
-		res.Spec.OnExit = "onExitHandlers"
 	}
 
 	var specArgumentsParameters []v1alpha1.Parameter
@@ -346,7 +346,7 @@ func (s iufService) getOnExitHandlers(session *iuf.Session, stage iuf.Stage,
 		jsonPath := fmt.Sprintf("$.onExit.%s.script_path", stageName)
 		scriptPathInterface, err := jsonpath.JsonPathLookup(manifest, jsonPath)
 		if err != nil || scriptPathInterface == nil {
-			s.logger.Infof("No exit handler found for %v - %v", product.Name, product.Version)
+			s.logger.Debugf("No exit handler found for %v - %v", product.Name, product.Version)
 			continue
 		}
 
