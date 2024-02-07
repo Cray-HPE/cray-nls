@@ -260,13 +260,6 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 
 	failFast := false
 
-	exitHandlers := s.getOnExitHandlers(session, stageMetadata, stagesMetadata.Hooks, globalParamsNamesPerProduct, authTokenName)
-
-	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
-	if len(exitHandlers) > 0 && (labels[LABEL_PARTIAL_WORKFLOW] == "" || len(session.ProcessedProductsByStage[session.CurrentStage]) == len(session.Products)) {
-		res.Spec.OnExit = "onExitHandlers"
-	}
-
 	res.Spec.Templates = []v1alpha1.Template{
 		{
 			Name: "main",
@@ -274,10 +267,17 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 				Tasks:    dagTasks,
 				FailFast: &failFast,
 			},
-			// list of all the tasks that we picked from the products onExit field
-			// only add this template IF this is the last workflow in a set of partial workflows that we need to execute.
 		},
-		{
+	}
+
+	exitHandlers := s.getOnExitHandlers(session, stageMetadata, stagesMetadata.Hooks, globalParamsNamesPerProduct, authTokenName)
+
+	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
+	if len(exitHandlers) > 0 && (labels[LABEL_PARTIAL_WORKFLOW] == "" || len(session.ProcessedProductsByStage[session.CurrentStage]) == len(session.Products)) {
+		res.Spec.OnExit = "onExitHandlers"
+		// list of all the tasks that we picked from the products onExit field
+		// only add this template IF this is the last workflow in a set of partial workflows that we need to execute.
+		onexit := v1alpha1.Template{
 			Name: "onExitHandlers",
 			Steps: []v1alpha1.ParallelSteps{
 				// note: we do not want to run the exit handlers in parallel, so a sequential list of exit handlers.
@@ -286,7 +286,8 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 					Steps: exitHandlers,
 				},
 			},
-		},
+		}
+		res.Spec.Templates = append(res.Spec.Templates, onexit)
 	}
 
 	var specArgumentsParameters []v1alpha1.Parameter
@@ -867,3 +868,4 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 	}
 	return workflowNames[workflowType], nil
 }
+
