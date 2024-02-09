@@ -34,7 +34,7 @@ description: >
   of the product release distribution in order for it to be discovered by the
   IUF.
 # This is the version of the IUF manifest schema itself
-version: 0.7.1
+version: 0.7.2
 type: object
 required:
 - iuf_version
@@ -522,6 +522,31 @@ properties:
         $ref: '#/$defs/StageHooks'
       post_install_check:
         $ref: '#/$defs/StageHooks'
+        
+  onExit:
+    type: object
+    additionalProperties: false
+    properties:
+      pre_install_check:
+        $ref: '#/$defs/OnExitScript'
+      deliver_product:
+        $ref: '#/$defs/OnExitScript'
+      update_vcs_config:
+        $ref: '#/$defs/OnExitScript'
+      update_cfs_config:
+        $ref: '#/$defs/OnExitScript'
+      prepare_images:
+        $ref: '#/$defs/OnExitScript'
+      management_nodes_rollout:
+        $ref: '#/$defs/OnExitScript'
+      deploy_product:
+        $ref: '#/$defs/OnExitScript'
+      post_install_service_check:
+        $ref: '#/$defs/OnExitScript'
+      managed_nodes_rollout:
+        $ref: '#/$defs/OnExitScript'
+      post_install_check:
+        $ref: '#/$defs/OnExitScript'
 
 $defs:
   HookExecutionContext:
@@ -576,6 +601,16 @@ $defs:
   PostHookScript:
     description: >
       A hook script that should be run after the IUF stage is finished.
+    type: object
+    additionalProperties: false
+    properties:
+      execution_context:
+        $ref: '#/$defs/HookExecutionContext'
+      script_path:
+        $ref: '#/$defs/HookScriptPath'
+  OnExitScript:
+    description: >
+      A script that executes once all operations and hooks in the stage have completed.
     type: object
     additionalProperties: false
     properties:

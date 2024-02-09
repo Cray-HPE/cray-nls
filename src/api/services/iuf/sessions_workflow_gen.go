@@ -35,8 +35,10 @@ import (
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflowtemplate"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
+	"github.com/oliveagle/jsonpath"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"path/filepath"
 	"reflect"
 	"sigs.k8s.io/yaml"
 	"sort"
@@ -268,6 +270,26 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 		},
 	}
 
+	exitHandlers := s.getOnExitHandlers(session, stageMetadata, stagesMetadata.Hooks, globalParamsNamesPerProduct, authTokenName)
+
+	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
+	if len(exitHandlers) > 0 && (labels[LABEL_PARTIAL_WORKFLOW] == "" || len(session.ProcessedProductsByStage[session.CurrentStage]) == len(session.Products)) {
+		res.Spec.OnExit = "onExitHandlers"
+		// list of all the tasks that we picked from the products onExit field
+		// only add this template IF this is the last workflow in a set of partial workflows that we need to execute.
+		onexit := v1alpha1.Template{
+			Name: "onExitHandlers",
+			Steps: []v1alpha1.ParallelSteps{
+				// note: we do not want to run the exit handlers in parallel, so a sequential list of exit handlers.
+				//  This is because certain products like CSM will be upgrading k8s and need to be run in isolation.
+				{
+					Steps: exitHandlers,
+				},
+			},
+		}
+		res.Spec.Templates = append(res.Spec.Templates, onexit)
+	}
+
 	var specArgumentsParameters []v1alpha1.Parameter
 	for productKey, globalParams := range globalParamsPerProduct {
 		param := v1alpha1.Parameter{
@@ -292,6 +314,114 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	}
 
 	return res, nil, false
+}
+
+func (s iufService) getOnExitHandlers(session *iuf.Session, stage iuf.Stage,
+	hookTemplateMap map[string]string,
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) []v1alpha1.WorkflowStep {
+
+	var workflowSteps []v1alpha1.WorkflowStep
+
+	listTemplates := workflowtemplate.WorkflowTemplateListRequest{
+		Namespace: DEFAULT_NAMESPACE,
+	}
+	templates, err := s.workflowTemplateClient.ListWorkflowTemplates(context.TODO(), &listTemplates)
+	if err != nil {
+		return []v1alpha1.WorkflowStep{}
+	}
+	var existingArgoUploadedTemplateMap = map[string]bool{}
+
+	for _, t := range templates.Items {
+		existingArgoUploadedTemplateMap[t.Name] = true
+	}
+
+	for _, product := range session.Products {
+		s.logger.Infof("Processing exit handler for %v - %v", product.Name, product.Version)
+		manifest, err := s.getProductManifestAsInterface(product)
+		if err != nil {
+			s.logger.Errorf("Manifest not found or error while parsing manifest for %v - %v, %v", product.Name, product.Version, err)
+			continue
+		}
+
+		stageName := strings.Replace(stage.Name, "-", "_", -1)
+		jsonPath := fmt.Sprintf("$.onExit.%s.script_path", stageName)
+		scriptPathInterface, err := jsonpath.JsonPathLookup(manifest, jsonPath)
+		if err != nil || scriptPathInterface == nil {
+			s.logger.Debugf("No exit handler found for %v - %v", product.Name, product.Version)
+			continue
+		}
+
+		executionHost := "master_host"
+		jsonExecutionHostPath := fmt.Sprintf("$.onExit.%s.execution_context", stage.Name)
+		executionHostInterface, err := jsonpath.JsonPathLookup(manifest, jsonExecutionHostPath)
+		if err == nil && executionHostInterface != nil {
+			executionHost = fmt.Sprintf("%s", executionHostInterface)
+		}
+
+		script := iuf.ManifestHookScript{
+			ScriptPath:       fmt.Sprintf("%s", scriptPathInterface),
+			ExecutionContext: executionHost,
+		}
+
+		// now we assemble the Argo task
+		productKey := s.getProductVersionKey(product)
+
+		// find the original location
+		var originalLocation string
+		for _, product := range session.Products {
+			if s.getProductVersionKey(product) == productKey {
+				originalLocation = product.OriginalLocation
+				break
+			}
+		}
+
+		originalLocation = filepath.Clean(originalLocation)
+		filePath := filepath.Clean(filepath.Join(originalLocation, script.ScriptPath))
+		if strings.Index(filePath, originalLocation) != 0 {
+			// possible hack attempt ... reading a parent directory through relative paths.
+			s.logger.Warnf("Bad hook script path %v found for product %s in stage %s ... reading a parent directory through relative paths.", filePath, productKey, stage.Name)
+			continue
+		}
+
+		name := utils.GenerateName("onExitHandler" + productKey)
+
+		hookTemplateName := hookTemplateMap[executionHost]
+
+		templateExists := existingArgoUploadedTemplateMap[hookTemplateName]
+		if hookTemplateName == "" || !templateExists {
+			// this is a backend error so we don't use a template to inform the user here.
+			s.logger.Warnf("The template %s is not available in Argo.", hookTemplateName)
+			continue
+		}
+
+		step := v1alpha1.WorkflowStep{
+			Name: name,
+			Arguments: v1alpha1.Arguments{
+				Parameters: []v1alpha1.Parameter{
+					{
+						Name:  "auth_token",
+						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNameAuthToken)),
+					},
+					{
+						Name:  "global_params",
+						Value: v1alpha1.AnyStringPtr(fmt.Sprintf("{{workflow.parameters.%s}}", workflowParamNamesGlobalParamsPerProduct[productKey])),
+					},
+					{
+						Name:  "script_path",
+						Value: v1alpha1.AnyStringPtr(filePath),
+					},
+				},
+			},
+			TemplateRef: &v1alpha1.TemplateRef{
+				Name:     hookTemplateName,
+				Template: "main",
+			},
+		}
+
+		workflowSteps = append(workflowSteps, step)
+	}
+
+	return workflowSteps
 }
 
 // Gets DAG tasks for the given session and stage
@@ -738,3 +868,4 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 	}
 	return workflowNames[workflowType], nil
 }
+
