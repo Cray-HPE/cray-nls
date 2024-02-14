@@ -30,6 +30,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strings"
+
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -38,11 +43,7 @@ import (
 	"github.com/oliveagle/jsonpath"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"path/filepath"
-	"reflect"
 	"sigs.k8s.io/yaml"
-	"sort"
-	"strings"
 )
 
 const ARGO_TASKS_SIZE_LIMIT = 120
@@ -274,6 +275,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 
 	// only run add this field IF this is the last workflow in a set of partial workflows that we need to execute.
 	if len(exitHandlers) > 0 && (labels[LABEL_PARTIAL_WORKFLOW] == "" || len(session.ProcessedProductsByStage[session.CurrentStage]) == len(session.Products)) {
+		s.logger.Infof("Setting Up onExit handlers")
 		res.Spec.OnExit = "onExitHandlers"
 		// list of all the tasks that we picked from the products onExit field
 		// only add this template IF this is the last workflow in a set of partial workflows that we need to execute.
@@ -288,6 +290,8 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 			},
 		}
 		res.Spec.Templates = append(res.Spec.Templates, onexit)
+	} else {
+		s.logger.Infof("Partial Workflow %s", labels[LABEL_PARTIAL_WORKFLOW])
 	}
 
 	var specArgumentsParameters []v1alpha1.Parameter
@@ -349,6 +353,8 @@ func (s iufService) getOnExitHandlers(session *iuf.Session, stage iuf.Stage,
 		if err != nil || scriptPathInterface == nil {
 			s.logger.Debugf("No exit handler found for %v - %v", product.Name, product.Version)
 			continue
+		} else {
+			s.logger.Infof("Script path is %s ", scriptPathInterface)
 		}
 
 		executionHost := "master_host"
@@ -868,4 +874,3 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 	}
 	return workflowNames[workflowType], nil
 }
-
