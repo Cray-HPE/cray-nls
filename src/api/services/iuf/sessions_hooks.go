@@ -31,13 +31,14 @@ package services_iuf
 import (
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/oliveagle/jsonpath"
-	"path/filepath"
 	"sigs.k8s.io/yaml"
-	"strings"
 )
 
 // gets a map of productName vs hook task for pre-stage and post-stage hooks.
@@ -124,10 +125,12 @@ func (s iufService) extractPathAndExecutionContext(stageName string, manifest *i
 
 	jsonPath := fmt.Sprintf("$.hooks.%s.%s.script_path", stageName, preOrPost)
 	scriptPathInterface, err := jsonpath.JsonPathLookup(*manifest, jsonPath)
+	s.logger.Infof("script path interface: %s", scriptPathInterface)
 	if err != nil || scriptPathInterface == nil {
 		return iuf.ManifestHookScript{}
 	}
 	ret.ScriptPath = fmt.Sprintf("%s", scriptPathInterface)
+	s.logger.Infof("script path : %s", ret.ScriptPath)
 
 	jsonPath = fmt.Sprintf("$.hooks.%s.%s.execution_context", stageName, preOrPost)
 	executionContextInterface, err := jsonpath.JsonPathLookup(*manifest, jsonPath)
