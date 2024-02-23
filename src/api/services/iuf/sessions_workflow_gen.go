@@ -383,7 +383,7 @@ func (s iufService) getOnExitHandlers(session *iuf.Session, stage iuf.Stage,
 			continue
 		}
 
-		name := utils.GenerateName("onExitHandler" + productKey)
+		name := utils.GenerateName("onExitHandler-" + productKey)
 
 		hookTemplateName := hookTemplateMap[executionHost]
 
