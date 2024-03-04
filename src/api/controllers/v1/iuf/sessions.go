@@ -128,7 +128,10 @@ func (u IufController) Sync(context *gin.Context) {
 		u.logger.Warnf("Sync.3: State is empty, creating workflow: %s, resource version: %s, session: %s, activity: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 	}
 
-	var response iuf.SyncResponse
+	response := iuf.SyncResponse{
+		ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
+	}
+
 	switch session.CurrentState {
 	case "":
 		u.logger.Infof("Sync: State is empty, creating workflow: %s, resource version: %s, session: %s, activity: %s", session.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
@@ -150,9 +153,6 @@ func (u IufController) Sync(context *gin.Context) {
 
 		if activeWorkflow.Status.Phase == v1alpha1.WorkflowRunning || activeWorkflow.Status.Phase == v1alpha1.WorkflowPending {
 			u.logger.Debugf("Sync: Workflow %s is still running for session %s in activity %s", activeWorkflow.Name, sessionName, session.ActivityRef)
-			response = iuf.SyncResponse{
-				ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
-			}
 			context.JSON(200, response)
 			return
 		} else if activeWorkflow.Status.Phase == v1alpha1.WorkflowError || activeWorkflow.Status.Phase == v1alpha1.WorkflowFailed {
@@ -167,8 +167,6 @@ func (u IufController) Sync(context *gin.Context) {
 				return
 			}
 
-			var response iuf.SyncResponse
-
 			// if this was a partial workflow, let the processing for partial workflow do the work
 			if activeWorkflow.ObjectMeta.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
 				u.logger.Infof("Sync: Stage: %s has a partial workflow that failed, moving on to the remaining products in the next workflow. Workflow failed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
@@ -181,14 +179,11 @@ func (u IufController) Sync(context *gin.Context) {
 					return
 				}
 			} else {
-				u.logger.Infof("Sync: Stage: %s a workflow that failed, and since it was not a partial workflow, setting the session state to DEBUG. Workflow failed: %s, resource version: %s, session: %s, activity: %s, .ObjectMeta.Labels: %#v, .Labels: %#v", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
+				u.logger.Infof("Sync: Stage: %s's workflow failed, and since it was not a partial workflow, setting the session state to DEBUG. Workflow failed: %s, resource version: %s, session: %s, activity: %s, .ObjectMeta.Labels: %#v, .Labels: %#v", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef, activeWorkflow.ObjectMeta.Labels, activeWorkflow.Labels)
 				session.CurrentState = iuf.SessionStateDebug
 				err = u.iufService.UpdateSessionAndActivity(session, fmt.Sprintf("Failed workflow %s", activeWorkflow.Name))
-				if err != nil {
-					response = iuf.SyncResponse{
-						ResyncAfterSeconds: RESYNC_TIME_IN_SECONDS,
-					}
-				} else {
+				if err == nil {
+					// since the workflow failed, and there was no error in updating the session and activity, we don't want to resync
 					response = iuf.SyncResponse{}
 				}
 			}
@@ -200,7 +195,6 @@ func (u IufController) Sync(context *gin.Context) {
 
 			u.logger.Infof("Sync: Stage: %s succeeded, move to the next stage. Workflow: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
 			currentStage := session.CurrentStage
-			var response iuf.SyncResponse
 
 			if activeWorkflow.ObjectMeta.Labels[services_iuf.LABEL_PARTIAL_WORKFLOW] == "true" {
 				u.logger.Infof("Sync: Stage: %s has a partial workflow that succeeded, moving on to the remaining products in the next workflow. Workflow completed: %s, resource version: %s, session: %s, activity: %s", session.CurrentStage, activeWorkflow.Name, requestBody.Object.ObjectMeta.ResourceVersion, sessionName, session.ActivityRef)
