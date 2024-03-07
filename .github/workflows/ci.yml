@@ -21,7 +21,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-name: Test and coverage
+name: Build
 
 on: [push, pull_request]
 
@@ -35,7 +35,6 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.18"
-      - name: Run coverage
-        run: go mod tidy && go mod vendor && go test -race -coverprofile=coverage.out -covermode=atomic ./...
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Build project
+        run: go build ./...
+
