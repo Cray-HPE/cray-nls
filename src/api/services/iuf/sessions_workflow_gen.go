@@ -167,21 +167,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 			},
 		},
 	}
-	if !stageMetadata.NoHooks {
-		// if we have hooks, then we have to run on ncn-m001. This is a limitation we have for now, because we can only
-		// reference hook scripts on ncn-m001 since the rbd mount only exists on ncn-m001.
-		// Note that administrator can supply a different media host other than ncn-m001
-		if session.InputParameters.MediaHost == "" {
-			session.InputParameters.MediaHost = "ncn-m001"
-		}
-
-		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": session.InputParameters.MediaHost}
-	} else {
-		// if we don't have hooks, run this on ncn-m002
-		// TODO: we need to find a better way to do this. Perhaps allow specifying the node on which the NoHooks stage
-		// 	will run? Not sure.
-		res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m002"}
-	}
+	res.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": session.InputParameters.MediaHost}
 	res.Spec.Entrypoint = "main"
 
 	// global stages have product-less global parameters.
@@ -221,7 +207,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	}
 	const authTokenName = "auth_token"
 
-	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName)
+	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName,&res)
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err, false
@@ -427,7 +413,7 @@ func (s iufService) getOnExitHandlers(session *iuf.Session, stage iuf.Stage,
 // Gets DAG tasks for the given session and stage
 func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameGlobalParamsForGlobalStage string,
-	workflowParamNameAuthToken string) ([]v1alpha1.DAGTask, []iuf.Product, error) {
+	workflowParamNameAuthToken string, currentWorkflow *v1alpha1.Workflow) ([]v1alpha1.DAGTask, []iuf.Product, error) {
 	var res []v1alpha1.DAGTask
 	stage := stageInfo.Name
 	s.logger.Infof("getDAGTasks: create workflow DAG for stage %s in session %s in activity %s", stage, session.Name, session.ActivityRef)
@@ -577,9 +563,9 @@ func (s iufService) getDAGTasks(session *iuf.Session, stageInfo iuf.Stage, stage
 	preSteps, postSteps := s.getProductHookTasks(*session, stageInfo, stages, prevStepsSuccessful, existingArgoUploadedTemplateMap, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
 
 	if stageInfo.Type == "product" {
-		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken)
+		return s.getDAGTasksForProductStage(*session, s.getRemainingProducts(session), stageInfo, prevStepsSuccessful, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNamesGlobalParamsPerProduct, workflowParamNameAuthToken, currentWorkflow)
 	} else {
-		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken)
+		res, err = s.getDAGTasksForGlobalStage(*session, stageInfo, stages, existingArgoUploadedTemplateMap, preSteps, postSteps, workflowParamNameGlobalParamsForGlobalStage, workflowParamNameAuthToken, currentWorkflow)
 		return res, session.Products, err
 	}
 }
@@ -591,7 +577,7 @@ func (s iufService) getDAGTasksForProductStage(session iuf.Session,
 	prevStepsCompleted map[string]map[string]string,
 	templateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string) (res []v1alpha1.DAGTask, retProducts []iuf.Product, err error) {
+	workflowParamNamesGlobalParamsPerProduct map[string]string, workflowParamNameAuthToken string, workflow *v1alpha1.Workflow) (res []v1alpha1.DAGTask, retProducts []iuf.Product, err error) {
 
 	var resPtrs []*v1alpha1.DAGTask
 
@@ -771,7 +757,7 @@ func (s iufService) setEchoTemplate(isError bool, task *v1alpha1.DAGTask, messag
 func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf.Stage, stages iuf.Stages,
 	existingArgoUploadedTemplateMap map[string]bool,
 	preSteps map[string]v1alpha1.DAGTask, postSteps map[string]v1alpha1.DAGTask,
-	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string) (res []v1alpha1.DAGTask, err error) {
+	workflowParamNameGlobalParamsForGlobalStage string, workflowParamNameAuthToken string, workflow *v1alpha1.Workflow) (res []v1alpha1.DAGTask, err error) {
 
 	var lastOpDependencies []string
 
@@ -811,7 +797,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			},
 		}
 		if operation.Name == "management-nodes-rollout" {
-			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes)
+			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes, workflow)
 			if err != nil {
 				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
@@ -846,7 +832,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 }
 
 // Get the master, worker, or storage workflow for management nodes rollout operation
-func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string) (string, error) {
+func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string, workflow *v1alpha1.Workflow) (string, error) {
 	validator := utils.NewValidator()
 	var workflowType string
 	workflowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
@@ -862,10 +848,11 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 	if workflowType == "master" {
 		if limitManagementNodes[0] == "ncn-m001" {
 			workflowType = "master1"
+			workflow.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m002"}
 		} else {
 			workflowType = "masterOther"
+			workflow.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
 		}
 	}
 	return workflowNames[workflowType], nil
 }
-
