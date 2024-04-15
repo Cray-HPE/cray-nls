@@ -137,11 +137,11 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 
-	// TODO: commenting this out because adding this seems to make it harder to debug
-	//var secondsAfterSuccess int32 = 60
-	//res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
-	//	SecondsAfterSuccess: &secondsAfterSuccess,
-	//}
+	// Deleting the workflow and cleaning up the resources after 1 day of completion to avoid cluterring
+	var secondsAfterCompletion int32 = 86400
+	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
+		SecondsAfterCompletion: &secondsAfterCompletion,
+	}
 
 	res.Spec.Tolerations = []corev1.Toleration{
 		{
