@@ -550,6 +550,9 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 					stepName := nodeStatus.DisplayName
 					s.logger.Infof("output parameter value is %s",nodeStatus.Outputs.Parameters[0].Value)
+					if nodeStatus.Outputs.Parameters[0].Value != nil {
+						continue
+					} 
 					s.logger.Infof("process output for Activity %s, Operation %s, step %s with value %v, for stage %s", activity.Name, operationName, stepName, nodeStatus.Outputs,workflow.ObjectMeta.Labels["stage"])
 					stepChanged, err := s.updateActivityOperationOutputFromWorkflow(&activity, session, &nodeStatus, operationName, stepName, "")
 					if err != nil {
