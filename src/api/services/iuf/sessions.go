@@ -550,7 +550,7 @@ func (s iufService) ProcessOutput(session *iuf.Session, workflow *v1alpha1.Workf
 					operationName := nodeStatus.TemplateScope[len("namespaced/"):len(nodeStatus.TemplateScope)]
 					stepName := nodeStatus.DisplayName
 					s.logger.Infof("output parameter value is %s",nodeStatus.Outputs.Parameters[0].Value)
-					if nodeStatus.Outputs.Parameters[0].Value == "" {
+					if nodeStatus.Outputs.Parameters[0].Value.String() == "" {
 						s.logger.Infof("Inside if")
 						continue
 					} 
