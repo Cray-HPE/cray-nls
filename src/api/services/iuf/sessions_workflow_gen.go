@@ -149,6 +149,11 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 			Operator: corev1.TolerationOpExists,
 			Effect:   corev1.TaintEffectNoSchedule,
 		},
+		{
+			Key:      "node-role.kubernetes.io/control-plane",
+			Operator: corev1.TolerationOpExists,
+			Effect:   corev1.TaintEffectNoSchedule,
+		},
 	}
 	res.Spec.Affinity = &corev1.Affinity{
 		NodeAffinity: &corev1.NodeAffinity{
@@ -158,7 +163,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 					Preference: corev1.NodeSelectorTerm{
 						MatchExpressions: []corev1.NodeSelectorRequirement{
 							{
-								Key:      "node-role.kubernetes.io/master",
+								Key:      "node-role.kubernetes.io/control-plane",
 								Operator: corev1.NodeSelectorOpExists,
 							},
 						},
