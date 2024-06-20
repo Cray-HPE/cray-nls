@@ -62,3 +62,23 @@ func Validate(yamlObject interface{}, schemaFile string) error {
 
 	return nil
 }
+
+// Read and return all the available schema files (except iuf-manifest-schema.yaml)
+// under schemas directory
+func ReadSchemaFiles() []string {
+	var fileNames []string
+	schema_dir_contents, err := schemas.ReadDir("schemas")
+	if err != nil {
+		return fileNames
+	}
+
+	for _, file := range schema_dir_contents {
+		file_name := file.Name()
+		if file_name != "iuf-manifest-schema.yaml" {
+			schema_file := "schemas/" + file_name
+			fileNames = append(fileNames, schema_file)
+		}
+	}
+
+	return fileNames
+}
