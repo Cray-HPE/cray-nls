@@ -88,15 +88,15 @@ func NewNcnService(logger utils.Logger) NcnService {
 	// create crd
 	hooksCrdBytes, _ := nlsHooksFS.ReadFile("cray-nls.hpe.com_hooks.yaml")
 	body, _ := yaml.YAMLToJSON(hooksCrdBytes)
-	resp, err = k8sRestClientSet.
+	resp, err := k8sRestClientSet.
 		RESTClient().
 		Post().
 		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
 		Body(body).DoRaw(context.TODO())
 	if err != nil {
-		if resp.StatusCode == http.StatusConflict {
-			fmt.Println("Conflict error occurred:", resp.Status)
+		if resp.StatusCode == 409 { // check for conflict status
 			logger.Info("got STATUSCONFLICT!!")
+			loger.Info(resp.StatusCode)
 			logger.Panic(err)
 			// Handle the conflict error here
 		} else {
