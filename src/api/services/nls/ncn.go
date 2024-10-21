@@ -96,7 +96,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	if err != nil {
 		// Conflict error is caused by a race condition when two nls pods POST simultaneously
 		// Do nothing if conflict error since another pod is executing this
-		if err.Error() != "the server reported a conflict" {
+		if err.Error() != "the server reported a xxconflict" {
 			logger.Panic(err)
 		}
 	}
