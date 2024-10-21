@@ -89,7 +89,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	// create crd
 	hooksCrdBytes, _ := nlsHooksFS.ReadFile("cray-nls.hpe.com_hooks.yaml")
 	body, _ := yaml.YAMLToJSON(hooksCrdBytes)
-	_, err := k8sRestClientSet.
+	_, err = k8sRestClientSet.
 		RESTClient().
 		Post().
 		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
