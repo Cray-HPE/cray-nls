@@ -94,7 +94,11 @@ func NewNcnService(logger utils.Logger) NcnService {
 		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
 		Body(body).DoRaw(context.TODO())
 	if err != nil {
-		logger.Panic(err)
+		// Conflict error is caused by a race condition when two nls pods POST simultaneously
+		// Do nothing if conflict error since another pod is executing this
+		if err.Error() != "the server reported a conflict" {
+			logger.Panic(err)
+		}
 	}
 
 	ncSvc := ncnService{
