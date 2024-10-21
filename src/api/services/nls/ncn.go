@@ -31,7 +31,7 @@ import (
 
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"k8s.io/client-go/kubernetes"
-	//"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
@@ -97,6 +97,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	if err != nil {
 		logger.Info("got panic. PRINTING IF IsCONFLICT")
 		logger.Info(err.Error())
+		logger.Info(errors.IsCONFLICT(err.Error()))
 		logger.Panic(err)
 		// Handle the conflict error here
 	}
