@@ -31,6 +31,7 @@ import (
 
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/yaml"
@@ -94,8 +95,8 @@ func NewNcnService(logger utils.Logger) NcnService {
 		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
 		Body(body).DoRaw(context.TODO())
 	if err != nil {
-		logger.Info("got panic")
-		logger.Info(resp)
+		logger.Info("got panic. PRINTING IF IsCONFLICT")
+		logger.Info(errors.IsConflict(err))
 		logger.Panic(err)
 		// Handle the conflict error here
 	}
