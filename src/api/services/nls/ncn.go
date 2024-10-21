@@ -94,14 +94,10 @@ func NewNcnService(logger utils.Logger) NcnService {
 		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
 		Body(body).DoRaw(context.TODO())
 	if err != nil {
-		if resp.StatusCode == 409 { // check for conflict status
-			logger.Info("got STATUSCONFLICT!!")
-			loger.Info(resp.StatusCode)
-			logger.Panic(err)
-			// Handle the conflict error here
-		} else {
-			logger.Panic(err)
-		}
+		logger.Info("got panic")
+		logger.Info(resp)
+		logger.Panic(err)
+		// Handle the conflict error here
 	}
 
 	ncSvc := ncnService{
