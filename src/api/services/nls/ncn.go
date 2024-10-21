@@ -97,7 +97,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	if err != nil {
 		logger.Info("got panic. PRINTING IF IsCONFLICT")
 		logger.Info(err.Error())
-		logger.Info(errors.IsCONFLICT(err.Error()))
+		logger.Info(errors.IsConflict(err.Error()))
 		logger.Panic(err)
 		// Handle the conflict error here
 	}
