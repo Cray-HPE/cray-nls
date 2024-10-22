@@ -24,16 +24,13 @@ package services_nls
 //go:generate mockgen -destination=../mocks/services/ncn.go -package=mocks -source=ncn.go
 
 import (
-	"context"
 	"embed"
 	"os"
-	"time"
 
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/yaml"
 )
 
 //go:embed cray-nls.hpe.com_hooks.yaml
@@ -66,7 +63,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	if err != nil {
 		panic(err.Error())
 	}
-	
+
 	ncSvc := ncnService{
 		logger:           logger,
 		k8sRestClientSet: k8sRestClientSet,
