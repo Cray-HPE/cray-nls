@@ -66,41 +66,7 @@ func NewNcnService(logger utils.Logger) NcnService {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	// initialize ncn hooks crd
-	_, err = k8sRestClientSet.
-		RESTClient().
-		Get().
-		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/hooks.cray-nls.hpe.com").
-		DoRaw(context.TODO())
-	if err == nil {
-		// delete existing crd before upgrade
-		_, err = k8sRestClientSet.
-			RESTClient().
-			Delete().
-			AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/hooks.cray-nls.hpe.com").
-			DoRaw(context.TODO())
-		if err != nil {
-			logger.Panic(err)
-		}
-		time.Sleep(5000 * time.Millisecond)
-	}
-	// create crd
-	hooksCrdBytes, _ := nlsHooksFS.ReadFile("cray-nls.hpe.com_hooks.yaml")
-	body, _ := yaml.YAMLToJSON(hooksCrdBytes)
-	_, err = k8sRestClientSet.
-		RESTClient().
-		Post().
-		AbsPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").
-		Body(body).DoRaw(context.TODO())
-	if err != nil {
-		// Conflict error is caused by a race condition when two nls pods POST simultaneously
-		// Do nothing if conflict error since another pod is executing this
-		if err.Error() != "the server reported a conflict" {
-			logger.Panic(err)
-		}
-	}
-
+	
 	ncSvc := ncnService{
 		logger:           logger,
 		k8sRestClientSet: k8sRestClientSet,
