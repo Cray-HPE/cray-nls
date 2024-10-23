@@ -159,5 +159,5 @@ func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 		c.JSON(500, errResponse)
 		return
 	}
-	c.Status(200, workflow)
+	c.JSON(200, workflow)
 }
