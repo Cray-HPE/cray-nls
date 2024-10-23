@@ -139,3 +139,25 @@ func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 	}
 	c.Status(200)
 }
+
+// GetWorkflowByName
+//	@Summary	Get a workflow by name
+//	@Param		name	path	string	true	"name of workflow"
+//	@Tags		Workflow Management
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	v1alpha1.Workflow
+//	@Failure	400	{object}	utils.ResponseError
+//	@Failure	404	{object}	utils.ResponseError
+//	@Failure	500	{object}	utils.ResponseError
+//	@Router		/nls/v1/workflows/{name} [get]
+func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
+	wfName := c.Param("name")
+	workflow, err := u.service.GetWorkflowByName(wfName,c)
+	if err != nil {
+		errResponse := utils.ResponseError{Message: err.Error()}
+		c.JSON(500, errResponse)
+		return
+	}
+	c.JSON(200, workflow)
+}
