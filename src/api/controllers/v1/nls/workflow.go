@@ -153,11 +153,13 @@ func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 //	@Router		/nls/v1/workflows/{name} [get]
 func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 	wfName := c.Param("name")
+	fmt.Println("Workflow name from request:", wfName)
 	workflow, err := u.service.GetWorkflowByName(wfName,c)
 	if err != nil {
 		errResponse := utils.ResponseError{Message: err.Error()}
 		c.JSON(500, errResponse)
 		return
 	}
+	fmt.Println("Workflow retrieved successfully:", workflow)
 	c.JSON(200, workflow)
 }
