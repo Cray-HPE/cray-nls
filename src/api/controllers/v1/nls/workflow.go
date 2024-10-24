@@ -24,6 +24,7 @@
 package controllers_v1
 
 import (
+	"net/http"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
