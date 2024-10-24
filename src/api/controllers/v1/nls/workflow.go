@@ -24,7 +24,6 @@
 package controllers_v1
 
 import (
-	"net/http"
 	models_nls "github.com/Cray-HPE/cray-nls/src/api/models/nls"
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -160,5 +159,5 @@ func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 		c.JSON(500, errResponse)
 		return
 	}
-	c.JSON(http.StatusOK, workflow)
+	c.JSON(200, workflow)
 }
