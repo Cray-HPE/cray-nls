@@ -28,6 +28,7 @@ import (
 	services_shared "github.com/Cray-HPE/cray-nls/src/api/services/shared"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 // Controller data type
@@ -153,11 +154,24 @@ func (u WorkflowController) RerunWorkflow(c *gin.Context) {
 //	@Router		/nls/v1/workflows/{name} [get]
 func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 	wfName := c.Param("name")
-	workflow, err := u.service.GetWorkflowByName(wfName,c)
-	if err != nil {
-		errResponse := utils.ResponseError{Message: err.Error()}
-		c.JSON(500, errResponse)
-		return
+
+	retries := 3
+	delay := 30 * time.Second
+
+	// Retry loop
+	for i := 0; i < retries; i++ {
+		workflow, err = u.service.GetWorkflowByName(wfName, c)
+		if err == nil {
+			c.JSON(200, workflow)
+			return
+		}
+		// If it's not the last attempt, wait before retrying
+		if i < retries-1 {
+			time.Sleep(delay)
+		}
 	}
-	c.JSON(200, workflow)
+
+	errResponse := utils.ResponseError{Message: "Failed to get workflow after 3 attempts: " + err.Error()}
+	c.JSON(500, errResponse)
+	return
 }
