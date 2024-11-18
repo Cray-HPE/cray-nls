@@ -158,7 +158,7 @@ func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 	var workflow interface{}
 	var err error
 	retries := 3
-	delay := 30 * time.Second
+	delay := 15 * time.Second
 
 	// Retry loop
 	for i := 0; i < retries; i++ {
