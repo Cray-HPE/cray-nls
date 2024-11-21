@@ -173,7 +173,7 @@ func (u WorkflowController) GetWorkflowByName(c *gin.Context) {
 		}
 	}
 
-	errResponse := utils.ResponseError{Message: "Failed to get workflow after 3 attempts: " + err.Error()}
+	errResponse := utils.ResponseError{Message: "Failed to get workflow after 10 attempts: " + err.Error()}
 	c.JSON(500, errResponse)
 	return
 }
