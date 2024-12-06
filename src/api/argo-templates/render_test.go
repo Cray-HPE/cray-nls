@@ -55,7 +55,7 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 			hostnames []string
 			wantErr   bool
 		}{
-			{[]string{"ncn-m001"}, true},
+			{[]string{"ncn-m002"}, true},
 			{[]string{"ncn-w001"}, false},
 			{[]string{"ncn-s001"}, true},
 			{[]string{"ncn-m011"}, true},
