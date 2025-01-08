@@ -29,6 +29,7 @@ on:
     branches:
       - main
       - master
+      - update-swagger-version
 jobs:
   updateSwagger:
     runs-on: ubuntu-latest
