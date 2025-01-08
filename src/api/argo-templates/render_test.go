@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -44,8 +44,9 @@ var rebuildWorkflowFS embed.FS
 func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of worker nodes", func(t *testing.T) {
 		req := models_nls.CreateRebuildWorkflowRequest{
-			Hosts:  []string{"ncn-w006", "ncn-w005"},
-			DryRun: doDryRun,
+			Hosts:          []string{"ncn-w006", "ncn-w005"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
 		}
 		_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 		assert.Equal(t, true, err == nil)
@@ -68,8 +69,9 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
 				req := models_nls.CreateRebuildWorkflowRequest{
-					Hosts:  tt.hostnames,
-					DryRun: doDryRun,
+					Hosts:          tt.hostnames,
+					DryRun:         doDryRun,
+					SwitchPassword: "thisIsApassword",
 				}
 				_, err := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 				if (err != nil) != tt.wantErr {
@@ -82,8 +84,9 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 	})
 	t.Run("It should select nodes that is not being rebuilt", func(t *testing.T) {
 		req := models_nls.CreateRebuildWorkflowRequest{
-			Hosts:  []string{"ncn-w99999"},
-			DryRun: doDryRun,
+			Hosts:          []string{"ncn-w99999"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
 		}
 		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
 		workerRebuildWorkflowJson, _ := yaml.YAMLToJSON(workerRebuildWorkflow)
@@ -91,18 +94,29 @@ func TestRenderWorkerRebuildTemplate(t *testing.T) {
 		json.Unmarshal(workerRebuildWorkflowJson, &myWorkflow)
 		assert.Equal(t, "ncn-w99999", myWorkflow.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values[0])
 	})
+
+	t.Run("It should render switch password", func(t *testing.T) {
+		req := models_nls.CreateRebuildWorkflowRequest{
+			Hosts:          []string{"ncn-w99999"},
+			DryRun:         doDryRun,
+			SwitchPassword: "thisIsApassword",
+		}
+		workerRebuildWorkflow, _ := GetWorkerRebuildWorkflow(rebuildWorkflowFS, req, models_nls.RebuildHooks{})
+		assert.Contains(t, string(workerRebuildWorkflow), "thisIsApassword")
+	})
 }
 
-// ---- Storage Testing ----//
+//---- Storage Testing ----//
 func TestRenderStorageRebuildTemplate(t *testing.T) {
 	t.Run("It should render a workflow template for a group of storage nodes", func(t *testing.T) {
 		req := models_nls.CreateRebuildWorkflowRequest{
-			Hosts:            []string{"ncn-s006", "ncn-s005"},
-			DryRun:           doDryRun,
-			ZapOsds:          false,
-			WorkflowType:     "rebuild",
-			ImageId:          "",
-			DesiredCfsConfig: "",
+			Hosts:          	[]string{"ncn-s006", "ncn-s005"},
+			DryRun:         	doDryRun,
+			SwitchPassword: 	"thisIsApassword",
+			ZapOsds:        	false,
+			WorkflowType:   	"rebuild",
+			ImageId:			"",
+			DesiredCfsConfig: 	"",
 		}
 		_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
 		assert.Equal(t, true, err == nil)
@@ -125,8 +139,9 @@ func TestRenderStorageRebuildTemplate(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.hostnames[0], func(t *testing.T) {
 				req := models_nls.CreateRebuildWorkflowRequest{
-					Hosts:  tt.hostnames,
-					DryRun: doDryRun,
+					Hosts:          tt.hostnames,
+					DryRun:         doDryRun,
+					SwitchPassword: "thisIsApassword",
 				}
 				_, err := GetStorageRebuildWorkflow(rebuildWorkflowFS, req)
 				if (err != nil) != tt.wantErr {

@@ -355,6 +355,9 @@ const docTemplateNLS = `{
                         "type": "string"
                     }
                 },
+                "switchPassword": {
+                    "type": "string"
+                },
                 "wipeOsd": {
                     "type": "boolean"
                 }
@@ -400,6 +403,9 @@ const docTemplateNLS = `{
                     "additionalProperties": {
                         "type": "string"
                     }
+                },
+                "switchPassword": {
+                    "type": "string"
                 },
                 "workflowType": {
                     "description": "used to determine storage rebuild vs upgrade",

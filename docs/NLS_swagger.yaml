@@ -18,6 +18,8 @@ definitions:
         items:
           type: string
         type: array
+      switchPassword:
+        type: string
       wipeOsd:
         type: boolean
     type: object
@@ -48,6 +50,8 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      switchPassword:
+        type: string
       workflowType:
         description: used to determine storage rebuild vs upgrade
         type: string
