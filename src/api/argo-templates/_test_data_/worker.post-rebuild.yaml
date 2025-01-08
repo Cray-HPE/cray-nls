@@ -1,7 +1,7 @@
 #
 # MIT License
 #
-# (C) Copyright 2022-2024 Hewlett Packard Enterprise Development LP
+# (C) Copyright 2022 Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -94,7 +94,8 @@ tasks:
         - name: scriptContent
           value: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{ `{{inputs.parameters.targetNcn}}` }} \
-              -t "GOSS_BASE=/opt/cray/tests/install/ncn \
+              -t "SW_ADMIN_PASSWORD='{{.SwitchPassword}}' \
+                  GOSS_BASE=/opt/cray/tests/install/ncn \
                   goss -g /opt/cray/tests/install/ncn/suites/ncn-upgrade-tests-worker.yaml \
                     --vars=/opt/cray/tests/install/ncn/vars/variables-ncn.yaml validate \
                     --retry-timeout 1h"
