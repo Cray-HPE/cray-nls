@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022-2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -26,10 +26,9 @@
 package models
 
 type CreateRebootWorkflowRequest struct {
-	Hosts          []string `json:"hosts"`
-	DryRun         bool     `json:"dryRun"`
-	SwitchPassword string   `json:"switchPassword,omitempty"`
-	WipeOsd        bool     `json:"wipeOsd,omitempty"`
+	Hosts   []string `json:"hosts"`
+	DryRun  bool     `json:"dryRun"`
+	WipeOsd bool     `json:"wipeOsd,omitempty"`
 }
 
 type CreateRebootWorkflowResponse struct {
