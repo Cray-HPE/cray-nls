@@ -721,6 +721,14 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 
 	(activity.OperationOutputs["stage_params"].(map[string]interface{}))[session.CurrentStage] = outputStage
 
+	if activity.InputParameters.CfsConfigurationManagement != "" {
+		activity.OperationOutputs["cfs_configuration_management"] = activity.InputParameters.CfsConfigurationManagement
+	}
+
+	if activity.InputParameters.BootImageManagement != "" {
+		activity.OperationOutputs["boot_image_management"] = activity.InputParameters.BootImageManagement
+	}
+
 	return changed, nil
 }
 
