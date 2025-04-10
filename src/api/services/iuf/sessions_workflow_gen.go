@@ -30,6 +30,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strings"
+
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -38,11 +43,7 @@ import (
 	"github.com/oliveagle/jsonpath"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"path/filepath"
-	"reflect"
 	"sigs.k8s.io/yaml"
-	"sort"
-	"strings"
 )
 
 const ARGO_TASKS_SIZE_LIMIT = 120
@@ -138,7 +139,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 
 	// Deleting the workflow and cleaning up the resources after 30 days of completion to avoid cluterring
-	var secondsAfterCompletion int32 = 2592000 
+	var secondsAfterCompletion int32 = 2592000
 	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
 		SecondsAfterCompletion: &secondsAfterCompletion,
 	}
@@ -177,7 +178,9 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 
 	// global stages have product-less global parameters.
 	globalParams := s.getGlobalParams(*session, iuf.Product{}, stagesMetadata)
+	s.logger.Info("7104 - workflowGen func - Getting globalparams")
 	globalParamsContent, err := json.Marshal(globalParams)
+	s.logger.Infof("7104 - workflowGen func - globalParamsContent: %v", string(globalParamsContent))
 	if err != nil {
 		marshalErr := utils.GenericError{Message: fmt.Sprintf("Could not marshal globalParams %v %v", globalParams, err)}
 		s.logger.Error(marshalErr)
@@ -212,7 +215,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	}
 	const authTokenName = "auth_token"
 
-	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName,&res)
+	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName, &res)
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err, false

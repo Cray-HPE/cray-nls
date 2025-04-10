@@ -28,12 +28,13 @@ package iuf
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	services_iuf "github.com/Cray-HPE/cray-nls/src/api/services/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 const RESYNC_TIME_IN_SECONDS = 5
@@ -88,6 +89,7 @@ func (u IufController) GetSession(c *gin.Context) {
 }
 
 func (u IufController) Sync(context *gin.Context) {
+	u.logger.Info("7104 Sync func - calls RunNextStage")
 	var requestBody iuf.SyncRequest
 	if err := context.BindJSON(&requestBody); err != nil {
 		u.logger.Errorf("Sync.1: An error occurred parsing sync request %#v: %v", context.Request.Form, err)

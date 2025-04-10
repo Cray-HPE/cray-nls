@@ -30,9 +30,10 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"sort"
+
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
-	"sort"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -148,6 +149,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 
 	inputParamsForPatch := iuf.InputParametersPatch{}
 	jsonInputParams, err := json.Marshal(req.InputParameters)
+	s.logger.Infof("7104- jsonInputParams are %#v", req.InputParameters)
 	if err != nil {
 		s.logger.Errorf("HistoryRunAction.4: for activity %s, error while parsing input parameters: %#v", activityName, req.InputParameters)
 		return iuf.Session{}, err
@@ -162,7 +164,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 		InputParameters: inputParamsForPatch,
 		SiteParameters:  req.SiteParameters,
 	})
-
+	s.logger.Infof("7104- activity post patch %#v", activity)
 	if err != nil {
 		s.logger.Error(err)
 		return iuf.Session{}, err
@@ -177,6 +179,7 @@ func (s iufService) HistoryRunAction(activityName string, req iuf.HistoryRunActi
 		Name:            name,
 		ActivityRef:     activityName,
 	}
+	s.logger.Infof("7104- session is %#v", session)
 	return s.CreateSession(session, name, activity)
 }
 

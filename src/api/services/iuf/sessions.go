@@ -30,12 +30,13 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/cray-nls/src/utils"
-	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
-	core_v1 "k8s.io/api/core/v1"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
+	core_v1 "k8s.io/api/core/v1"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
@@ -120,6 +121,7 @@ func (s iufService) CreateSession(session iuf.Session, name string, activity iuf
 			&configmap,
 			v1.CreateOptions{},
 		)
+	s.logger.Infof("7104, CreateSession func ")
 	return session, err
 }
 
@@ -318,6 +320,8 @@ func (s iufService) CreateIufWorkflow(session *iuf.Session) (retWorkflow *v1alph
 		s.logger.Error(err)
 		return nil, err, false
 	}
+	s.logger.Info("7104- CreateIufWorkflow func which calls workflowGen which gets global params")
+	s.logger.Infof("Created workflow for: %v ", session)
 	return res, nil, false
 }
 
@@ -417,6 +421,7 @@ func (s iufService) RunNextStage(session *iuf.Session) (response iuf.SyncRespons
 	}
 
 	stage, err, skipStage := s.RunStage(session, currentStage)
+	s.logger.Info("7104 RunNextStage func - calls RunStage")
 	if skipStage {
 		return s.RunNextStage(session)
 	} else {
@@ -450,6 +455,7 @@ func (s iufService) RunStage(session *iuf.Session, stageToRun string) (ret iuf.S
 	session.CurrentState = iuf.SessionStateInProgress
 
 	workflow, err, skipStage := s.CreateIufWorkflow(session)
+	s.logger.Info("7104 RunStage func - calls CreateIUFWorkflow")
 	if err != nil {
 		s.logger.Error(err)
 
