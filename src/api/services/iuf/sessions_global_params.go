@@ -114,6 +114,8 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"concurrent_management_rollout_percentage": session.InputParameters.ConcurrentManagementRolloutPercentage,
 		"media_host":                               session.InputParameters.MediaHost,
 		"concurrency":                              session.InputParameters.Concurrency,
+		"cfs_configuration_management":             session.InputParameters.CfsConfigurationManagement,
+		"boot_image_management":                    session.InputParameters.BootImageManagement,
 	}
 }
 

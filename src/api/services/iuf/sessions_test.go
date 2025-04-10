@@ -26,6 +26,9 @@ package services_iuf
 
 import (
 	"encoding/json"
+	"regexp"
+	"testing"
+
 	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -40,8 +43,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fake "k8s.io/client-go/kubernetes/fake"
-	"regexp"
-	"testing"
 )
 
 func TestCreateIufWorkflow(t *testing.T) {
@@ -580,6 +581,8 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
+											  "cfs_configuration_management": "test-config",
+											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
@@ -730,6 +733,8 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
+											  "cfs_configuration_management": "test-config",
+											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
@@ -888,6 +893,8 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
+											  "cfs_configuration_management": "test-config",
+											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {
@@ -1047,6 +1054,8 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
+											  "cfs_configuration_management": "test-config",
+											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
 											"site_params": {

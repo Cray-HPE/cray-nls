@@ -33,7 +33,6 @@ import (
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"sort"
 	"time"
-
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -171,6 +170,14 @@ func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchAc
 	}
 	if patchParams.InputParameters.Force != nil {
 		activity.InputParameters.Force = *(patchParams.InputParameters.Force)
+	}
+
+	// Add new parameters
+	if patchParams.InputParameters.CfsConfigurationManagement != nil {
+		activity.InputParameters.CfsConfigurationManagement = *(patchParams.InputParameters.CfsConfigurationManagement)
+	}
+	if patchParams.InputParameters.BootImageManagement != nil {
+		activity.InputParameters.BootImageManagement = *(patchParams.InputParameters.BootImageManagement)
 	}
 
 	// patch site parameters...all or nothing for Products and Global attributes
