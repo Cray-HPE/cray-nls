@@ -581,7 +581,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "cfs_configuration": "test-config",
+											  "cfs_configuration_management": "test-config",
 											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
@@ -733,7 +733,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "cfs_configuration": "test-config",
+											  "cfs_configuration_management": "test-config",
 											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
@@ -893,7 +893,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "cfs_configuration": "test-config",
+											  "cfs_configuration_management": "test-config",
 											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},
@@ -1054,7 +1054,7 @@ func TestProcessOutput(t *testing.T) {
 												  "contents": "boot prep file contents as a string"
 												}
 											  ],
-											  "cfs_configuration": "test-config",
+											  "cfs_configuration_management": "test-config",
 											  "boot_image_management": "test-image",
 											  "limit_management_nodes": ["x12413515", "x15464574"]
 											},

@@ -675,6 +675,17 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	if stageParams[session.CurrentStage] == nil {
 		stageParams[session.CurrentStage] = make(map[string]interface{})
 	}
+
+	currentStageBootParams := stageParams[session.CurrentStage].(map[string]interface{})
+
+        if activity.InputParameters.CfsConfigurationManagement != "" {
+                currentStageBootParams["cfs_configuration_management"] = activity.InputParameters.CfsConfigurationManagement
+        }
+
+        if activity.InputParameters.BootImageManagement != "" {
+                currentStageBootParams["boot_image_management"] = activity.InputParameters.BootImageManagement
+        }
+
 	outputStage := stageParams[session.CurrentStage].(map[string]interface{})
 
 	var outputGlobalOrProduct map[string]interface{}
@@ -720,14 +731,6 @@ func (s iufService) updateActivityOperationOutputFromWorkflow(
 	}
 
 	(activity.OperationOutputs["stage_params"].(map[string]interface{}))[session.CurrentStage] = outputStage
-
-	if activity.InputParameters.CfsConfigurationManagement != "" {
-		activity.OperationOutputs["cfs_configuration_management"] = activity.InputParameters.CfsConfigurationManagement
-	}
-
-	if activity.InputParameters.BootImageManagement != "" {
-		activity.OperationOutputs["boot_image_management"] = activity.InputParameters.BootImageManagement
-	}
 
 	return changed, nil
 }

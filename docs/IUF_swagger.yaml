@@ -141,7 +141,7 @@ definitions:
   iuf.InputParameters:
     properties:
       boot_image_management:
-        description: The IMS boot image file for management nodes,
+        description: The IMS image ID to be used for booting management nodes
         type: string
       bootprep_config_managed:
         description: The path to the bootprep config file for managed nodes, relative
@@ -151,8 +151,8 @@ definitions:
         description: The path to the bootprep config file for management nodes, relative
           to the media_dir
         type: string
-      cfs_configuration:
-        description: The cfs configuration
+      cfs_configuration_management:
+        description: The cfs configuration name to be used for booting management nodes
         type: string
       concurrency:
         description: An integer defining how many products / operations can we concurrently
