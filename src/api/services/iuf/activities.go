@@ -148,6 +148,9 @@ func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchAc
 	if patchParams.InputParameters.LimitManagedNodes != nil {
 		activity.InputParameters.LimitManagedNodes = *(patchParams.InputParameters.LimitManagedNodes)
 	}
+	if patchParams.InputParameters.ManagementRolloutStrategy != nil {
+                activity.InputParameters.ManagementRolloutStrategy = *(patchParams.InputParameters.ManagementRolloutStrategy)
+        }
 	if patchParams.InputParameters.ManagedRolloutStrategy != nil {
 		activity.InputParameters.ManagedRolloutStrategy = *(patchParams.InputParameters.ManagedRolloutStrategy)
 	}

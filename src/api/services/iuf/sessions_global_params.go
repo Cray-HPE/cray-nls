@@ -111,6 +111,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"limit_management_nodes":                   session.InputParameters.LimitManagementNodes,
 		"limit_managed_nodes":                      session.InputParameters.LimitManagedNodes,
 		"managed_rollout_strategy":                 session.InputParameters.ManagedRolloutStrategy,
+		"management_rollout_strategy":              session.InputParameters.ManagementRolloutStrategy,
 		"concurrent_management_rollout_percentage": session.InputParameters.ConcurrentManagementRolloutPercentage,
 		"media_host":                               session.InputParameters.MediaHost,
 		"concurrency":                              session.InputParameters.Concurrency,

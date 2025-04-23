@@ -919,6 +919,18 @@ const docTemplateIUF = `{
                         "type": "string"
                     }
                 },
+		"management_rollout_strategy": {
+                    "description": "Whether to use a reboot or rebuild rollout strategy for managed nodes.",
+                    "enum": [
+                        "reboot",
+                        "rebuild"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/iuf.EManagementRolloutStrategy"
+                        }
+                    ]
+                },
                 "managed_rollout_strategy": {
                     "description": "Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.",
                     "enum": [

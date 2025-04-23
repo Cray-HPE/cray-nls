@@ -171,6 +171,14 @@ definitions:
         items:
           type: string
         type: array
+      management_rollout_strategy:
+        allOf:
+        - $ref: '#/definitions/iuf.EManagementRolloutStrategy'
+        description: Whether to use a reboot or rebuild rollout strategy for managed
+          nodes.
+        enum:
+        - reboot
+        - rebuild
       managed_rollout_strategy:
         allOf:
         - $ref: '#/definitions/iuf.EManagedRolloutStrategy'
