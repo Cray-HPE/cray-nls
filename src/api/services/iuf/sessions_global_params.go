@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022,2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,9 @@ import (
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/imdario/mergo"
 	"golang.org/x/exp/slices"
-	"path"
+        "path"
 	"sigs.k8s.io/yaml"
-	"strings"
+        "strings"
 )
 
 func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product, stages iuf.Stages) map[string]interface{} {
@@ -111,6 +111,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"limit_management_nodes":                   session.InputParameters.LimitManagementNodes,
 		"limit_managed_nodes":                      session.InputParameters.LimitManagedNodes,
 		"managed_rollout_strategy":                 session.InputParameters.ManagedRolloutStrategy,
+		"management_rollout_strategy":              session.InputParameters.ManagementRolloutStrategy,
 		"concurrent_management_rollout_percentage": session.InputParameters.ConcurrentManagementRolloutPercentage,
 		"media_host":                               session.InputParameters.MediaHost,
 		"concurrency":                              session.InputParameters.Concurrency,

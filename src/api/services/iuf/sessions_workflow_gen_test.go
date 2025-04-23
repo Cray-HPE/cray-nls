@@ -27,7 +27,7 @@ package services_iuf
 import (
 	"encoding/json"
 	"fmt"
-	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
+        mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
 	"github.com/golang/mock/gomock"
 	"strconv"
 	"strings"

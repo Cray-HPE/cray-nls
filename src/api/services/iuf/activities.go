@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022,2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/cray-nls/src/utils"
+        "github.com/Cray-HPE/cray-nls/src/utils"
 	"sort"
 	"time"
 
@@ -147,6 +147,9 @@ func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchAc
 	}
 	if patchParams.InputParameters.LimitManagedNodes != nil {
 		activity.InputParameters.LimitManagedNodes = *(patchParams.InputParameters.LimitManagedNodes)
+	}
+	if patchParams.InputParameters.ManagementRolloutStrategy != nil {
+		activity.InputParameters.ManagementRolloutStrategy = *(patchParams.InputParameters.ManagementRolloutStrategy)
 	}
 	if patchParams.InputParameters.ManagedRolloutStrategy != nil {
 		activity.InputParameters.ManagedRolloutStrategy = *(patchParams.InputParameters.ManagedRolloutStrategy)
