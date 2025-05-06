@@ -44,6 +44,8 @@ type InputParameters struct {
 	Concurrency                           int64                   `json:"concurrency"`                                   // An integer defining how many products / operations can we concurrently execute.
 	BootprepConfigManaged                 string                  `json:"bootprep_config_managed"`                       // The path to the bootprep config file for managed nodes, relative to the media_dir
 	BootprepConfigManagement              string                  `json:"bootprep_config_management"`                    // The path to the bootprep config file for management nodes, relative to the media_dir
+	CfsConfigurationManagement            string                  `json:"cfs_configuration_management"`                  // The name of the cfs configuration for management nodes
+	BootImageManagement                   string                  `json:"boot_image_management"`                         // The name of the boot image to be used for management nodes
 	Stages                                []string                `json:"stages"`                                        // Stages to execute
 	Force                                 bool                    `json:"force"`                                         // Force re-execution of stage operations
 } //	@name	InputParameters
@@ -59,6 +61,8 @@ type InputParametersPatch struct {
 	Concurrency                           *int64                   `json:"concurrency"`                                   // An integer defining how many products / operations can we concurrently execute.
 	BootprepConfigManaged                 *string                  `json:"bootprep_config_managed"`                       // The path to the bootprep config file for managed nodes, relative to the media_dir
 	BootprepConfigManagement              *string                  `json:"bootprep_config_management"`                    // The path to the bootprep config file for management nodes, relative to the media_dir
+	CfsConfigurationManagement            *string                  `json:"cfs_configuration_management"`                  // The name of the cfs configuration for management nodes
+	BootImageManagement                   *string                  `json:"boot_image_management"`                         // The name of the boot image to be used for management nodes
 	Stages                                *[]string                `json:"stages"`                                        // Stages to execute
 	Force                                 *bool                    `json:"force"`                                         // Force re-execution of stage operations
 } //	@name	InputParameters
