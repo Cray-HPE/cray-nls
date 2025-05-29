@@ -27,11 +27,12 @@ package services_iuf
 import (
 	"encoding/json"
 	"fmt"
-	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
-	"github.com/golang/mock/gomock"
 	"strconv"
 	"strings"
 	"testing"
+
+	mocks "github.com/Cray-HPE/cray-nls/src/api/mocks/services"
+	"github.com/golang/mock/gomock"
 
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -61,8 +62,9 @@ func TestWorkflowGen(t *testing.T) {
 			CurrentStage: "management-nodes-rollout",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
-				Stages: []string{"management-nodes-rollout"},
-				LimitManagementNodes: []string{"ncn-m001"},
+				Stages:                    []string{"management-nodes-rollout"},
+				LimitManagementNodes:      []string{"ncn-m001"},
+				ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild,
 			},
 			ActivityRef: activityName,
 		}
@@ -84,8 +86,9 @@ func TestWorkflowGen(t *testing.T) {
 			CurrentStage: "management-nodes-rollout",
 			CurrentState: iuf.SessionStateInProgress,
 			InputParameters: iuf.InputParameters{
-				Stages: []string{"management-nodes-rollout"},
-				LimitManagementNodes: []string{"ncn-m002"},
+				Stages:                    []string{"management-nodes-rollout"},
+				LimitManagementNodes:      []string{"ncn-m002"},
+				ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild,
 			},
 			ActivityRef: activityName,
 		}
@@ -476,7 +479,7 @@ func TestGetDagTasks(t *testing.T) {
 		session := iuf.Session{
 			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
 			ActivityRef:     activityName,
-			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}},
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}, ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild},
 		}
 		stageInfo := iuf.Stage{
 			Name: "this_is_a_stage_name",
@@ -502,7 +505,7 @@ func TestGetDagTasks(t *testing.T) {
 		session := iuf.Session{
 			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
 			ActivityRef:     activityName,
-			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"Management_Storage"}},
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"Management_Storage"}, ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild},
 		}
 		stageInfo := iuf.Stage{
 			Name: "this_is_a_stage_name",
@@ -527,7 +530,7 @@ func TestGetDagTasks(t *testing.T) {
 		session := iuf.Session{
 			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
 			ActivityRef:     activityName,
-			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}},
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-w002"}, ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild},
 		}
 		stageInfo := iuf.Stage{
 			Name: "this_is_a_stage_name",
@@ -553,7 +556,7 @@ func TestGetDagTasks(t *testing.T) {
 		session := iuf.Session{
 			Products:        []iuf.Product{{Name: "product_A"}, {Name: "product_B"}},
 			ActivityRef:     activityName,
-			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-bad"}},
+			InputParameters: iuf.InputParameters{LimitManagementNodes: []string{"ncn-bad"}, ManagementRolloutStrategy: iuf.EManagementRolloutStrategyRebuild},
 		}
 		stageInfo := iuf.Stage{
 			Name: "this_is_a_stage_name",
@@ -635,7 +638,7 @@ content:
 		}
 		workflow := v1alpha1.Workflow{}
 
-		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token",&workflow)
+		dagTasks, _, err := iufSvc.getDAGTasks(&session, stageInfo, stages, globalParamsPerProduct, "global_params", "auth_token", &workflow)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, dagTasks)
 		assert.Equal(t, 6, len(dagTasks))
