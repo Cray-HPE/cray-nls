@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022,2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strings"
+
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
 	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
@@ -38,11 +43,7 @@ import (
 	"github.com/oliveagle/jsonpath"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"path/filepath"
-	"reflect"
 	"sigs.k8s.io/yaml"
-	"sort"
-	"strings"
 )
 
 const ARGO_TASKS_SIZE_LIMIT = 120
@@ -138,7 +139,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	res.Spec.PodGC = &v1alpha1.PodGC{Strategy: v1alpha1.PodGCOnPodCompletion}
 
 	// Deleting the workflow and cleaning up the resources after 30 days of completion to avoid cluterring
-	var secondsAfterCompletion int32 = 2592000 
+	var secondsAfterCompletion int32 = 2592000
 	res.Spec.TTLStrategy = &v1alpha1.TTLStrategy{
 		SecondsAfterCompletion: &secondsAfterCompletion,
 	}
@@ -212,7 +213,7 @@ func (s iufService) workflowGen(session *iuf.Session) (workflow v1alpha1.Workflo
 	}
 	const authTokenName = "auth_token"
 
-	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName,&res)
+	dagTasks, products, err := s.getDAGTasks(session, stageMetadata, stagesMetadata, globalParamsNamesPerProduct, globalParamsName, authTokenName, &res)
 	if err != nil {
 		s.logger.Error(err)
 		return v1alpha1.Workflow{}, err, false
@@ -802,7 +803,7 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 			},
 		}
 		if operation.Name == "management-nodes-rollout" {
-			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes, workflow)
+			managementRolloutSubOperation, err := s.getManagementNodesRolloutSubOperation(session.InputParameters.LimitManagementNodes, workflow, session.InputParameters.ManagementRolloutStrategy)
 			if err != nil {
 				s.setEchoTemplate(true, &task, fmt.Sprintf("Management-nodes-rollout can not be run: %s", err))
 			} else {
@@ -837,19 +838,37 @@ func (s iufService) getDAGTasksForGlobalStage(session iuf.Session, stageInfo iuf
 }
 
 // Get the master, worker, or storage workflow for management nodes rollout operation
-func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string, workflow *v1alpha1.Workflow) (string, error) {
+func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes []string, workflow *v1alpha1.Workflow, ManagementRolloutStrategy iuf.EManagementRolloutStrategy) (string, error) {
 	validator := utils.NewValidator()
-	var workflowType string
 	workflowType, err := validator.ValidateLimitManagementNodesInput(limitManagementNodes)
 	if err != nil {
 		return "", err
 	}
-	workflowNames := map[string]string{
-		"worker":      "management-worker-nodes-rollout",
-		"storage":     "management-storage-nodes-rollout",
-		"master1":     "management-m001-rollout",
-		"masterOther": "management-two-master-nodes-rollout",
+
+	if workflowType == "master" && ManagementRolloutStrategy == "reboot" {
+		return "", fmt.Errorf("unsupported strategy: %s for master nodes", ManagementRolloutStrategy)
 	}
+
+	// Determine workflowtemplate suffix based on ManagementRolloutStrategy
+	var suffix string
+	switch ManagementRolloutStrategy {
+	case "rebuild":
+		suffix = "rollout"
+	case "reboot":
+		suffix = "reboot"
+	default:
+		return "", fmt.Errorf("unsupported strategy: %s", ManagementRolloutStrategy)
+
+	}
+
+	// Define Workflowtemplate base names
+	workflowBaseNames := map[string]string{
+		"worker":      "management-worker-nodes-",
+		"storage":     "management-storage-nodes-",
+		"master1":     "management-m001-",
+		"masterOther": "management-two-master-nodes-",
+	}
+
 	if workflowType == "master" {
 		if limitManagementNodes[0] == "ncn-m001" {
 			workflowType = "master1"
@@ -859,5 +878,5 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 			workflow.Spec.NodeSelector = map[string]string{"kubernetes.io/hostname": "ncn-m001"}
 		}
 	}
-	return workflowNames[workflowType], nil
+	return workflowBaseNames[workflowType] + suffix, nil
 }
