@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022,2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -34,38 +34,47 @@ type Product struct {
 } //	@name	Product
 
 type InputParameters struct {
-	MediaDir                              string                  `json:"media_dir"`                                     // Location of media
-	SiteParameters                        string                  `json:"site_parameters"`                               // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
-	LimitManagementNodes                  []string                `json:"limit_management_nodes"`                        // Must in the form <role>_<subrole>. E.g. Management_Master, Management_Worker, Management_Storage
-	LimitManagedNodes                     []string                `json:"limit_managed_nodes"`                           // Anything accepted by BOS v2 as the value to a session's limit parameter.
-	ManagedRolloutStrategy                EManagedRolloutStrategy `json:"managed_rollout_strategy" enums:"reboot,stage"` // Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.
-	ConcurrentManagementRolloutPercentage int64                   `json:"concurrent_management_rollout_percentage"`      // The percentage of management nodes to reboot in parallel before moving on to the next set of management nodes to reboot.
-	MediaHost                             string                  `json:"media_host"`                                    // A string containing the hostname of where the media is located
-	Concurrency                           int64                   `json:"concurrency"`                                   // An integer defining how many products / operations can we concurrently execute.
-	BootprepConfigManaged                 string                  `json:"bootprep_config_managed"`                       // The path to the bootprep config file for managed nodes, relative to the media_dir
-	BootprepConfigManagement              string                  `json:"bootprep_config_management"`                    // The path to the bootprep config file for management nodes, relative to the media_dir
-	CfsConfigurationManagement            string                  `json:"cfs_configuration_management"`                  // The name of the cfs configuration for management nodes
-	BootImageManagement                   string                  `json:"boot_image_management"`                         // The name of the boot image to be used for management nodes
-	Stages                                []string                `json:"stages"`                                        // Stages to execute
-	Force                                 bool                    `json:"force"`                                         // Force re-execution of stage operations
+	MediaDir                              string                     `json:"media_dir"`                                          // Location of media
+	SiteParameters                        string                     `json:"site_parameters"`                                    // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
+	LimitManagementNodes                  []string                   `json:"limit_management_nodes"`                             // Must in the form <role>_<subrole>. E.g. Management_Master, Management_Worker, Management_Storage
+	LimitManagedNodes                     []string                   `json:"limit_managed_nodes"`                                // Anything accepted by BOS v2 as the value to a session's limit parameter.
+	ManagementRolloutStrategy             EManagementRolloutStrategy `json:"management_rollout_strategy" enums:"reboot,rebuild"` // Whether to use a reboot or rebuild strategy for management nodes.
+	ManagedRolloutStrategy                EManagedRolloutStrategy    `json:"managed_rollout_strategy" enums:"reboot,stage"`      // Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.
+	ConcurrentManagementRolloutPercentage int64                      `json:"concurrent_management_rollout_percentage"`           // The percentage of management nodes to reboot in parallel before moving on to the next set of management nodes to reboot.
+	MediaHost                             string                     `json:"media_host"`                                         // A string containing the hostname of where the media is located
+	Concurrency                           int64                      `json:"concurrency"`                                        // An integer defining how many products / operations can we concurrently execute.
+	BootprepConfigManaged                 string                     `json:"bootprep_config_managed"`                            // The path to the bootprep config file for managed nodes, relative to the media_dir
+	BootprepConfigManagement              string                     `json:"bootprep_config_management"`                         // The path to the bootprep config file for management nodes, relative to the media_dir
+	CfsConfigurationManagement            string                     `json:"cfs_configuration_management"`                       // The name of the cfs configuration for management nodes
+	BootImageManagement                   string                     `json:"boot_image_management"`                              // The name of the boot image to be used for management nodes
+	Stages                                []string                   `json:"stages"`                                             // Stages to execute
+	Force                                 bool                       `json:"force"`                                              // Force re-execution of stage operations
 } //	@name	InputParameters
 
 type InputParametersPatch struct {
-	MediaDir                              *string                  `json:"media_dir"`                                     // Location of media
-	SiteParameters                        *string                  `json:"site_parameters"`                               // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
-	LimitManagementNodes                  *[]string                `json:"limit_management_nodes"`                        // Must in the form <role>_<subrole>. E.g. Management_Master, Management_Worker, Management_Storage
-	LimitManagedNodes                     *[]string                `json:"limit_managed_nodes"`                           // Anything accepted by BOS v2 as the value to a session's limit parameter.
-	ManagedRolloutStrategy                *EManagedRolloutStrategy `json:"managed_rollout_strategy" enums:"reboot,stage"` // Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.
-	ConcurrentManagementRolloutPercentage *int64                   `json:"concurrent_management_rollout_percentage"`      // The percentage of management nodes to reboot in parallel before moving on to the next set of management nodes to reboot.
-	MediaHost                             *string                  `json:"media_host"`                                    // A string containing the hostname of where the media is located
-	Concurrency                           *int64                   `json:"concurrency"`                                   // An integer defining how many products / operations can we concurrently execute.
-	BootprepConfigManaged                 *string                  `json:"bootprep_config_managed"`                       // The path to the bootprep config file for managed nodes, relative to the media_dir
-	BootprepConfigManagement              *string                  `json:"bootprep_config_management"`                    // The path to the bootprep config file for management nodes, relative to the media_dir
-	CfsConfigurationManagement            *string                  `json:"cfs_configuration_management"`                  // The name of the cfs configuration for management nodes
-	BootImageManagement                   *string                  `json:"boot_image_management"`                         // The name of the boot image to be used for management nodes
-	Stages                                *[]string                `json:"stages"`                                        // Stages to execute
-	Force                                 *bool                    `json:"force"`                                         // Force re-execution of stage operations
+	MediaDir                              *string                     `json:"media_dir"`                                          // Location of media
+	SiteParameters                        *string                     `json:"site_parameters"`                                    // DEPRECATED: use site_parameters at the top level of the activity or session resource. The inline contents of the site_parameters.yaml file.
+	LimitManagementNodes                  *[]string                   `json:"limit_management_nodes"`                             // Must in the form <role>_<subrole>. E.g. Management_Master, Management_Worker, Management_Storage
+	LimitManagedNodes                     *[]string                   `json:"limit_managed_nodes"`                                // Anything accepted by BOS v2 as the value to a session's limit parameter.
+	ManagementRolloutStrategy             *EManagementRolloutStrategy `json:"management_rollout_strategy" enums:"reboot,rebuild"` // Whether to use a reboot or rebuild strategy for management nodes.
+	ManagedRolloutStrategy                *EManagedRolloutStrategy    `json:"managed_rollout_strategy" enums:"reboot,stage"`      // Whether to use a reboot or staged rollout strategy for managed nodes. Refer to BOS v2 for more details.
+	ConcurrentManagementRolloutPercentage *int64                      `json:"concurrent_management_rollout_percentage"`           // The percentage of management nodes to reboot in parallel before moving on to the next set of management nodes to reboot.
+	MediaHost                             *string                     `json:"media_host"`                                         // A string containing the hostname of where the media is located
+	Concurrency                           *int64                      `json:"concurrency"`                                        // An integer defining how many products / operations can we concurrently execute.
+	BootprepConfigManaged                 *string                     `json:"bootprep_config_managed"`                            // The path to the bootprep config file for managed nodes, relative to the media_dir
+	BootprepConfigManagement              *string                     `json:"bootprep_config_management"`                         // The path to the bootprep config file for management nodes, relative to the media_dir
+	CfsConfigurationManagement            *string                     `json:"cfs_configuration_management"`                       // The name of the cfs configuration for management nodes
+	BootImageManagement                   *string                     `json:"boot_image_management"`                              // The name of the boot image to be used for management nodes
+	Stages                                *[]string                   `json:"stages"`                                             // Stages to execute
+	Force                                 *bool                       `json:"force"`                                              // Force re-execution of stage operations
 } //	@name	InputParameters
+
+type EManagementRolloutStrategy string
+
+const (
+	EManagementRolloutStrategyReboot  EManagementRolloutStrategy = "reboot"
+	EManagementRolloutStrategyRebuild EManagementRolloutStrategy = "rebuild"
+)
 
 type EManagedRolloutStrategy string
 
