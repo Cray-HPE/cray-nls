@@ -51,6 +51,10 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 		return preSteps, postSteps
 	}
 
+	if stage.Name == "management-nodes-rollout" && session.InputParameters.ManagementRolloutStrategy == iuf.EManagementRolloutStrategyReboot {
+		return preSteps, postSteps
+	}
+
 	hooks := s.getProductHooks(session, stage)
 
 	preSteps = map[string]v1alpha1.DAGTask{}
