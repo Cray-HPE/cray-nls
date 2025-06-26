@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022,2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -28,12 +28,13 @@ package services_iuf
 import (
 	_ "embed"
 	"encoding/json"
+	"path"
+	"strings"
+
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/imdario/mergo"
 	"golang.org/x/exp/slices"
-	"path"
 	"sigs.k8s.io/yaml"
-	"strings"
 )
 
 func (s iufService) getGlobalParams(session iuf.Session, in_product iuf.Product, stages iuf.Stages) map[string]interface{} {
@@ -53,7 +54,7 @@ func (s iufService) getProductVersionKeyFromNameAndVersion(name string, version 
 	return strings.ReplaceAll(name+"-"+s.normalizeProductVersion(version), ".", "-")
 }
 
-//normalizeProductVersion normalize the product version so that we force-follow semver format
+// normalizeProductVersion normalize the product version so that we force-follow semver format
 func (s iufService) normalizeProductVersion(version string) string {
 	return strings.ReplaceAll(version, "_", "-")
 }
@@ -110,6 +111,7 @@ func (s iufService) getGlobalParamsInputParams(session iuf.Session, in_product i
 		"bootprep_config_management":               session.InputParameters.BootprepConfigManagement,
 		"limit_management_nodes":                   session.InputParameters.LimitManagementNodes,
 		"limit_managed_nodes":                      session.InputParameters.LimitManagedNodes,
+		"management_rollout_strategy":              session.InputParameters.ManagementRolloutStrategy,
 		"managed_rollout_strategy":                 session.InputParameters.ManagedRolloutStrategy,
 		"concurrent_management_rollout_percentage": session.InputParameters.ConcurrentManagementRolloutPercentage,
 		"media_host":                               session.InputParameters.MediaHost,

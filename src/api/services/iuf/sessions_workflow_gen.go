@@ -845,20 +845,19 @@ func (s iufService) getManagementNodesRolloutSubOperation(limitManagementNodes [
 		return "", err
 	}
 
-	if workflowType == "master" && ManagementRolloutStrategy == "reboot" {
+	if workflowType == "master" && ManagementRolloutStrategy == iuf.EManagementRolloutStrategyReboot {
 		return "", fmt.Errorf("unsupported strategy: %s for master nodes", ManagementRolloutStrategy)
 	}
 
 	// Determine workflowtemplate suffix based on ManagementRolloutStrategy
 	var suffix string
 	switch ManagementRolloutStrategy {
-	case "rebuild":
+	case iuf.EManagementRolloutStrategyRebuild:
 		suffix = "rollout"
-	case "reboot":
+	case iuf.EManagementRolloutStrategyReboot:
 		suffix = "reboot"
 	default:
-		return "", fmt.Errorf("unsupported strategy: %s", ManagementRolloutStrategy)
-
+		suffix = "rollout"
 	}
 
 	// Define Workflowtemplate base names
