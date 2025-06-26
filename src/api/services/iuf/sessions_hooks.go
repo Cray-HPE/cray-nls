@@ -2,7 +2,7 @@
  *
  *  MIT License
  *
- *  (C) Copyright 2022 Hewlett Packard Enterprise Development LP
+ *  (C) Copyright 2022-2025 Hewlett Packard Enterprise Development LP
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,10 @@ func (s iufService) getProductHookTasks(session iuf.Session, stage iuf.Stage, st
 	postSteps map[string]v1alpha1.DAGTask) {
 
 	if stage.NoHooks {
+		return preSteps, postSteps
+	}
+
+	if stage.Name == "management-nodes-rollout" && session.InputParameters.ManagementRolloutStrategy == iuf.EManagementRolloutStrategyReboot {
 		return preSteps, postSteps
 	}
 
