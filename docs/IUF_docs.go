@@ -779,6 +779,17 @@ const docTemplateIUF = `{
                 }
             }
         },
+        "iuf.ManagementRolloutStrategy": {
+            "type": "string",
+            "enum": [
+                "reboot",
+                "rebuild"
+            ],
+            "x-enum-varnames": [
+                "EManagementRolloutStrategyReboot",
+                "EManagementRolloutStrategyRebuild"
+            ]
+        },
         "iuf.EManagedRolloutStrategy": {
             "type": "string",
             "enum": [
