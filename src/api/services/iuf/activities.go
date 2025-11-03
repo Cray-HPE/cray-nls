@@ -30,12 +30,42 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	"github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow"
 	"sort"
 	"time"
 	iuf "github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// retryDelete is a helper function for DeleteActivity that retries deletion operations
+// with exponential backoff. It treats "not found" errors as success.
+func (s iufService) retryDelete(operation string, deleteFn func() error, maxRetries int) error {
+    var lastErr error
+    for attempt := 1; attempt <= maxRetries; attempt++ {
+        err := deleteFn()
+        if err == nil {
+            return nil // Success
+        }
+        
+        // Check if it's a "not found" error - don't retry
+        if strings.Contains(err.Error(), "not found") {
+			s.logger.Infof("%s - resource not found, may have already been deleted", operation)
+            return nil
+        }
+        
+        lastErr = err
+        if attempt < maxRetries {
+            s.logger.Warnf("%s failed (attempt %d/%d): %v. Retrying...", operation, attempt, maxRetries, err)
+            time.Sleep(time.Duration(attempt) * time.Second) // Exponential backoff
+        }
+    }
+    
+    s.logger.Errorf("%s failed after %d attempts: %v", operation, maxRetries, lastErr)
+    return lastErr
+}
 
 func (s iufService) CreateActivity(req iuf.CreateActivityRequest) (iuf.Activity, error) {
 	// construct activity object from create req
@@ -130,6 +160,147 @@ func (s iufService) GetActivity(name string) (iuf.Activity, error) {
 		return res, err
 	}
 	return res, err
+}
+
+func (s iufService) DeleteActivity(activityName string) (bool, error) {
+	// Delete all metadata for the activity: workflows, sessions configmaps, history configmaps and activity configmap
+    s.logger.Infof("DeleteActivity: Deleting activity %s", activityName)
+    
+    const maxRetries = 3
+
+	// 1. Delete all workflows for this activity using the workflow client
+
+	// 1a. List workflows with label selector for this activity
+    workflowListReq := &workflow.WorkflowListRequest{
+        Namespace: DEFAULT_NAMESPACE,
+        ListOptions: &v1.ListOptions{
+            LabelSelector: fmt.Sprintf("activity=%s", activityName),
+        },
+    }
+    
+    workflowList, err := s.workflowClient.ListWorkflows(context.TODO(), workflowListReq)
+    if err != nil {
+        s.logger.Errorf("DeleteActivity: error listing workflows for activity %s: %v", activityName, err)
+		return false, err
+    } else {
+		// 1b. Delete each workflow with retry
+        s.logger.Infof("DeleteActivity: Found %d workflows", len(workflowList.Items))
+        
+        for _, wf := range workflowList.Items {
+            err := s.retryDelete(fmt.Sprintf("Delete workflow %s", wf.Name), func() error {
+                _, err := s.workflowClient.DeleteWorkflow(context.TODO(), &workflow.WorkflowDeleteRequest{
+                    Name:      wf.Name,
+                    Namespace: DEFAULT_NAMESPACE,
+                })
+                return err
+            }, maxRetries)
+            
+            if err != nil {
+                s.logger.Errorf("DeleteActivity: error deleting workflow %s: %v", wf.Name, err)
+                return false, err
+            }
+            s.logger.Infof("DeleteActivity: Deleted workflow %s", wf.Name)
+        }
+    }
+
+	// 2. Delete all sessions for this activity
+
+	// 2a. List session configmaps with label selector for this activity
+    sessionList, err := s.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_SESSION, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    if err != nil {
+        s.logger.Errorf("DeleteActivity: error listing session configmaps for activity %s: %v", activityName, err)
+        return false, err
+    }
+    
+	// 2b. Delete each session configmap with retry
+    s.logger.Infof("DeleteActivity: Found %d session configmaps", len(sessionList.Items))
+    
+    for _, session := range sessionList.Items {
+        err := s.retryDelete(fmt.Sprintf("Delete session configmap %s", session.Name), func() error {
+            return s.k8sRestClientSet.
+                CoreV1().
+                ConfigMaps(DEFAULT_NAMESPACE).
+                Delete(
+                    context.TODO(),
+                    session.Name,
+                    v1.DeleteOptions{},
+                )
+        }, maxRetries)
+        
+        if err != nil{
+            s.logger.Errorf("DeleteActivity: error deleting session configmap %s: %v", session.Name, err)
+            return false, err
+        }
+        s.logger.Infof("DeleteActivity: Deleted session %s", session.Name)
+    }
+    
+    // 3. Delete all history configmaps for this activity
+
+	// 3a. List history configmaps with label selector for this activity
+    historyList, err := s.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    if err != nil {
+        s.logger.Errorf("DeleteActivity: error listing history configmaps for activity %s: %v", activityName, err)
+        return false, err
+    }
+    
+	// 3b. Delete each history configmap with retry
+    s.logger.Infof("DeleteActivity: Found %d history configmaps", len(historyList.Items))
+    
+    for _, history := range historyList.Items {
+        err := s.retryDelete(fmt.Sprintf("Delete history configmap %s", history.Name), func() error {
+            return s.k8sRestClientSet.
+                CoreV1().
+                ConfigMaps(DEFAULT_NAMESPACE).
+                Delete(
+                    context.TODO(),
+                    history.Name,
+                    v1.DeleteOptions{},
+                )
+        }, maxRetries)
+        
+        if err != nil{
+            s.logger.Errorf("DeleteActivity: error deleting history configmap %s: %v", history.Name, err)
+            return false, err
+        }
+        s.logger.Infof("DeleteActivity: Deleted history %s", history.Name)
+    }
+
+	// 4. Delete the main activity configmap itself with retry
+    err = s.retryDelete(fmt.Sprintf("Delete activity configmap %s", activityName), func() error {
+        return s.k8sRestClientSet.
+            CoreV1().
+            ConfigMaps(DEFAULT_NAMESPACE).
+            Delete(
+                context.TODO(),
+                activityName,
+                v1.DeleteOptions{},
+            )
+    }, maxRetries)
+    
+    if err != nil {
+        s.logger.Errorf("DeleteActivity: error deleting activity configmap %s: %v", activityName, err)
+        return false, err
+    }
+    s.logger.Infof("DeleteActivity: Deleted activity configmap %s", activityName)
+
+    s.logger.Infof("DeleteActivity: Successfully deleted activity %s and all related resources", activityName)
+    return true, nil
 }
 
 func (s iufService) PatchActivity(activity iuf.Activity, patchParams iuf.PatchActivityRequest) (iuf.Activity, error) {

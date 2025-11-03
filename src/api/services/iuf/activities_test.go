@@ -27,6 +27,7 @@ package services_iuf
 
 import (
 	_ "embed"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/google/go-cmp/cmp"
@@ -35,7 +36,11 @@ import (
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	fake "k8s.io/client-go/kubernetes/fake"
+	workflowmocks "github.com/argoproj/argo-workflows/v3/pkg/apiclient/workflow/mocks"
+    "github.com/stretchr/testify/mock"
+    wfv1 "github.com/argoproj/argo-workflows/v3/pkg/apis/workflow/v1alpha1"
 )
 
 func TestCreateActivity(t *testing.T) {
@@ -340,4 +345,311 @@ func TestPatchActivity(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestDeleteActivity verifies the basic deletion functionality of activities.
+func TestDeleteActivity(t *testing.T) {
+    fakeClient := fake.NewSimpleClientset()
+
+    // Create mock workflow client
+    wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+    wfServiceClientMock.On("ListWorkflows", mock.Anything, mock.Anything).Return(&wfv1.WorkflowList{}, nil)
+    wfServiceClientMock.On("DeleteWorkflow", mock.Anything, mock.Anything).Return(nil, nil)
+    
+    // Add workflow client to service (MODIFY THIS)
+    mySvc := iufService{
+        logger:           utils.GetLogger(),
+        k8sRestClientSet: fakeClient,
+        workflowClient:   wfServiceClientMock,
+    }
+
+    var tests = []struct {
+        name    string
+        setup   func() string // Returns activity name to delete
+        wantErr bool
+    }{
+        {
+            name: "Successfully delete existing activity",
+            setup: func() string {
+                activityName := "test-delete-activity"
+                _, err := mySvc.CreateActivity(iuf.CreateActivityRequest{Name: activityName})
+                if err != nil {
+                    t.Fatalf("Setup failed: %v", err)
+                }
+                return activityName
+            },
+            wantErr: false,
+        },
+        {
+            name: "Delete non-existent activity should not error",
+            setup: func() string {
+                return "non-existent-activity"
+            },
+            wantErr: false,
+        },
+        {
+            name: "Delete activity with history entries",
+            setup: func() string {
+                activityName := "test-with-history"
+                _, err := mySvc.CreateActivity(iuf.CreateActivityRequest{Name: activityName})
+                if err != nil {
+                    t.Fatalf("Setup failed: %v", err)
+                }
+                // History is automatically created in CreateActivity
+                return activityName
+            },
+            wantErr: false,
+        },
+        {
+            name: "Delete activity with sessions",
+            setup: func() string {
+                activityName := "test-with-sessions"
+                activity, err := mySvc.CreateActivity(iuf.CreateActivityRequest{Name: activityName})
+                if err != nil {
+                    t.Fatalf("Setup failed: %v", err)
+                }
+                // Create a session
+                session := iuf.Session{
+                    Name:            utils.GenerateName(activityName),
+                    InputParameters: iuf.InputParameters{},
+                }
+                _, err = mySvc.CreateSession(session, "Test session", activity)
+                if err != nil {
+                    t.Fatalf("Setup failed creating session: %v", err)
+                }
+                return activityName
+            },
+            wantErr: false,
+        },
+        {
+            name: "Delete activity with multiple history and sessions",
+            setup: func() string {
+                activityName := "test-multiple-resources"
+                activity, err := mySvc.CreateActivity(iuf.CreateActivityRequest{Name: activityName})
+                if err != nil {
+                    t.Fatalf("Setup failed: %v", err)
+                }
+                // Create multiple history entries
+                for i := 0; i < 3; i++ {
+                    err = mySvc.CreateHistoryEntry(activityName, iuf.ActivityStateWaitForAdmin, fmt.Sprintf("Test history %d", i))
+                    if err != nil {
+                        t.Fatalf("Setup failed creating history: %v", err)
+                    }
+                }
+                // Create multiple sessions
+                for i := 0; i < 2; i++ {
+                    session := iuf.Session{
+                        Name:            utils.GenerateName(fmt.Sprintf("%s-session-%d", activityName, i)),
+                        InputParameters: iuf.InputParameters{},
+                    }
+                    _, err = mySvc.CreateSession(session, fmt.Sprintf("Test session %d", i), activity)
+                    if err != nil {
+                        t.Fatalf("Setup failed creating session: %v", err)
+                    }
+                }
+                return activityName
+            },
+            wantErr: false,
+        },
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            activityName := tt.setup()
+            
+            success, err := mySvc.DeleteActivity(activityName)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("DeleteActivity() error = %v, wantErr %v", err, tt.wantErr)
+                return
+            }
+            
+            if !tt.wantErr && !success {
+                t.Errorf("DeleteActivity() success = %v, want true", success)
+                return
+            }
+            
+            // Verify activity was deleted
+            if !tt.wantErr {
+                _, err := mySvc.GetActivity(activityName)
+                if err == nil {
+                    t.Errorf("Activity %s still exists after deletion", activityName)
+                }
+                
+                // Verify history entries were deleted
+                historyList, err := mySvc.k8sRestClientSet.
+                    CoreV1().
+                    ConfigMaps(DEFAULT_NAMESPACE).
+                    List(
+                        context.TODO(),
+                        v1.ListOptions{
+                            LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+                        },
+                    )
+                if err == nil && len(historyList.Items) > 0 {
+                    t.Errorf("History entries still exist after deletion: found %d items", len(historyList.Items))
+                }
+                
+                // Verify sessions were deleted
+                sessionList, err := mySvc.k8sRestClientSet.
+                    CoreV1().
+                    ConfigMaps(DEFAULT_NAMESPACE).
+                    List(
+                        context.TODO(),
+                        v1.ListOptions{
+                            LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_SESSION, LABEL_ACTIVITY_REF, activityName),
+                        },
+                    )
+                if err == nil && len(sessionList.Items) > 0 {
+                    t.Errorf("Session entries still exist after deletion: found %d items", len(sessionList.Items))
+                }
+            }
+        })
+    }
+
+	wfServiceClientMock.AssertCalled(t, "ListWorkflows", mock.Anything, mock.Anything)
+}
+
+// TestDeleteActivityRetryLogic ensures that the deletion operation handles retry scenarios gracefully.
+func TestDeleteActivityRetryLogic(t *testing.T) {
+    fakeClient := fake.NewSimpleClientset()
+
+    // Add workflow client mock
+    wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+    wfServiceClientMock.On("ListWorkflows", mock.Anything, mock.Anything).Return(&wfv1.WorkflowList{}, nil)
+    
+    mySvc := iufService{
+        logger:           utils.GetLogger(),
+        k8sRestClientSet: fakeClient,
+        workflowClient:   wfServiceClientMock,
+    }
+
+    t.Run("Retry on not found should succeed", func(t *testing.T) {
+        // Try to delete an activity that doesn't exist
+        // Should succeed with warning, not error
+        success, err := mySvc.DeleteActivity("non-existent")
+        if err != nil {
+            t.Errorf("DeleteActivity() should not error on not found, got: %v", err)
+        }
+        if !success {
+            t.Errorf("DeleteActivity() should return success=true even for non-existent activity")
+        }
+    })
+}
+
+// TestDeleteActivityVerifyResourceCleanup confirms that when an activity is deleted, all associated
+// resources are properly removed from the system.
+func TestDeleteActivityVerifyResourceCleanup(t *testing.T) {
+    fakeClient := fake.NewSimpleClientset()
+
+    // Add workflow client mock
+    wfServiceClientMock := &workflowmocks.WorkflowServiceClient{}
+    wfServiceClientMock.On("ListWorkflows", mock.Anything, mock.Anything).Return(&wfv1.WorkflowList{}, nil)
+    wfServiceClientMock.On("DeleteWorkflow", mock.Anything, mock.Anything).Return(nil, nil)
+    
+    mySvc := iufService{
+        logger:           utils.GetLogger(),
+        k8sRestClientSet: fakeClient,
+        workflowClient:   wfServiceClientMock,
+    }
+
+    activityName := "test-cleanup-verification"
+    
+    // Create activity with all associated resources
+    activity, err := mySvc.CreateActivity(iuf.CreateActivityRequest{Name: activityName})
+    if err != nil {
+        t.Fatalf("Setup failed: %v", err)
+    }
+    
+    // Add extra history
+    for i := 0; i < 3; i++ {
+        err = mySvc.CreateHistoryEntry(activityName, iuf.ActivityStateInProgress, fmt.Sprintf("Entry %d", i))
+        if err != nil {
+            t.Fatalf("Setup failed: %v", err)
+        }
+    }
+    
+    // Add sessions
+    for i := 0; i < 2; i++ {
+        session := iuf.Session{
+            Name:            utils.GenerateName(fmt.Sprintf("%s-session-%d", activityName, i)),
+            InputParameters: iuf.InputParameters{},
+        }
+        _, err = mySvc.CreateSession(session, fmt.Sprintf("Test session %d", i), activity)
+        if err != nil {
+            t.Fatalf("Setup failed: %v", err)
+        }
+    }
+    
+    // Verify resources exist before deletion
+    historyBefore, _ := mySvc.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    
+    sessionsBefore, _ := mySvc.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_SESSION, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    
+    if len(historyBefore.Items) < 3 {
+        t.Errorf("Expected at least 3 history items before deletion, got %d", len(historyBefore.Items))
+    }
+    
+    if len(sessionsBefore.Items) < 2 {
+        t.Errorf("Expected at least 2 session items before deletion, got %d", len(sessionsBefore.Items))
+    }
+    
+    // Delete activity
+    success, err := mySvc.DeleteActivity(activityName)
+    if err != nil {
+        t.Fatalf("DeleteActivity failed: %v", err)
+    }
+    if !success {
+        t.Fatalf("DeleteActivity returned success=false")
+    }
+    
+    // Verify all resources are gone
+    historyAfter, _ := mySvc.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_HISTORY, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    
+    sessionsAfter, _ := mySvc.k8sRestClientSet.
+        CoreV1().
+        ConfigMaps(DEFAULT_NAMESPACE).
+        List(
+            context.TODO(),
+            v1.ListOptions{
+                LabelSelector: fmt.Sprintf("type=%s,%s=%s", LABEL_SESSION, LABEL_ACTIVITY_REF, activityName),
+            },
+        )
+    
+    if len(historyAfter.Items) > 0 {
+        t.Errorf("Expected 0 history items after deletion, got %d", len(historyAfter.Items))
+    }
+    
+    if len(sessionsAfter.Items) > 0 {
+        t.Errorf("Expected 0 session items after deletion, got %d", len(sessionsAfter.Items))
+    }
+    
+    // Verify activity itself is gone
+    _, err = mySvc.GetActivity(activityName)
+    if err == nil {
+        t.Errorf("Activity should not exist after deletion")
+    }
 }

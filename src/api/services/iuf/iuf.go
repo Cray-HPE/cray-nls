@@ -56,6 +56,7 @@ type IufService interface {
 	PatchActivity(activity iuf.Activity, req iuf.PatchActivityRequest) (iuf.Activity, error)
 	ListActivities() ([]iuf.Activity, error)
 	GetActivity(name string) (iuf.Activity, error)
+	DeleteActivity(name string) (bool, error)
 	// history
 	ListActivityHistory(activityName string) ([]iuf.History, error)
 	HistoryRunAction(activityName string, req iuf.HistoryRunActionRequest) (iuf.Session, error)
