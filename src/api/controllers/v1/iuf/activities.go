@@ -27,6 +27,7 @@ package iuf
 
 import (
 	"net/http"
+	"fmt"
 
 	"github.com/Cray-HPE/cray-nls/src/api/models/iuf"
 	"github.com/Cray-HPE/cray-nls/src/utils"
@@ -105,6 +106,32 @@ func (u IufController) GetActivity(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, res)
+}
+
+// DeleteActivity
+//	@Summary	Delete an IUF activity
+//	@Param		activity_name	path	string	true	"activity name"
+//	@Tags		Activities
+//	@Accept		json
+//	@Produce	json
+//	@Success	200	{object}	map[string]interface{}
+//	@Failure	500	{object}	utils.ResponseError
+//	@Router		/iuf/v1/activities/{activity_name} [delete]
+func (u IufController) DeleteActivity(c *gin.Context) {
+    activityName := c.Param("activity_name")
+    u.logger.Infof("DeleteActivity: received request to delete activity %s", activityName)
+   
+    _, err := u.iufService.DeleteActivity(activityName)
+    if err != nil {
+        u.logger.Errorf("DeleteActivity: An error occurred while deleting activity %s: %v", activityName, err)
+        errResponse := utils.ResponseError{Message: err.Error()}
+        c.JSON(http.StatusInternalServerError, errResponse)
+        return
+    }
+    
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Successfully deleted activity %s and all related resources", activityName),
+	})
 }
 
 // PatchActivity

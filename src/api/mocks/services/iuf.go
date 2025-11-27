@@ -65,6 +65,21 @@ func (mr *MockIufServiceMockRecorder) CreateActivity(req interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateActivity", reflect.TypeOf((*MockIufService)(nil).CreateActivity), req)
 }
 
+// DeleteActivity mocks base method.
+func (m *MockIufService) DeleteActivity(name string) (bool, error) {
+    m.ctrl.T.Helper()
+    ret := m.ctrl.Call(m, "DeleteActivity", name)
+    ret0, _ := ret[0].(bool)
+    ret1, _ := ret[1].(error)
+    return ret0, ret1
+}
+
+// DeleteActivity indicates an expected call of DeleteActivity.
+func (mr *MockIufServiceMockRecorder) DeleteActivity(name interface{}) *gomock.Call {
+    mr.mock.ctrl.T.Helper()
+    return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteActivity", reflect.TypeOf((*MockIufService)(nil).DeleteActivity), name)
+}
+
 // CreateIufWorkflow mocks base method.
 func (m *MockIufService) CreateIufWorkflow(req *iuf.Session) (*v1alpha1.Workflow, error, bool) {
 	m.ctrl.T.Helper()
